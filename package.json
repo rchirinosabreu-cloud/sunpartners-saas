@@ -7,9 +7,8 @@
   ],
   "scripts": {
     "postinstall": "npm run postinstall --workspaces",
-    "build:client": "npm run build --workspace=client",
-    "build:server": "npm run build --workspace=server",
-    "start:server": "npm run start --workspace=server",
+    "build": "npm run build --workspaces",
+    "start": "npm start --workspace=server",
     "test": "npm test --workspaces"
   }
 }
