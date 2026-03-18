@@ -30,3 +30,4 @@ Este archivo dicta las normas y convenciones para el desarrollo de la plataforma
 ## 5. Lógica de Negocio
 - **Gestión de Stock:** Sistema de reserva por fechas. La disponibilidad se calcula como: `StockDisponible(t) = StockTotal - Suma(StockReservado(t))`.
 - **Estructura:** Monorepo con carpetas `client` y `server`.
+- **Rutas Backend:** Prohibido usar `app.get("*")` para el catch-all del SPA. Utilizar siempre la expresión regular `/(.*)` para compatibilidad con Node 22+ y Express 5+.
