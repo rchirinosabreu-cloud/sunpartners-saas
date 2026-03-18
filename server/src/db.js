@@ -15,8 +15,13 @@ const prisma = prismaClient.$extends({
         return query(args);
       },
       async findUnique({ model, operation, args, query }) {
-        args.where = { ...args.where, deletedAt: null };
-        return query(args);
+        // findUnique only allows unique fields. We convert it to findFirst to allow filtering by deletedAt: null
+        // We use the lowercase model name to access the prismaClient model property
+        const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
+        return prismaClient[modelKey].findFirst({
+          ...args,
+          where: { ...args.where, deletedAt: null },
+        });
       },
       async count({ model, operation, args, query }) {
         args.where = { ...args.where, deletedAt: null };
@@ -26,11 +31,14 @@ const prisma = prismaClient.$extends({
   },
   model: {
     $allModels: {
-      async softDelete(id) {
+      async softDelete(id, justification) {
         const model = this;
         return model.update({
           where: { id },
-          data: { deletedAt: new Date() },
+          data: {
+            deletedAt: new Date(),
+            deletedJustification: justification || 'No se proporcionó justificación'
+          },
         });
       },
     },

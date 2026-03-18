@@ -2,12 +2,12 @@
 
 @font-face {
   font-family: 'Geist';
-  src: url('https://cdn.jsdelivr.net/gh/stack-theme/geist-font@v1.0.0/fonts/Geist-Variable.woff2') format('woff2');
+  src: url('https://cdnjs.cloudflare.com/ajax/libs/geist-font/1.1.0/fonts/Geist-Variable.woff2') format('woff2');
 }
 
 @font-face {
   font-family: 'Geist Mono';
-  src: url('https://cdn.jsdelivr.net/gh/stack-theme/geist-font@v1.0.0/fonts/GeistMono-Variable.woff2') format('woff2');
+  src: url('https://cdnjs.cloudflare.com/ajax/libs/geist-font/1.1.0/fonts/GeistMono-Variable.woff2') format('woff2');
 }
 
 @theme {

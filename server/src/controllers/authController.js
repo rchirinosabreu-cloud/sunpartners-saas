@@ -8,13 +8,20 @@ const login = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
+      console.warn(`Intento de login fallido: Usuario no encontrado (${email})`);
+      return res.status(401).json({ message: 'Credenciales inválidas' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.warn(`Intento de login fallido: Contraseña incorrecta para (${email})`);
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
     const token = jwt.sign(
       { userId: user.id, role: user.role },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: '1d' }
     );
 
@@ -34,7 +41,11 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error en el servidor' });
+    console.error('Error en el controlador de login:', error);
+    res.status(500).json({
+      message: 'Error en el servidor',
+      debug: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -49,8 +60,14 @@ const getMe = async (req, res) => {
       where: { id: req.userId },
       select: { id: true, nombre: true, email: true, role: true },
     });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
     res.json(user);
   } catch (error) {
+    console.error('Error en getMe:', error);
     res.status(500).json({ message: 'Error en el servidor' });
   }
 };
