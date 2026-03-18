@@ -6,6 +6,8 @@
   "scripts": {
     "test": "vitest run",
     "dev": "nodemon src/app.js",
+    "start": "node src/app.js",
+    "build": "echo 'No build needed for server (Node.js)'",
     "postinstall": "prisma generate"
   },
   "keywords": [],
@@ -13,15 +15,15 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/client": "^7.5.0",
+    "@prisma/client": "6.16.1",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "prisma": "^7.5.0",
-    "vitest": "^4.1.0"
+    "prisma": "6.16.1",
+    "vitest": "^3.0.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

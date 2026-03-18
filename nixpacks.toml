@@ -1,0 +1,8 @@
+[build]
+install = 'npm install && npx prisma generate --schema=server/prisma/schema.prisma'
+
+[phases.setup]
+nixPkgs = ['nodejs', 'openssl']
+
+[start]
+cmd = 'npm run start --workspace=server'
