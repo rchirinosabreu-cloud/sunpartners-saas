@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -31,6 +32,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+  deletedJustification String?
 }
 
 model Inventory {
@@ -43,6 +45,7 @@ model Inventory {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   deletedAt       DateTime?
+  deletedJustification String?
   rentals         RentalItem[]
 }
 
@@ -56,6 +59,7 @@ model Event {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
+  deletedJustification String?
   items          RentalItem[]
 }
 
@@ -69,4 +73,5 @@ model RentalItem {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+  deletedJustification String?
 }
