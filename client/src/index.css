@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Geist';
+  src: url('https://cdn.jsdelivr.net/gh/stack-theme/geist-font@v1.0.0/fonts/Geist-Variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('https://cdn.jsdelivr.net/gh/stack-theme/geist-font@v1.0.0/fonts/GeistMono-Variable.woff2') format('woff2');
+}
+
+@theme {
+  --color-zinc-50: #F4F4F5;
+  --color-zinc-100: #F4F4F5;
+  --color-zinc-200: #E4E4E7;
+  --color-zinc-900: #09090B;
+  --color-brand-blue: #2563EB;
+  --color-brand-yellow: #FACC15;
+
+  --font-sans: "Geist", sans-serif;
+  --font-mono: "Geist Mono", monospace;
+}
+
+body {
+  @apply bg-white text-zinc-900 font-sans antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-sans font-medium;
+}
+
+code {
+  @apply font-mono;
+}

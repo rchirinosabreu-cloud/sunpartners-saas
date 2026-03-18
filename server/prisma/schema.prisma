@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  CLIENTE
+  COLABORADOR
+  COORDINADOR
+}
+
+enum EventStatus {
+  BORRADOR
+  CONFIRMADO
+  FINALIZADO
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  nombre    String
+  role      Role      @default(CLIENTE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Inventory {
+  id              String       @id @default(uuid())
+  nombre          String
+  descripcion     String?
+  stock_total     Int
+  precio_alquiler Float
+  categoria       String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+  rentals         RentalItem[]
+}
+
+model Event {
+  id             String       @id @default(uuid())
+  nombre_cliente String
+  fecha_inicio   DateTime
+  fecha_fin      DateTime
+  ubicacion      String
+  estado         EventStatus  @default(BORRADOR)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  items          RentalItem[]
+}
+
+model RentalItem {
+  id          String    @id @default(uuid())
+  event       Event     @relation(fields: [eventId], references: [id])
+  eventId     String
+  inventory   Inventory @relation(fields: [inventoryId], references: [id])
+  inventoryId String
+  cantidad    Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
