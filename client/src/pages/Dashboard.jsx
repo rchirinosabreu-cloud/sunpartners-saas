@@ -76,9 +76,9 @@ const Dashboard = () => {
         <section className="bg-white border border-zinc-200 rounded-lg p-6">
           <h2 className="text-lg font-bold text-zinc-900 mb-4">Alertas de Inventario</h2>
           <div className="space-y-4">
-             <div className="flex items-center gap-3 p-3 bg-yellow-50 border border-yellow-100 rounded-md">
+             <div className="flex items-center gap-3 p-3 bg-[#FFFBEB] border border-[#FEF3C7] rounded-md">
                 <div className="w-2 h-2 rounded-full bg-brand-yellow" />
-                <p className="text-sm text-yellow-800">
+                <p className="text-sm text-[#92400E]">
                   <span className="font-bold">Stock Bajo:</span> Sillas Tiffany Oro (Queda 15%)
                 </p>
              </div>

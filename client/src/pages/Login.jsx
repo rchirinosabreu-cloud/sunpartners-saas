@@ -41,7 +41,7 @@ const Login = () => {
               id="email"
               type="email"
               required
-              className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-blue focus:border-brand-blue transition-colors text-sm"
+            className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-teal focus:border-brand-teal transition-colors text-sm"
               placeholder="ejemplo@sunpartners.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -56,7 +56,7 @@ const Login = () => {
               id="password"
               type="password"
               required
-              className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-blue focus:border-brand-blue transition-colors text-sm"
+            className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-teal focus:border-brand-teal transition-colors text-sm"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -68,7 +68,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brand-blue text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 text-sm"
+            className="w-full bg-brand-teal text-white py-2 px-4 rounded-md font-medium hover:bg-[#437081] focus:outline-none focus:ring-2 focus:ring-brand-teal focus:ring-offset-2 transition-colors disabled:opacity-50 text-sm"
           >
             {loading ? 'Iniciando sesión...' : 'Entrar'}
           </button>

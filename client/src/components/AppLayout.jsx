@@ -26,7 +26,7 @@ const SidebarItem = ({ to, icon: Icon, label, onClick }) => (
     className={({ isActive }) => cn(
       "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
       "hover:bg-zinc-100 text-zinc-900",
-      isActive && "bg-zinc-100 font-medium border-l-2 border-brand-blue rounded-l-none"
+      isActive && "bg-zinc-100 font-medium border-l-2 border-brand-teal rounded-l-none"
     )}
   >
     <Icon className="w-5 h-5" />
