@@ -36,6 +36,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
+// Rutas de API
 app.use('/api/auth', authRoutes);
 
 app.get('/health', (req, res) => {
@@ -47,7 +48,8 @@ if (process.env.NODE_ENV === 'production') {
   const clientDistPath = path.join(__dirname, '../../client/dist');
   app.use(express.static(clientDistPath));
 
-  app.get('/(.*)', (req, res) => {
+  // Catch-all para SPA con parámetro con nombre (requerido por Node 22/Express 5)
+  app.get('/:path*', (req, res) => {
     if (!req.path.startsWith('/api')) {
       res.sendFile(path.join(clientDistPath, 'index.html'));
     }
