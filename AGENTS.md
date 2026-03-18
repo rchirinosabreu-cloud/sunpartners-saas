@@ -23,8 +23,8 @@ Este archivo dicta las normas y convenciones para el desarrollo de la plataforma
     - **Base:** Blanco Inmaculado (`#FFFFFF`) y Zinc suave (`#F4F4F5`) para fondos.
     - **Texto:** Zinc-900 (`#09090B`).
     - **Bordes/Divisores:** Zinc-200 o Gris Zinc (`#E4E4E7`).
-    - **Acento (Acciones Importantes):** Azul del logo (uso quirúrgico).
-    - **Alertas (Stock Bajo/Conflictos):** Amarillo del logo.
+    - **Acento (Acciones Importantes):** Teal de la marca (`#548CA1`).
+    - **Alertas (Stock Bajo/Conflictos):** Amarillo de la marca (`#F9B233`).
 - **Validación:** En cada ajuste de UI, se **DEBE** adjuntar una captura de pantalla para validación.
 
 ## 5. Lógica de Negocio

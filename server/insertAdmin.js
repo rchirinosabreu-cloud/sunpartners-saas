@@ -1,13 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: "postgresql://postgres:EGzAXOmyhubhwFanidRBnPunUYHRRCwx@centerbeam.proxy.rlwy.net:18075/railway"
-    }
-  }
-});
+const prisma = new PrismaClient();
 
 async function main() {
   const email = 'admin@sunpartners.com';
