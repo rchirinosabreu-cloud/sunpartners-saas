@@ -30,4 +30,4 @@ Este archivo dicta las normas y convenciones para el desarrollo de la plataforma
 ## 5. Lógica de Negocio
 - **Gestión de Stock:** Sistema de reserva por fechas. La disponibilidad se calcula como: `StockDisponible(t) = StockTotal - Suma(StockReservado(t))`.
 - **Estructura:** Monorepo con carpetas `client` y `server`.
-- **Rutas Backend:** Prohibido usar `app.get("*")` o `app.get("(.*)")` para el catch-all del SPA. En Node 22+ y Express 5+, los catch-all deben usar obligatoriamente parámetros con nombre: `app.get("/:path*", ...)`.
+- **Rutas Backend:** Para servir el SPA en Node 22+, evitar rutas con comodines en `app.get`. Usar siempre un middleware final `app.use()` para evitar errores de `path-to-regexp` v8.

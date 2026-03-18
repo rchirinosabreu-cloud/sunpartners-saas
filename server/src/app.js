@@ -36,6 +36,11 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
+// Servir archivos estáticos del frontend en producción (antes de rutas de API para assets)
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../client/dist')));
+}
+
 // Rutas de API
 app.use('/api/auth', authRoutes);
 
@@ -43,18 +48,21 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Servir archivos estáticos del frontend en producción
-if (process.env.NODE_ENV === 'production') {
-  const clientDistPath = path.join(__dirname, '../../client/dist');
-  app.use(express.static(clientDistPath));
+// Middleware Catch-all para SPA (Bypassing path-to-regexp)
+// Debe ir al final de todas las rutas definidas
+app.use((req, res) => {
+  // Si la ruta empieza por /api y llega aquí, es un 404 real de API
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API Endpoint not found' });
+  }
 
-  // Catch-all para SPA con parámetro con nombre (requerido por Node 22/Express 5)
-  app.get('/:path*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(clientDistPath, 'index.html'));
-    }
-  });
-}
+  // Para todo lo demás en producción, servimos el frontend
+  if (process.env.NODE_ENV === 'production') {
+    res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+  } else {
+    res.status(404).json({ error: 'Not found' });
+  }
+});
 
 const PORT = process.env.PORT || 3001;
 
