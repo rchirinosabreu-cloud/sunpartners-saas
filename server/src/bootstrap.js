@@ -22,7 +22,9 @@ const bootstrapAdmin = async () => {
         role: 'ADMIN',
       },
     });
-    console.log('Primer administrador creado exitosamente.');
+    console.log(`[Sunpartners] Admin creado: ${adminEmail}`);
+  } else {
+    console.log(`[Sunpartners] Se han encontrado ${userCount} usuarios. Saltando creación de admin inicial.`);
   }
 };
 
