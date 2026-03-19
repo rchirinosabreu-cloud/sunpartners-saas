@@ -3,11 +3,14 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Inventory from './pages/Inventory';
+import Events from './pages/Events';
+import Clients from './pages/Clients';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen font-body">Cargando...</div>;
   if (!user) return <Navigate to="/login" />;
 
   return children;
@@ -28,11 +31,11 @@ const App = () => {
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="inventario" element={<div className="text-zinc-500">Módulo de Inventario en desarrollo...</div>} />
-            <Route path="eventos" element={<div className="text-zinc-500">Módulo de Eventos en desarrollo...</div>} />
-            <Route path="cotizaciones" element={<div className="text-zinc-500">Módulo de Cotizaciones en desarrollo...</div>} />
-            <Route path="clientes" element={<div className="text-zinc-500">Módulo de Clientes en desarrollo...</div>} />
-            <Route path="equipo" element={<div className="text-zinc-500">Módulo de Equipo en desarrollo...</div>} />
+            <Route path="inventario" element={<Inventory />} />
+            <Route path="eventos" element={<Events />} />
+            <Route path="clientes" element={<Clients />} />
+            <Route path="cotizaciones" element={<div className="p-8 text-zinc-500 font-body">Módulo de Cotizaciones en desarrollo...</div>} />
+            <Route path="equipo" element={<div className="p-8 text-zinc-500 font-body">Módulo de Equipo en desarrollo...</div>} />
           </Route>
         </Routes>
       </BrowserRouter>
