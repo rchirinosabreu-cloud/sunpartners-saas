@@ -13,7 +13,7 @@ describe('Login Page', () => {
         </MemoryRouter>
       </AuthProvider>
     );
-    expect(screen.getByText(/Acceso a la plataforma de gestión/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ingresa tus credenciales para continuar/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Correo Electrónico/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
   });

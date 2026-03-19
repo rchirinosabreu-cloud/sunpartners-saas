@@ -18,65 +18,126 @@ const Login = () => {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
+      setError('Credenciales incorrectas. Por favor, intenta de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 mb-2">Sunpartners</h1>
-          <p className="text-zinc-500 text-sm font-light">Acceso a la plataforma de gestión</p>
+    <div className="bg-background-light min-h-screen flex font-body">
+      {/* Left Side: Brand Panel */}
+      <div className="hidden lg:flex lg:w-1/2 bg-background-dark flex-col items-center justify-center p-12 relative overflow-hidden">
+        {/* Subtle background pattern */}
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(#a1a1aa 1px, transparent 1px)',
+            backgroundSize: '32px 32px'
+          }}
+        ></div>
+
+        <div className="z-10 flex flex-col items-center text-center max-w-md">
+          {/* Logo Icon */}
+          <div className="w-16 h-16 bg-primary rounded flex items-center justify-center mb-8 border border-primary">
+            <span className="material-symbols-outlined text-white text-3xl fill">
+              architecture
+            </span>
+          </div>
+
+          {/* Brand Name */}
+          <h1 className="text-text-light text-4xl font-display font-bold tracking-tight mb-4">
+            Sunpartners
+          </h1>
+
+          {/* Subtitle / Version */}
+          <p className="text-text-muted text-[15px] leading-relaxed">
+            Contraste Estructural<br/>Sistema de Gestión v2.0
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-900" htmlFor="email">
-              Correo Electrónico
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-            className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-teal focus:border-brand-teal transition-colors text-sm"
-              placeholder="ejemplo@sunpartners.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+        {/* Footer info on left panel */}
+        <div className="absolute bottom-8 left-8 text-text-muted text-[13px]">
+          © 2024 Sunpartners Logistics
+        </div>
+      </div>
+
+      {/* Right Side: Login Form */}
+      <div className="w-full lg:w-1/2 bg-background-light flex flex-col items-center justify-center p-8 sm:p-12 border-l border-border-color">
+        {/* Mobile Logo */}
+        <div className="lg:hidden flex flex-col items-center mb-10">
+          <div className="w-12 h-12 bg-primary rounded flex items-center justify-center mb-4">
+            <span className="material-symbols-outlined text-white text-2xl fill">
+              architecture
+            </span>
+          </div>
+          <h1 className="text-text-dark text-2xl font-display font-bold tracking-tight">
+            Sunpartners
+          </h1>
+        </div>
+
+        {/* Form Container */}
+        <div className="w-full max-w-[320px]">
+          <div className="mb-8">
+            <h2 className="text-text-dark text-[24px] font-display font-semibold mb-2">Iniciar Sesión</h2>
+            <p className="text-text-muted text-[15px]">Ingresa tus credenciales para continuar.</p>
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-900" htmlFor="password">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-            className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-teal focus:border-brand-teal transition-colors text-sm"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email Input */}
+            <div className="space-y-1.5">
+              <label className="block text-[13px] font-medium text-text-dark" htmlFor="email">
+                Correo Electrónico
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                className="block w-full h-[44px] px-3 py-2 bg-background-light border border-border-color rounded text-[15px] text-text-dark placeholder:text-text-muted transition-colors"
+                placeholder="operador@sunpartners.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-          {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+            {/* Password Input */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-[13px] font-medium text-text-dark" htmlFor="password">
+                  Contraseña
+                </label>
+                <a className="text-[13px] font-medium text-text-muted hover:text-primary transition-colors" href="#">
+                  ¿Olvidaste tu contraseña?
+                </a>
+              </div>
+              <input
+                id="password"
+                type="password"
+                required
+                className="block w-full h-[44px] px-3 py-2 bg-background-light border border-border-color rounded text-[15px] text-text-dark placeholder:text-text-muted transition-colors"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-brand-teal text-white py-2 px-4 rounded-md font-medium hover:bg-[#437081] focus:outline-none focus:ring-2 focus:ring-brand-teal focus:ring-offset-2 transition-colors disabled:opacity-50 text-sm"
-          >
-            {loading ? 'Iniciando sesión...' : 'Entrar'}
-          </button>
-        </form>
+            {/* Error Message */}
+            {error && (
+              <p className="text-[13px] text-alert font-medium mt-1">{error}</p>
+            )}
 
-        <p className="mt-8 text-center text-xs text-zinc-400">
-          Sunpartners SaaS &copy; {new Date().getFullYear()} — Brainstudio
-        </p>
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-[44px] flex items-center justify-center bg-primary hover:bg-primary-hover text-white font-semibold text-[14px] rounded transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Ingresando...' : 'Ingresar'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

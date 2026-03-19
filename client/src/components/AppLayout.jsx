@@ -1,16 +1,5 @@
 import { useState } from 'react';
 import { NavLink, useNavigate, Outlet } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Package,
-  Calendar,
-  FileText,
-  Users,
-  UserCircle,
-  LogOut,
-  Menu,
-  X
-} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -19,23 +8,31 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-const SidebarItem = ({ to, icon: Icon, label, onClick }) => (
+const SidebarItem = ({ to, icon, label, fillIcon = false }) => (
   <NavLink
     to={to}
-    onClick={onClick}
     className={({ isActive }) => cn(
-      "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-      "hover:bg-zinc-100 text-zinc-900",
-      isActive && "bg-zinc-100 font-medium border-l-2 border-brand-teal rounded-l-none"
+      "flex items-center gap-3 rounded px-3 py-2 transition-colors",
+      isActive
+        ? "bg-zinc-800/50 text-zinc-50 border-l-2 border-primary"
+        : "border-l-2 border-transparent text-zinc-400 hover:bg-zinc-800/30 hover:text-zinc-50"
     )}
   >
-    <Icon className="w-5 h-5" />
-    <span>{label}</span>
+    {({ isActive }) => (
+      <>
+        <span className={cn(
+          "material-symbols-outlined text-[20px]",
+          (isActive || fillIcon) && "fill"
+        )}>
+          {icon}
+        </span>
+        <span className="text-sm font-medium">{label}</span>
+      </>
+    )}
   </NavLink>
 );
 
 const AppLayout = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -45,75 +42,108 @@ const AppLayout = () => {
   };
 
   const menuItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/inventario', icon: Package, label: 'Inventario' },
-    { to: '/eventos', icon: Calendar, label: 'Eventos' },
-    { to: '/cotizaciones', icon: FileText, label: 'Cotizaciones' },
-    { to: '/clientes', icon: Users, label: 'Clientes' },
-    { to: '/equipo', icon: UserCircle, label: 'Equipo' },
+    { to: '/', icon: 'dashboard', label: 'Dashboard' },
+    { to: '/inventario', icon: 'inventory_2', label: 'Inventario' },
+    { to: '/eventos', icon: 'event', label: 'Eventos' },
+    { to: '/clientes', icon: 'group', label: 'Clientes' },
   ];
 
   return (
-    <div className="min-h-screen bg-white flex">
-      {/* Mobile Toggle */}
-      <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white border border-zinc-200 rounded-md shadow-sm"
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-      >
-        {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
-
-      {/* Sidebar */}
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 bg-zinc-50 border-r border-zinc-200 transform transition-transform lg:translate-x-0 lg:static lg:inset-0",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="flex flex-col h-full p-4">
-          <div className="mb-8 px-2">
-            <h1 className="text-xl font-bold tracking-tight text-zinc-900">Sunpartners</h1>
-            <p className="text-xs text-zinc-500">SaaS de Gestión</p>
+    <div className="flex h-screen overflow-hidden bg-background-light text-zinc-900 selection:bg-primary/20 font-body">
+      {/* Sidebar (Strict 240px, Zinc-900) */}
+      <aside className="flex w-[240px] shrink-0 flex-col bg-zinc-900 text-zinc-400 border-r border-zinc-800">
+        {/* Brand / Logo Area */}
+        <div className="flex items-center gap-3 border-b border-zinc-800 p-6 h-[64px] shrink-0">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded bg-primary text-white">
+            <span className="material-symbols-outlined text-lg fill">contrast</span>
           </div>
+          <div className="flex flex-col">
+            <span className="font-display text-sm font-semibold text-zinc-50 tracking-wide">SUNPARTNERS</span>
+            <span className="text-[11px] uppercase tracking-wider text-zinc-500">Contraste Estructural</span>
+          </div>
+        </div>
 
-          <nav className="flex-1 space-y-1">
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <ul className="flex flex-col gap-1 px-3">
             {menuItems.map((item) => (
-              <SidebarItem
-                key={item.to}
-                {...item}
-                onClick={() => setIsSidebarOpen(false)}
-              />
+              <li key={item.to}>
+                <SidebarItem {...item} />
+              </li>
             ))}
-          </nav>
+          </ul>
 
-          <div className="mt-auto pt-4 border-t border-zinc-200 space-y-1">
-            <div className="px-3 py-2 mb-2">
-              <p className="text-sm font-medium text-zinc-900 truncate">{user?.nombre}</p>
-              <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+          {/* Stock Alerts Widget */}
+          <div className="mt-8 px-3">
+            <h3 className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Alertas de Inventario</h3>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-start gap-3 rounded border border-zinc-800 bg-zinc-900 p-3">
+                <span className="material-symbols-outlined mt-0.5 text-[18px] text-alert fill">warning</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-zinc-50">Sillas Tiffany</span>
+                  <span className="text-xs text-alert">Stock crítico: 5 disp.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 rounded border border-zinc-800 bg-zinc-900 p-3">
+                <span className="material-symbols-outlined mt-0.5 text-[18px] text-alert fill">warning</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-zinc-50">Mesas Redondas 1.5m</span>
+                  <span className="text-xs text-alert">Stock bajo: 12 disp.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* User Profile Area (Bottom) */}
+        <div className="mt-auto border-t border-zinc-800 p-4">
+          <div className="flex w-full items-center gap-3 rounded border border-transparent p-2 hover:bg-zinc-800/50 transition-colors group">
+            <div className="size-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-50 text-xs font-bold border border-zinc-700 uppercase">
+              {user?.nombre?.substring(0, 2) || 'OP'}
+            </div>
+            <div className="flex flex-1 flex-col items-start min-w-0">
+              <span className="text-sm font-medium text-zinc-50 truncate w-full">{user?.nombre || 'Operador'}</span>
+              <span className="text-xs text-zinc-500 truncate w-full">Admin</span>
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md transition-colors hover:bg-zinc-100 text-zinc-900"
+              className="material-symbols-outlined text-zinc-500 text-[20px] hover:text-zinc-50 transition-colors"
             >
-              <LogOut className="w-5 h-5 text-zinc-500" />
-              <span>Cerrar Sesión</span>
+              logout
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 min-w-0 overflow-auto">
-        <div className="p-8">
+      {/* Main Content Area */}
+      <main className="flex flex-1 flex-col overflow-hidden bg-background-light">
+        {/* Header (64px) */}
+        <header className="flex h-[64px] shrink-0 items-center justify-between border-b border-zinc-200 px-8 bg-background-light">
+          <h1 className="font-display text-xl font-semibold tracking-tight text-zinc-900">
+            Dashboard - Resumen Operativo
+          </h1>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-zinc-500 font-medium">
+              {new Date().toLocaleDateString('es-ES', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              })}
+            </span>
+            <div className="h-6 w-px bg-zinc-200"></div>
+            <button className="flex size-9 items-center justify-center rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-colors relative">
+              <span className="material-symbols-outlined text-[20px]">notifications</span>
+              <span className="absolute top-2 right-2 size-2 rounded-full bg-alert"></span>
+            </button>
+          </div>
+        </header>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
           <Outlet />
         </div>
       </main>
-
-      {/* Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-30 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
     </div>
   );
 };
