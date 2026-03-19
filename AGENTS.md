@@ -16,15 +16,19 @@ Este archivo dicta las normas y convenciones para el desarrollo de la plataforma
 ## 3. Seguridad
 - **Autenticación:** JWT manejado exclusivamente a través de **HttpOnly Cookies** para evitar vulnerabilidades XSS.
 
-## 4. Sistema de Diseño (Zinc/Minimalista)
-- **Estética:** Estrictamente Minimalista. Prohibidos los degradados, sombras pesadas y colores saturados.
-- **Tipografía:** **Geist (Sans y Mono)**.
+## 4. Sistema de Diseño (Contraste Estructural v2.0)
+- **Estética:** Estrictamente Minimalista y Profesional (inspirado en Linear/Stripe).
+- **Tipografía:** **Space Grotesk** para encabezados/display y **DM Sans** para el cuerpo de texto.
+- **Bordes:** Strictly **2px (rounded-sm)** para todos los componentes (botones, inputs, tarjetas). **PROHIBIDOS** los bordes redondeados estándar (md, lg, etc.).
+- **Sombras:** **SIN SOMBRAS** (`shadow: none`). El diseño se basa en bordes de 1px para separación.
 - **Paleta de Colores:**
-    - **Base:** Blanco Inmaculado (`#FFFFFF`) y Zinc suave (`#F4F4F5`) para fondos.
-    - **Texto:** Zinc-900 (`#09090B`).
-    - **Bordes/Divisores:** Zinc-200 o Gris Zinc (`#E4E4E7`).
-    - **Acento (Acciones Importantes):** Teal de la marca (`#548CA1`).
-    - **Alertas (Stock Bajo/Conflictos):** Amarillo de la marca (`#F9B233`).
+    - **Base:** Blanco (`#FFFFFF`) y Fondo suave (`#FAFAFA`) para fondos claros.
+    - **Fondo Oscuro:** Zinc-900 (`#18181B`) para Sidebars y Paneles de marca.
+    - **Texto:** Zinc-900 para contenido y Zinc-400/500 para texto secundario.
+    - **Bordes/Divisores:** Zinc-200 (`#E4E4E7`).
+    - **Primario (Acciones):** Azul Sunpartners (`#12AEE2`).
+    - **Alertas/Advertencias:** Amarillo Alerta (`#FBAE17`).
+- **Iconografía:** Usar siempre **Google Material Symbols Outlined**.
 - **Validación:** En cada ajuste de UI, se **DEBE** adjuntar una captura de pantalla para validación.
 
 ## 5. Lógica de Negocio
