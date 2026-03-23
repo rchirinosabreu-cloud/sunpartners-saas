@@ -6,6 +6,19 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    // Desarrollo: Si no hay base de datos, permitir acceso con credenciales por defecto
+    if (process.env.NODE_ENV !== 'production' && email === 'admin@sunpartners.com' && password === 'admin_password_123') {
+      return res.json({
+        user: {
+          id: 'dev-admin-id',
+          nombre: 'Administrador Sunpartners',
+          email: 'admin@sunpartners.com',
+          role: 'ADMIN',
+          department: 'DIRECCION'
+        },
+      });
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
