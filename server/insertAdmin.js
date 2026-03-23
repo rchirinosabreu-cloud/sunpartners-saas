@@ -29,7 +29,8 @@ async function main() {
       email,
       password: hashedPassword,
       nombre,
-      role
+      role,
+      department: 'DIRECCION'
     }
   });
 
