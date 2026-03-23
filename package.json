@@ -10,5 +10,8 @@
     "build": "npm run build --workspaces",
     "start": "npm start --workspace=server",
     "test": "npm test --workspaces"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
   }
 }

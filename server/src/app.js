@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const path = require('path');
 const authRoutes = require('./routes/auth');
+const inventoryRoutes = require('./routes/inventory');
 const bootstrapAdmin = require('./bootstrap');
 
 dotenv.config();
@@ -43,6 +44,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // Rutas de API
 app.use('/api/auth', authRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

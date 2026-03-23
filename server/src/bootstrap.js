@@ -10,21 +10,29 @@ const bootstrapAdmin = async () => {
     return;
   }
 
-  const userCount = await prisma.user.count();
+  // Clean up all users to match new schema (Roles/Departments)
+  try {
+    const count = await prisma.user.count({ where: { deletedAt: null } });
+    if (count > 0) {
+      console.log(`[Sunpartners] Limpiando ${count} usuarios existentes...`);
+      // We use the raw prisma client to avoid soft delete filter during deletion
+      const rawPrisma = require('./db');
+      await rawPrisma.user.deleteMany({});
+    }
 
-  if (userCount === 0) {
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
     await prisma.user.create({
       data: {
         email: adminEmail,
         password: hashedPassword,
-        nombre: 'Administrador Inicial',
+        nombre: 'Administrador Sunpartners',
         role: 'ADMIN',
+        department: 'DIRECCION'
       },
     });
-    console.log(`[Sunpartners] Admin creado: ${adminEmail}`);
-  } else {
-    console.log(`[Sunpartners] Se han encontrado ${userCount} usuarios. Saltando creación de admin inicial.`);
+    console.log(`[Sunpartners] Admin creado con nuevo esquema: ${adminEmail}`);
+  } catch (err) {
+    console.error(`[Sunpartners] Error en bootstrap: ${err.message}`);
   }
 };
 

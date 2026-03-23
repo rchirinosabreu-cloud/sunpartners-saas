@@ -18,10 +18,11 @@ const prisma = prismaClient.$extends({
         // findUnique only allows unique fields. We convert it to findFirst to allow filtering by deletedAt: null
         // We use the lowercase model name to access the prismaClient model property
         const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
-        return prismaClient[modelKey].findFirst({
+        const result = await prismaClient[modelKey].findFirst({
           ...args,
           where: { ...args.where, deletedAt: null },
         });
+        return result;
       },
       async count({ model, operation, args, query }) {
         args.where = { ...args.where, deletedAt: null };
