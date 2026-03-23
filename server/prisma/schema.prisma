@@ -12,9 +12,20 @@ datasource db {
 
 enum Role {
   ADMIN
-  CLIENTE
-  COLABORADOR
-  COORDINADOR
+  EDITOR
+}
+
+enum Department {
+  DIRECCION
+  COORDINACION
+  ADMINISTRACION
+  ALMACEN
+  LOGISTICA
+}
+
+enum Class {
+  CLASE_A
+  CLASE_B
 }
 
 enum EventStatus {
@@ -24,25 +35,29 @@ enum EventStatus {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String
-  nombre    String
-  role      Role      @default(CLIENTE)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id             String      @id @default(uuid())
+  email          String      @unique
+  password       String
+  nombre         String
+  role           Role        @default(EDITOR)
+  department     Department?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  deletedAt      DateTime?
   deletedJustification String?
 }
 
-model Inventory {
+model InventoryItem {
   id              String       @id @default(uuid())
   nombre          String
-  descripcion     String?
-  stock_total     Int
-  min_stock       Int          @default(0)
-  precio_alquiler Float
-  categoria       String?
+  clase           Class
+  bodega          String
+  seccion         String
+  existenciaTotal Int
+  vlrUnitario     Float
+  disponibles     Int          @default(0)
+  enReparacion    Int          @default(0)
+  observaciones   String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   deletedAt       DateTime?
@@ -65,14 +80,14 @@ model Event {
 }
 
 model RentalItem {
-  id          String    @id @default(uuid())
-  event       Event     @relation(fields: [eventId], references: [id])
+  id          String        @id @default(uuid())
+  event       Event         @relation(fields: [eventId], references: [id])
   eventId     String
-  inventory   Inventory @relation(fields: [inventoryId], references: [id])
+  inventory   InventoryItem @relation(fields: [inventoryId], references: [id])
   inventoryId String
   cantidad    Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   deletedAt   DateTime?
   deletedJustification String?
 }
