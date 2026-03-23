@@ -1,91 +1,299 @@
 const { PrismaClient } = require('@prisma/client');
-const xlsx = require('xlsx');
-const path = require('path');
-
 const prisma = new PrismaClient();
 
-async function main() {
-  const filePath = path.join(__dirname, '../../inventario.xlsx');
+const csvData = `BASE DE ASPERSOR PRO TURBO,B,SHERYLANDIA,PATIO,0,6,6," $  167,500 "," $  1,005,000 ",
+TURBINA PRO TURBO TSUNAMI 500W,A,SHERYLANDIA,PATIO,2,0,2," $  5,750,000 "," $  11,500,000 ",
+VENTILADOR INDUSTRIAL,B-C,SHERYLANDIA,PATIO,0,10,10," $  950,000 "," $  9,500,000 ",POR REVISIÓN DE TÉCNICO
+BASE MESA BAR METALICA,B,SHERYLANDIA,PATIO,0,30,30," $  61,000 "," $  1,830,000 ",TODAS REQUIERNE PINTURA
+SUPERFICIE MESA BAR METALICA,A-B,SHERYLANDIA,PATIO,24,6,30," $  61,000 "," $  1,830,000 ",PRESENTAN GOLPES
+SILLA DE PELUQUERÍA,C,SHERYLANDIA,PATIO,0,1,1, $  - , $  - ,DEMASIADO DAÑADA
+ROMPEFILAS GRANDES,A-C,SHERYLANDIA,PATIO,18,4,22," $  120,000 "," $  2,640,000 ",BASES DAÑADAS
+ROMPEFILAS PEQUEÑO,A-C,SHERYLANDIA,PATIO,8,3,11," $  120,000 "," $  1,320,000 ",BASES DAÑADAS
+,A,SHERYLANDIA,PATIO,4,,4," $  175,000 "," $  700,000 ",
+SILLA ACAPULCO AZUL,A,SHERYLANDIA,PATIO,16,0,16," $  148,900 "," $  2,382,400 ",
+SILLA ACAPULCO BLANCA,A,SHERYLANDIA,PATIO,6,0,6," $  175,000 "," $  1,050,000 ",
+SILLA ACAPULCO AMARILLA,A,SHERYLANDIA,PATIO,2,0,2," $  175,000 "," $  350,000 ",
+SILLA ACAPULCO ROJA,A-B,SHERYLANDIA,PATIO,4,2,6," $  175,000 "," $  1,050,000 ",ESTÁN EN SOLDADURA
+MESA ACAPULCO RELOJ DE ARENA,A,SHERYLANDIA,PATIO,2,0,2," $  100,000 "," $  200,000 ",
+MESA ACAPULCO DE MADERA,A,SHERYLANDIA,PATIO,3,0,3," $  100,000 "," $  300,000 ",
+MESA ACAPULCO TEJIDA,A-B,SHERYLANDIA,PATIO,3,1,4," $  100,000 "," $  400,000 ",NECESITA TEJIDO
+BUTACO BAR ACAPULCO,A,SHERYLANDIA,PATIO,2,0,2," $  140,000 "," $  280,000 ",
+SILLA BAR ACAPULCO,A,SHERYLANDIA,PATIO,4,0,4," $  170,000 "," $  680,000 ",
+ROLL UP SPGL,A,SHERYLANDIA,CUARTO #2,2,0,2, $  - , $  - ,PARA USO OFICINA
+CILINDRO LED,A,SHERYLANDIA,CUARTO #2,15,0,15," $  306,250 "," $  4,593,750 ",
+MANZANA LED,A,SHERYLANDIA,CUARTO #2,15,0,15," $  306,250 "," $  4,593,750 ",
+CUBO LED,A,SHERYLANDIA,CUARTO #2,14,0,14," $  306,250 "," $  4,287,500 ",
+MODULO BAR LED,A-B,SHERYLANDIA,CUARTO #2,1,1,2," $  495,000 "," $  990,000 ",1 MUY AMARILLO
+PERCHERO METALICO,A,SHERYLANDIA,CUARTO #2,1,0,1, $  - , $  - ,
+LUZ LED,A-B,SHERYLANDIA,CUARTO #2,27,8,35, $  - , $  - ,EN CORTO
+LUZ LED SIN DOMO,C,SHERYLANDIA,CUARTO #2,0,16,16, $  - , $  - ,POR REVISIÓN DE TÉCNICO
+CONTROL LUZ LED,A,SHERYLANDIA,CUARTO #2,26,17,43, $  - , $  - ,POR VALIDAR SU FRECUENCIA
+CARGADOR LUZ LED,A,SHERYLANDIA,CUARTO #2,40,0,40, $  - , $  - ,
+SILLA BAR SOFIA CON ESPALDAR,C,SHERYLANDIA,CUARTO #2,0,12,12," $  239,900 "," $  2,878,800 ",CROMADO Y TAPIZADO
+GABETERO METALICO GRIS,A,SHERYLANDIA,CUARTO #2,1,0,1, $  - , $  - ,PARA USO OFICINA
+PUFF PERA BLANCO,B,SHERYLANDIA,CUARTO #1,0,49,49," $  77,000 "," $  3,773,000 ",REQUIEREN RELLENO
+FORRO PUFF PERA AMARILLO,B,SHERYLANDIA,CUARTO #1,0,8,8," $  37,500 "," $  300,000 ",
+FORRO PUFF PERA AZUL,B,SHERYLANDIA,CUARTO #1,0,6,6," $  37,500 "," $  225,000 ",
+FORRO PUFF PERA ROJO,B,SHERYLANDIA,CUARTO #1,0,4,4," $  37,500 "," $  150,000 ",
+FORRO PUFF PERA TRICOLOR,B,SHERYLANDIA,CUARTO #1,0,1,1," $  37,500 "," $  37,500 ",
+POLTRONA MIMBRE,A,SHERYLANDIA,SALA,14,0,14," $  470,000 "," $  6,580,000 ",REQUIEREN LA TELA DE ABAJO
+SOFA MIMBRE,A,SHERYLANDIA,SALA,7,0,7," $  1,050,000 "," $  7,350,000 ",6 REQUIEREN TELA
+MESA DE CENTRO MIMBRE,A,SHERYLANDIA,SALA,10,0,10," $  255,000 "," $  2,550,000 ",
+PUFF MIMBRE,A,SHERYLANDIA,SALA,4,0,4," $  290,000 "," $  1,160,000 ",
+COJIN GRANDE DE SOFA MIMBRE,A,SHERYLANDIA,SALA,7,0,7, $  - , $  - ,
+COJIN DE POLTRONA MIMBRE,A,SHERYLANDIA,SALA,14,0,14, $  - , $  - ,
+POLTRONA TEKA,A,SHERYLANDIA,SALA,8,0,8," $  600,000 "," $  4,800,000 ",REQUIEREN AJUSTE DE TORNILLO
+MESA DE CENTRO TEKA,A-C,SHERYLANDIA,SALA,2,2,4," $  200,000 "," $  800,000 ",REQUIEREN AJUSTE DE TORNILLO
+SOFA TEKA,A,SHERYLANDIA,SALA,4,0,4," $  1,100,000 "," $  4,400,000 ",REQUIEREN AJUSTE DE TORNILLO
+COJIN POLTRONA TEKA,A,SHERYLANDIA,SALA,8,0,8, $  - , $  - ,
+COJIN SOFA TEKA,A,SHERYLANDIA,SALA,4,0,4, $  - , $  - ,
+SILLA BAR LED,A,SHERYLANDIA,SALA,14,0,14," $  398,571 "," $  5,580,000 ",
+POLTRONA LED,A,SHERYLANDIA,SALA,9,1,10," $  500,000 "," $  5,000,000 ",PRESENTA MANCHAS
+ESCRITORIO BLANCO,A,SHERYLANDIA,SALA,1,0,1, $  - , $  - ,PARA USO OFICINA
+SILLA DE OFICINA,A,SHERYLANDIA,SALA,1,0,1, $  - , $  - ,PARA USO OFICINA
+ESCRITORIO DE VIDRIO,A,PRINCIPAL,OFICINA,1,0,1, $  - , $  - ,
+"ESCRITORIO EN FORMA DE ""L""",A,PRINCIPAL,OFICINA,1,0,1, $  - , $  - ,
+GAVETERO FLOTANTE GRIS,B,PRINCIPAL,OFICINA,1,1,2, $  - , $  - ,
+GAVETERO CORREDIZO BLANCO,B,PRINCIPAL,OFICINA,0,1,1, $  - , $  - ,
+PAPELOGRAFO,A,PRINCIPAL,OFICINA,1,0,1," $  230,000 "," $  230,000 ",
+COMPUTADOR MAC,C,PRINCIPAL,OFICINA,0,1,1, $  - , $  - ,
+PARASOL GRIS,A,PRINCIPAL,OFICINA,8,0,8," $  700,000 "," $  5,600,000 ",
+PARASOL BEIGE,B,PRINCIPAL,OFICINA,6,0,6," $  790,000 "," $  4,740,000 ",
+CAJAS ELEMENTOS DE OFICINA,A,PRINCIPAL,OFICINA,5,0,5, $  - , $  - ,
+VENTILADOR ASPERSOR,B,PRINCIPAL,CUARTO #2,0,21,21," $  2,500,000 "," $  52,500,000 ",
+BASE PARASOL METALICA,A,PRINCIPAL,CUARTO #2,6,0,6, $  - , $  - ,
+BASE PARASOL PLASTICA,A,PRINCIPAL,CUARTO #2,1,0,1, $  - , $  - ,
+MESA TABLÓN BLANCA,A,PRINCIPAL,CUARTO #2,14,0,14," $  230,000 "," $  3,220,000 ",
+CARRO DE PERROS,A,PRINCIPAL,CUARTO #2,1,0,1, $  - , $  - ,
+TAPETE TRANSPARENTE,A,PRINCIPAL,CUARTO #2,15,0,15, $  - , $  - ,
+TANQUE AZUL,A,PRINCIPAL,CUARTO #2,1,0,1, $  - , $  - ,
+MESA AUXILIAR DE MADERA,A,PRINCIPAL,CUARTO #2,30,0,30," $  80,900 "," $  2,427,000 ",POR PINTAR
+EXTENSIONES ELECTRICAS,A,PRINCIPAL,CUARTO #2,20,0,20, $  - , $  - ,
+COMEDOR TEKA,A,PRINCIPAL,SALA,2,0,2," $  1,540,000 "," $  3,080,000 ",
+SILLA BAR OCRE,B,PRINCIPAL,SALA,2,0,2," $  300,000 "," $  600,000 ",
+SILLA BAR BERGOLIA CROMADA,B,PRINCIPAL,SALA,4,0,4," $  600,000 "," $  2,400,000 ",
+SILLA ALTA PUB,A,PRINCIPAL,SALA,6,0,6," $  128,700 "," $  772,200 ",
+SILLA BAR MADERA SUP MADERA,B,PRINCIPAL,SALA,1,0,1, $  - , $  - ,
+SILLA BAR MADERA SUP COJIN,A,PRINCIPAL,SALA,1,0,1, $  - , $  - ,
+MESA PUB RECTANGULAR CON CORRIENTE,A,PRINCIPAL,SALA,2,0,2," $  234,000 "," $  468,000 ",
+MESA ALTA PUB,A,PRINCIPAL,SALA,3,0,3," $  206,700 "," $  620,100 ",
+MESA BAR MADERA,B,PRINCIPAL,SALA,2,1,3," $  320,000 "," $  960,000 ",
+BUTACO BAR MADERA,A,PRINCIPAL,SALA,4,0,4, $  - , $  - ,
+MESA DE CENTRO PRAGA,A,PRINCIPAL,SALA,1,0,1," $  420,000 "," $  420,000 ",
+MESA PRAGA 2 NIVELES,A,PRINCIPAL,SALA,1,0,1," $  420,000 "," $  420,000 ",
+MESA PRAGA REDONDA,A,PRINCIPAL,SALA,1,0,1," $  420,000 "," $  420,000 ",
+SILLA BAR HUEVITO,C,PRINCIPAL,SALA,5,0,5," $  125,000 "," $  625,000 ",
+ESPEJO TOCADOR CON LUCES,A,PRINCIPAL,SALA,4,0,4," $  980,000 "," $  3,920,000 ",
+MESA ALTA BUTACO,A,PRINCIPAL,SALA,2,0,2, $  - , $  - ,
+FORRO MESA LOUNGE NEGRO,A,PRINCIPAL,SALA,5,0,5, $  - , $  - ,
+FORRO LINEAL DOBLE NEGRO,A,PRINCIPAL,SALA,6,0,6, $  - , $  - ,
+FORRO PUFF SENCILLO NEGRO,A,PRINCIPAL,SALA,11,0,11, $  - , $  - ,
+FORRO SOFA LOUNGE SIN BRAZOS,A,PRINCIPAL,SALA,7,0,7, $  - , $  - ,
+MESA AUXILIAR MILKY,A,PRINCIPAL,CUARTO #3,1,0,1, $  - , $  - ,
+MESA DE CENTRO KATTY,B,PRINCIPAL,CUARTO #3,0,5,5," $  1,704,000 "," $  8,520,000 ",
+SILLA EAMES CON BRAZOS,A,PRINCIPAL,CUARTO #3,16,0,16," $  137,500 "," $  2,200,000 ",
+MESA AUXILIAR CUBO,B,PRINCIPAL,CUARTO #3,10,0,10," $  150,000 "," $  1,500,000 ",
+MESA AUXILIAR NÓRDICA,B,PRINCIPAL,CUARTO #3,0,11,11," $  70,000 "," $  770,000 ",
+MESA AUXILIAR NÓRDICA BASE CUADRADA,A,PRINCIPAL,CUARTO #3,5,0,5," $  180,000 "," $  900,000 ",
+POLTRONA MECÁNICA,A,PRINCIPAL,CUARTO #3,10,0,10," $  200,000 "," $  2,000,000 ",
+POLTRONA LATTE,A,PRINCIPAL,CUARTO #3,4,0,4," $  400,000 "," $  1,600,000 ",
+POLTRONA PRAGA,A,PRINCIPAL,CUARTO #3,3,0,3," $  690,000 "," $  2,070,000 ",
+POLTRONA TRIGO,A,PRINCIPAL,CUARTO #3,4,0,4," $  400,000 "," $  1,600,000 ",
+POLTRONA OVEJERA,A,PRINCIPAL,CUARTO #3,2,0,2," $  990,000 "," $  1,980,000 ",
+POLTRONA EJECUTIVA GRIS,A,PRINCIPAL,CUARTO #3,4,0,4," $  100,000 "," $  400,000 ",
+MESA DE CENTRO OLA,A,PRINCIPAL,CUARTO #3,1,0,1, $  - , $  - ,
+POLTRONA VALERY,B,PRINCIPAL,CUARTO #3,6,0,6," $  450,000 "," $  2,700,000 ",
+DISPENSADOR DE AGUA,C,PRINCIPAL,COCINA,0,1,1, $  - , $  - ,DAÑADO
+ESTUFA,C,PRINCIPAL,COCINA,0,1,1, $  - , $  - ,LIMPIEZA Y OXIDO
+MECEDORA BLANCO/AMARILLO,C,PRINCIPAL,PATIO,0,2,2, $  - , $  - ,DAÑADAS
+LAVADORA,B,PRINCIPAL,PATIO,0,1,1, $  - , $  - ,MANTENIMIENTO
+SECADORA,B,PRINCIPAL,PATIO,0,1,1, $  - , $  - ,MANTENIMIENTO
+MESA BAR METALICA GRIS,C,PRINCIPAL,PATIO,0,2,2, $  - , $  - ,DAÑADAS
+POLTRONA LOUNGE,A-B,AUXILIAR,SALA,8,3,11," $  550,000 "," $  6,050,000 ",RASGADURAS A LOS LADOS
+SOFA BLANCO SIN BRAZOS,A,AUXILIAR,SALA,30,0,30," $  1,000,000 "," $  30,000,000 ",
+SOFA TRIGO CON BRAZOS,A,AUXILIAR,SALA,2,0,2," $  1,200,000 "," $  2,400,000 ",
+SOFA BLANCO 3 PAX CON BRAZOS,A,AUXILIAR,SALA,1,0,1," $  2,000,000 "," $  2,000,000 ",
+MESA DE JUNTAS ,A,AUXILIAR,SALA,1,0,1," $  1,300,000 "," $  1,300,000 ",SOLO TIENE ORIFICIOS PARA CONEXIÓN
+PUFF LINEAL TRIPLE,A,AUXILIAR,SALA,20,0,20," $  300,000 "," $  6,000,000 ",
+PUFF LINEAL DOBLE,A,AUXILIAR,SALA,10,0,10," $  220,000 "," $  2,200,000 ",
+MESA DE CENTRO LOUNGE,A,AUXILIAR,SALA,10,0,10, $  - , $  - ",
+ESPEJO CUERPO COMPLETO NEGRO,A,AUXILIAR,SALA,1,,1," $  100,000 "," $  100,000 ",
+REGULADOR DE CORRIENTE,A,AUXILIAR,SALA,1,,1, $  - , $  - ,
+RACK DE VESTUARIO DORADO OVALADO,A,AUXILIAR,SALA,2,,2," $  148,000 "," $  296,000 ",
+RACK DE VESTUARIO DORADO RECTANGULAR,A,AUXILIAR,SALA,2,,2," $  148,000 "," $  296,000 ",
+RACK DE VESTUARIO NEGRO ALTO,A,AUXILIAR,SALA,4,,4," $  120,000 "," $  480,000 ",
+RACK DE VESTUARIO NEGRO BAJO,A-B,AUXILIAR,SALA,5,1,6," $  90,000 "," $  540,000 ",
+CORDÓN ROJO ROMPEFILAS CROMADO,A,AUXILIAR,SALA,9,,9, $  - , $  - ,
+SPANDEX MESA BAR NEGRO,A,AUXILIAR,SALA,32,0,32," $  46,666 "," $  1,493,312 ",
+SPANDEX TABLON DORADO,A-B,AUXILIAR,SALA,3,3,6," $  51,833 "," $  310,998 ",
+SPANDEX TABLON NEGRO,A,AUXILIAR,SALA,4,,4," $  36,000 "," $  144,000 ",
+MINI BAR,A,AUXILIAR,SALA,1,,1," $  689,900 "," $  689,900 ",
+CONGELADOR,A,AUXILIAR,SALA,1,,1," $  800,000 "," $  800,000 ",
+DYMO - ETIQUETADORA,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+TALADRO INALAMBRICO,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+MARTILLO,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+PINZA,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+DESTORNILLADOR DE PALA,A,AUXILIAR,HERRAMIENTAS,2,,2, $  - , $  - ,
+DESTORNILLADOR DE ESTRIA,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+JUEGO DE DADOS,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+ALICATE,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+GRAPADORA,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+GUANTES TEL-PRO GRIS (PAR),A,AUXILIAR,HERRAMIENTAS,10,,10, $  - , $  - ,
+GUANTES ELECTRICOS GRIS (PAR),A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+GRECA DE CAFÉ,A,AUXILIAR,HERRAMIENTAS,1,,1," $  1,100,000 "," $  1,100,000 ",
+VALDE,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+ESCOBA,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+TRAPERO,A,AUXILIAR,HERRAMIENTAS,1,,1, $  - , $  - ,
+SILLA EAMES SIN BRAZOS,A,AUXILIAR,CUARTO #2,60,,60," $  120,000 "," $  7,200,000 ",
+ESPEJO CUERPO COMPLETO + 1 RACK,A,AUXILIAR,CUARTO #2,3,,3," $  100,000 "," $  300,000 ",
+BASE DE MESAS DE TRABAJO ZIENNA,A,AUXILIAR,CUARTO #2,10,,10," $  350,000 "," $  3,500,000 ",
+SUPERFICIE MESA DE TRABAJO ZIENNA,A-B,AUXILIAR,CUARTO #2,7,3,10," $  350,000 "," $  3,500,000 ",
+SILLA NEGRA NEW YORK,A,AUXILIAR,CUARTO #2,5,,5," $  199,500 "," $  997,500 ",3 EN RIVERSIDE
+SILLA MONACO,A,AUXILIAR,CUARTO #2,10,,10," $  180,000 "," $  1,800,000 ",
+VIDRIO DE MESA DE TRABAJO,A,AUXILIAR,CUARTO #2,10,,10," $  200,000 "," $  2,000,000 ",
+SILLA BAR NÓRDICA,A,AUXILIAR,CUARTO #2,2,0,2," $  300,000 "," $  600,000 ",
+BLOWER DE PISO,A,AUXILIAR,CUARTO #2,3,,3," $  569,900 "," $  1,709,700 ",
+ATRIL ACRILICO ,A,AUXILIAR,CUARTO #2,1,,1," $  800,000 "," $  800,000 ",
+RACK DE MADERA PARA ATRIL ACRILICO,B,AUXILIAR,CUARTO #2,,1,1," $  250,000 "," $  250,000 ",ARREGLAR RUEDAS
+BASE MESA DE TRABAJO VIDRIO,B,AUXILIAR,CUARTO #3,,10,10," $  200,000 "," $  2,000,000 ",
+SILLA BAR DUNNA,A,AUXILIAR,CUARTO #3,60,,60," $  464,900 "," $  27,894,000 ",REVISAR EL TAPIZADO AMARILLO
+SILLA BAR SOFIA NEGRA,A,AUXILIAR,CUARTO #3,12,,12," $  239,900 "," $  2,878,800 ",
+SILLA BAR SOFIA BLANCA,A,AUXILIAR,CUARTO #3,20,,20," $  239,900 "," $  4,798,000 ",
+MESA BAR CROMADA MADERA BLANCA,B,AUXILIAR,CUARTO #3,0,11,11," $  490,000 "," $  5,390,000 ",
+TUBO DE MESA BAR CROMADA VIDRIO,B,AUXILIAR,CUARTO #3,0,19,19," $  120,000 "," $  2,280,000 ",
+VIDRIO DE MESA BAR CROMADA,B,AUXILIAR,CUARTO #3,0,19,19," $  120,000 "," $  2,280,000 ",
+BASE DE MESA BAR CROMADA VIDRIO,B,AUXILIAR,CUARTO #3,0,19,19," $  120,000 "," $  2,280,000 ",
+ROMPEFILAS CROMADO,A-B,AUXILIAR,CUARTO #3,5,3,8," $  270,000 "," $  2,160,000 ",
+MESA BAR CROMADA VIDRIO FIJA,A,AUXILIAR,CUARTO #4,10,0,10," $  360,000 "," $  3,600,000 ",
+MESA BAR CROMADA VIDRIO MECANICA,A,AUXILIAR,CUARTO #4,14,0,14," $  580,000 "," $  8,120,000 ",
+PUFF BLANCO MINI,A,AUXILIAR,COCINA,8,,8," $  100,000 "," $  800,000 ",
+PUFF SENCILLO CAPITONEADO,A,AUXILIAR,COCINA,32,,32," $  150,000 "," $  4,800,000 ",
+PUFF SENCILLO SIN CAPITONEAR,A,AUXILIAR,COCINA,18,2,20," $  150,000 "," $  3,000,000 ",
+MECEDORA CORAL,A,CAPRIELLA,APTO,2,0,2," $  458,000 "," $  916,000 ",
+GOLD COFFEE TABLE,A,CAPRIELLA,APTO,8,,8," $  1,004,273 "," $  8,034,184 ",
+SILLA BOHO PLEGABLE,A,CAPRIELLA,APTO,8,,8," $  95,702 "," $  765,616 ",
+TAPETE GRIS SOL,A,PRINCIPAL,CUARTO #2,1,,1," $  565,500 "," $  565,500 ",
+TRITURADORA DE PAPEL,A,CAPRIELLA,APTO,1,,1," $  187,200 "," $  187,200 ",
+TABURETE AUXILIAR CUERO,A,CAPRIELLA,APTO,1,,1,109200," $  109,200 ",
+MESA ALTA PUB MECANICA,A,PRINCIPAL,CUARTO #2,1,0,1," $  234,000 "," $  234,000 ",
+REVISTERO CON MALETA,A,,,1,,1,292500," $  292,500 ",
+SPANDEX TABLON BLANCO,A,AUXILIAR,CUARTO #1,8,0,8,46800," $  374,400 ",MANDAR A LAVAR`;
 
-  let workbook;
-  try {
-    workbook = xlsx.readFile(filePath);
-  } catch (error) {
-    console.error(`Error reading excel file at ${filePath}. Falling back to default data for development...`);
-    // Dummy data fallback
-    const dummyData = [
-      {
-        NOMBRE: 'CABLE ENCARTONADO 3X10',
-        CLASE: 'A-B',
-        BODEGA: 'PRINCIPAL',
-        'SECCIÓN': 'CUARTO_1',
-        'EXISTENCIA TOTAL': 30,
-        'VLR. UNITARIO': 15000,
-        OBSERVACIONES: 'Importado de prueba'
-      }
-    ];
-    await seedData(dummyData);
-    return;
-  }
+const BODEGA_MAP = {
+  'PRINCIPAL': 'PRINCIPAL',
+  'AUXILIAR': 'AUXILIAR',
+  'CAPRIELLA': 'CAPRIELLA',
+  'SHERYLANDIA': 'SHERYLANDIA'
+};
 
-  const sheetName = workbook.SheetNames[0];
-  const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+const SECCION_MAP = {
+  'PATIO': 'PATIO',
+  'CUARTO 1': 'CUARTO_1',
+  'CUARTO 2': 'CUARTO_2',
+  'CUARTO 3': 'CUARTO_3',
+  'CUARTO 4': 'CUARTO_4',
+  'SALA': 'SALA',
+  'OFICINA': 'OFICINA',
+  'APTO': 'APTO',
+  'COCINA': 'COCINA',
+  'HERRAMIENTAS': 'HERRAMIENTAS'
+};
 
-  console.log(`Found ${data.length} items to import.`);
-  await seedData(data);
+function parseCurrency(str) {
+  if (!str || str.trim() === '' || str.trim() === '$  -') return 0;
+  return parseFloat(str.replace(/[^0-9.]/g, '')) || 0;
 }
 
-async function seedData(data) {
-  // Clear existing inventory
-  await prisma.inventoryItem.deleteMany({});
-  console.log('Cleared existing inventory items.');
-
-  for (const row of data) {
-    try {
-      const existenciaTotal = parseInt(row['EXISTENCIA TOTAL']) || 0;
-      let claseA = 0;
-      let claseB = 0;
-      let claseC = 0;
-
-      const label = (row['CLASE'] || '').toUpperCase();
-
-      if (label === 'A') {
-        claseA = existenciaTotal;
-      } else if (label === 'B') {
-        claseB = existenciaTotal;
-      } else if (label === 'C') {
-        claseC = existenciaTotal;
-      } else if (label === 'A-B') {
-        claseA = Math.ceil(existenciaTotal / 2);
-        claseB = existenciaTotal - claseA;
-      } else if (label === 'B-C') {
-        claseB = Math.ceil(existenciaTotal / 2);
-        claseC = existenciaTotal - claseB;
-      } else if (label === 'A-C') {
-        claseA = Math.ceil(existenciaTotal / 2);
-        claseC = existenciaTotal - claseA;
-      } else {
-        // Default to A if unknown
-        claseA = existenciaTotal;
-      }
-
-      await prisma.inventoryItem.create({
-        data: {
-          nombre: row['NOMBRE'] || 'Sin nombre',
-          claseA,
-          claseB,
-          claseC,
-          bodega: row['BODEGA'] || 'PRINCIPAL',
-          seccion: row['SECCIÓN'] || 'SALA',
-          vlrUnitario: parseFloat(row['VLR. UNITARIO']) || 0,
-          observaciones: row['OBSERVACIONES'] || ''
-        }
-      });
-    } catch (err) {
-      console.error(`Error importing row: ${JSON.stringify(row)}. Error: ${err.message}`);
+function parseCSVLine(text) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
     }
   }
-  console.log('Seed completed successfully.');
+  result.push(current.trim());
+  return result;
+}
+
+async function main() {
+  const lines = csvData.split('\n');
+  console.log(`Processing ${lines.length} lines.`);
+
+  await prisma.inventoryItem.deleteMany({});
+  console.log('Cleared existing inventory.');
+
+  let importedCount = 0;
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const parts = parseCSVLine(line);
+
+    // Schema: NOMBRE, CLASE, BODEGA, SECCION, EXCELENTE, REPARAR, TOTAL, VLR_U, VLR_T, OBS
+    const nombre = (parts[0] || '').trim();
+    if (!nombre || nombre === 'NOMBRE' || nombre === 'MECEDORA ACAPULCO CARIBE' || nombre === 'INVENTARIO BODEGAS SUN PARTNERS') continue;
+
+    const claseLabel = (parts[1] || 'A').toUpperCase().trim();
+    const rawBodega = (parts[2] || 'PRINCIPAL').toUpperCase().trim();
+    const rawSeccion = (parts[3] || 'SALA').toUpperCase().trim();
+
+    // Normalize Section (e.g., "CUARTO #2" -> "CUARTO 2")
+    const normalizedSeccion = rawSeccion.replace('#', '').trim();
+
+    const excelente = parseInt(parts[4]) || 0;
+    const reparar = parseInt(parts[5]) || 0;
+    const vlrUnitario = parseCurrency(parts[7]);
+    const observaciones = parts[9] || '';
+
+    let claseA = 0;
+    let claseB = 0;
+    let claseC = reparar;
+
+    // Mapping Excelente to A/B based on label
+    if (claseLabel === 'A-B') {
+      claseA = Math.ceil(excelente / 2);
+      claseB = excelente - claseA;
+    } else if (claseLabel === 'B-C') {
+      claseB = Math.ceil(excelente / 2);
+      claseC += (excelente - claseB);
+    } else if (claseLabel === 'A-C') {
+      claseA = Math.ceil(excelente / 2);
+      claseC += (excelente - claseA);
+    } else if (claseLabel === 'A') {
+      claseA = excelente;
+    } else if (claseLabel === 'B') {
+      claseB = excelente;
+    } else if (claseLabel === 'C') {
+      claseC += excelente;
+    } else {
+      claseA = excelente;
+    }
+
+    const bodega = BODEGA_MAP[rawBodega] || 'PRINCIPAL';
+    const seccion = SECCION_MAP[normalizedSeccion] || 'SALA';
+
+    await prisma.inventoryItem.create({
+      data: {
+        nombre,
+        claseA,
+        claseB,
+        claseC,
+        bodega,
+        seccion,
+        vlrUnitario,
+        observaciones
+      }
+    });
+    importedCount++;
+  }
+
+  console.log(`Successfully imported ${importedCount} items.`);
 }
 
 main()

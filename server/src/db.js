@@ -33,8 +33,8 @@ const prisma = prismaClient.$extends({
   model: {
     $allModels: {
       async softDelete(id, justification) {
-        const model = this;
-        return model.update({
+        // 'this' refers to the model (e.g., prisma.user, prisma.inventoryItem)
+        return this.update({
           where: { id },
           data: {
             deletedAt: new Date(),

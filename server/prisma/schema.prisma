@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,63 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String      @id @default(uuid())
+  email                String      @unique
+  password             String
+  nombre               String
+  role                 Role        @default(EDITOR)
+  department           Department?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+}
+
+model InventoryItem {
+  id                   String       @id @default(uuid())
+  nombre               String
+  claseA               Int          @default(0)
+  claseB               Int          @default(0)
+  claseC               Int          @default(0)
+  bodega               Bodega
+  seccion              Seccion
+  vlrUnitario          Float
+  observaciones        String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  rentals              RentalItem[]
+}
+
+model Event {
+  id                   String       @id @default(uuid())
+  nombre_cliente       String
+  fecha_inicio         DateTime
+  fecha_fin            DateTime
+  ubicacion            String
+  estado               EventStatus  @default(BORRADOR)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  items                RentalItem[]
+}
+
+model RentalItem {
+  id                   String        @id @default(uuid())
+  eventId              String
+  inventoryId          String
+  cantidad             Int
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  event                Event         @relation(fields: [eventId], references: [id])
+  inventory            InventoryItem @relation(fields: [inventoryId], references: [id])
 }
 
 enum Role {
@@ -47,61 +101,4 @@ enum EventStatus {
   BORRADOR
   CONFIRMADO
   FINALIZADO
-}
-
-model User {
-  id             String      @id @default(uuid())
-  email          String      @unique
-  password       String
-  nombre         String
-  role           Role        @default(EDITOR)
-  department     Department?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  deletedAt      DateTime?
-  deletedJustification String?
-}
-
-model InventoryItem {
-  id              String       @id @default(uuid())
-  nombre          String
-  claseA          Int          @default(0) // VIP
-  claseB          Int          @default(0) // Operativo
-  claseC          Int          @default(0) // Dañado/Taller
-  bodega          Bodega
-  seccion         Seccion
-  vlrUnitario     Float
-  observaciones   String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  deletedAt       DateTime?
-  deletedJustification String?
-  rentals         RentalItem[]
-}
-
-model Event {
-  id             String       @id @default(uuid())
-  nombre_cliente String
-  fecha_inicio   DateTime
-  fecha_fin      DateTime
-  ubicacion      String
-  estado         EventStatus  @default(BORRADOR)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  deletedJustification String?
-  items          RentalItem[]
-}
-
-model RentalItem {
-  id          String        @id @default(uuid())
-  event       Event         @relation(fields: [eventId], references: [id])
-  eventId     String
-  inventory   InventoryItem @relation(fields: [inventoryId], references: [id])
-  inventoryId String
-  cantidad    Int
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  deletedAt   DateTime?
-  deletedJustification String?
 }
