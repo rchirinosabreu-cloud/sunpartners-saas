@@ -227,35 +227,50 @@ async function main() {
   const lines = csvData.split('\n');
   console.log(`Processing ${lines.length} lines.`);
 
+  await prisma.quotationItem.deleteMany({});
+  await prisma.planningStep.deleteMany({});
+  await prisma.eventLog.deleteMany({});
+  await prisma.quotation.deleteMany({});
   await prisma.inventoryItem.deleteMany({});
-  console.log('Cleared existing inventory.');
+  await prisma.client.deleteMany({});
+  await prisma.user.deleteMany({});
+  console.log('Cleared existing database.');
+
+  const admin = await prisma.user.create({
+    data: {
+      email: 'admin@sunpartners.com',
+      password: 'admin_password_123',
+      nombre: 'Administrador Sunpartners',
+      role: 'ADMIN',
+      department: 'DIRECCION'
+    }
+  });
+
+  const client1 = await prisma.client.create({
+    data: { nombre: 'Grupo Eventia S.A.', email: 'marcos@eventia.com', telefono: '+52 55 1234 5678', identificacion: 'NIT-900.123.456-1' }
+  });
+  const client2 = await prisma.client.create({
+    data: { nombre: 'Ana Sofía Robles', email: 'ana@gmail.com', telefono: '+52 55 9876 5432', identificacion: 'CC-10203040' }
+  });
 
   let importedCount = 0;
   for (const line of lines) {
     if (!line.trim()) continue;
     const parts = parseCSVLine(line);
-
-    // Schema: NOMBRE, CLASE, BODEGA, SECCION, EXCELENTE, REPARAR, TOTAL, VLR_U, VLR_T, OBS
     const nombre = (parts[0] || '').trim();
     if (!nombre || nombre === 'NOMBRE' || nombre === 'MECEDORA ACAPULCO CARIBE' || nombre === 'INVENTARIO BODEGAS SUN PARTNERS') continue;
 
     const claseLabel = (parts[1] || 'A').toUpperCase().trim();
     const rawBodega = (parts[2] || 'PRINCIPAL').toUpperCase().trim();
     const rawSeccion = (parts[3] || 'SALA').toUpperCase().trim();
-
-    // Normalize Section (e.g., "CUARTO #2" -> "CUARTO 2")
     const normalizedSeccion = rawSeccion.replace('#', '').trim();
 
     const excelente = parseInt(parts[4]) || 0;
     const reparar = parseInt(parts[5]) || 0;
     const vlrUnitario = parseCurrency(parts[7]);
-    const observaciones = parts[9] || '';
+    const rentalPrice = vlrUnitario * 0.1;
 
-    let claseA = 0;
-    let claseB = 0;
-    let claseC = reparar;
-
-    // Mapping Excelente to A/B based on label
+    let claseA = 0, claseB = 0, claseC = reparar;
     if (claseLabel === 'A-B') {
       claseA = Math.ceil(excelente / 2);
       claseB = excelente - claseA;
@@ -265,35 +280,26 @@ async function main() {
     } else if (claseLabel === 'A-C') {
       claseA = Math.ceil(excelente / 2);
       claseC += (excelente - claseA);
-    } else if (claseLabel === 'A') {
-      claseA = excelente;
-    } else if (claseLabel === 'B') {
-      claseB = excelente;
-    } else if (claseLabel === 'C') {
-      claseC += excelente;
-    } else {
-      claseA = excelente;
-    }
-
-    const bodega = BODEGA_MAP[rawBodega] || 'PRINCIPAL';
-    const seccion = SECCION_MAP[normalizedSeccion] || 'SALA';
+    } else if (claseLabel === 'A') { claseA = excelente; }
+    else if (claseLabel === 'B') { claseB = excelente; }
+    else if (claseLabel === 'C') { claseC += excelente; }
+    else { claseA = excelente; }
 
     await prisma.inventoryItem.create({
       data: {
         nombre,
-        claseA,
-        claseB,
-        claseC,
-        bodega,
-        seccion,
+        claseA, claseB, claseC,
+        bodega: BODEGA_MAP[rawBodega] || 'PRINCIPAL',
+        seccion: SECCION_MAP[normalizedSeccion] || 'SALA',
         vlrUnitario,
-        observaciones
+        rentalPrice,
+        observaciones: parts[9] || ''
       }
     });
     importedCount++;
   }
 
-  console.log(`Successfully imported ${importedCount} items.`);
+  console.log(`Successfully seeded Admin, Clients and ${importedCount} Inventory items.`);
 }
 
 main()

@@ -12,12 +12,9 @@ const bootstrapAdmin = async () => {
 
   // Clean up all users to match new schema (Roles/Departments)
   try {
-    const count = await prisma.user.count({ where: { deletedAt: null } });
-    if (count > 0) {
-      console.log(`[Sunpartners] Limpiando ${count} usuarios existentes...`);
-      // We use the raw prisma client to avoid soft delete filter during deletion
-      const rawPrisma = require('./db');
-      await rawPrisma.user.deleteMany({});
+    const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+    if (existing) {
+        return;
     }
 
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
