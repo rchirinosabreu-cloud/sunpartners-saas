@@ -174,7 +174,7 @@ const Inventory = () => {
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-1">
                       <span title="VIP" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-emerald-50 text-emerald-600 border-emerald-200">A:{item.claseA}</span>
-                      <span title="Operativo" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-zinc-800 text-white border-zinc-900">B:{item.claseB}</span>
+                      <span title="Operativo" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-[#109CCB] text-white border-[#109CCB]">B:{item.claseB}</span>
                       <span title="Dañado/Taller" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-red-50 text-red-600 border-red-200">C:{item.claseC}</span>
                     </div>
                   </td>
