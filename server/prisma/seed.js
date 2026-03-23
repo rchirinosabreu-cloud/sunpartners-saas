@@ -12,14 +12,13 @@ async function main() {
     workbook = xlsx.readFile(filePath);
   } catch (error) {
     console.error(`Error reading excel file at ${filePath}. Falling back to default data for development...`);
-    // Prepare dummy data if file is missing in sandbox
+    // Dummy data fallback
     const dummyData = [
       {
         NOMBRE: 'CABLE ENCARTONADO 3X10',
-        CLASE: 'A',
-        BODEGA: 'ALMACEN PRICIPAL',
-        'SECCIÓN': 'CABLES',
-        ESTADO: '24/6',
+        CLASE: 'A-B',
+        BODEGA: 'PRINCIPAL',
+        'SECCIÓN': 'CUARTO_1',
         'EXISTENCIA TOTAL': 30,
         'VLR. UNITARIO': 15000,
         OBSERVACIONES: 'Importado de prueba'
@@ -43,31 +42,42 @@ async function seedData(data) {
 
   for (const row of data) {
     try {
-      const claseValue = row['CLASE'] === 'CLASE_A' || row['CLASE'] === 'A' ? 'CLASE_A' : 'CLASE_B';
       const existenciaTotal = parseInt(row['EXISTENCIA TOTAL']) || 0;
+      let claseA = 0;
+      let claseB = 0;
+      let claseC = 0;
 
-      let disponibles = existenciaTotal;
-      let enReparacion = 0;
+      const label = (row['CLASE'] || '').toUpperCase();
 
-      if (row['ESTADO'] && typeof row['ESTADO'] === 'string' && row['ESTADO'].includes('/')) {
-        const parts = row['ESTADO'].split('/');
-        disponibles = parseInt(parts[0]) || 0;
-        enReparacion = parseInt(parts[1]) || 0;
-      } else if (typeof row['ESTADO'] === 'number') {
-        disponibles = row['ESTADO'];
-        enReparacion = existenciaTotal - disponibles;
+      if (label === 'A') {
+        claseA = existenciaTotal;
+      } else if (label === 'B') {
+        claseB = existenciaTotal;
+      } else if (label === 'C') {
+        claseC = existenciaTotal;
+      } else if (label === 'A-B') {
+        claseA = Math.ceil(existenciaTotal / 2);
+        claseB = existenciaTotal - claseA;
+      } else if (label === 'B-C') {
+        claseB = Math.ceil(existenciaTotal / 2);
+        claseC = existenciaTotal - claseB;
+      } else if (label === 'A-C') {
+        claseA = Math.ceil(existenciaTotal / 2);
+        claseC = existenciaTotal - claseA;
+      } else {
+        // Default to A if unknown
+        claseA = existenciaTotal;
       }
 
       await prisma.inventoryItem.create({
         data: {
           nombre: row['NOMBRE'] || 'Sin nombre',
-          clase: claseValue,
-          bodega: row['BODEGA'] || 'Principal',
-          seccion: row['SECCIÓN'] || 'N/A',
-          existenciaTotal: existenciaTotal,
+          claseA,
+          claseB,
+          claseC,
+          bodega: row['BODEGA'] || 'PRINCIPAL',
+          seccion: row['SECCIÓN'] || 'SALA',
           vlrUnitario: parseFloat(row['VLR. UNITARIO']) || 0,
-          disponibles: disponibles,
-          enReparacion: enReparacion,
           observaciones: row['OBSERVACIONES'] || ''
         }
       });

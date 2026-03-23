@@ -1,14 +1,25 @@
 const prisma = require('../db');
 
+const calculateComputedFields = (item) => {
+  const claseA = parseInt(item.claseA) || 0;
+  const claseB = parseInt(item.claseB) || 0;
+  const claseC = parseInt(item.claseC) || 0;
+  const existenciaTotal = claseA + claseB + claseC;
+  const vlrUnitario = parseFloat(item.vlrUnitario) || 0;
+
+  return {
+    ...item,
+    existenciaTotal,
+    disponibles: claseA + claseB,
+    enReparacion: claseC,
+    vlrTotal: existenciaTotal * vlrUnitario
+  };
+};
+
 exports.getAll = async (req, res) => {
   try {
     const items = await prisma.inventoryItem.findMany();
-    // Calculate vlrTotal on the fly as requested
-    const itemsWithTotal = items.map(item => ({
-      ...item,
-      vlrTotal: item.existenciaTotal * item.vlrUnitario
-    }));
-    res.json(itemsWithTotal);
+    res.json(items.map(calculateComputedFields));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -20,11 +31,7 @@ exports.getById = async (req, res) => {
       where: { id: req.params.id }
     });
     if (!item) return res.status(404).json({ error: 'Artículo no encontrado' });
-
-    res.json({
-      ...item,
-      vlrTotal: item.existenciaTotal * item.vlrUnitario
-    });
+    res.json(calculateComputedFields(item));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -32,29 +39,22 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { nombre, clase, bodega, seccion, vlrUnitario, disponibles, enReparacion, observaciones } = req.body;
-
-    // Rule: existenciaTotal = disponibles + enReparacion
-    const existenciaTotal = (parseInt(disponibles) || 0) + (parseInt(enReparacion) || 0);
+    const { nombre, claseA, claseB, claseC, bodega, seccion, vlrUnitario, observaciones } = req.body;
 
     const newItem = await prisma.inventoryItem.create({
       data: {
         nombre,
-        clase,
+        claseA: parseInt(claseA) || 0,
+        claseB: parseInt(claseB) || 0,
+        claseC: parseInt(claseC) || 0,
         bodega,
         seccion,
-        existenciaTotal,
-        vlrUnitario: parseFloat(vlrUnitario),
-        disponibles: parseInt(disponibles) || 0,
-        enReparacion: parseInt(enReparacion) || 0,
+        vlrUnitario: parseFloat(vlrUnitario) || 0,
         observaciones
       }
     });
 
-    res.status(201).json({
-      ...newItem,
-      vlrTotal: newItem.existenciaTotal * newItem.vlrUnitario
-    });
+    res.status(201).json(calculateComputedFields(newItem));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -62,30 +62,19 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { disponibles, enReparacion, ...rest } = req.body;
-    const data = { ...rest };
+    const data = { ...req.body };
 
-    if (disponibles !== undefined || enReparacion !== undefined) {
-      const current = await prisma.inventoryItem.findUnique({ where: { id: req.params.id } });
-      const newDisponibles = disponibles !== undefined ? parseInt(disponibles) : current.disponibles;
-      const newEnReparacion = enReparacion !== undefined ? parseInt(enReparacion) : current.enReparacion;
-
-      data.disponibles = newDisponibles;
-      data.enReparacion = newEnReparacion;
-      data.existenciaTotal = newDisponibles + newEnReparacion;
-    }
-
-    if (data.vlrUnitario) data.vlrUnitario = parseFloat(data.vlrUnitario);
+    if (data.claseA !== undefined) data.claseA = parseInt(data.claseA);
+    if (data.claseB !== undefined) data.claseB = parseInt(data.claseB);
+    if (data.claseC !== undefined) data.claseC = parseInt(data.claseC);
+    if (data.vlrUnitario !== undefined) data.vlrUnitario = parseFloat(data.vlrUnitario);
 
     const updatedItem = await prisma.inventoryItem.update({
       where: { id: req.params.id },
       data
     });
 
-    res.json({
-      ...updatedItem,
-      vlrTotal: updatedItem.existenciaTotal * updatedItem.vlrUnitario
-    });
+    res.json(calculateComputedFields(updatedItem));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
