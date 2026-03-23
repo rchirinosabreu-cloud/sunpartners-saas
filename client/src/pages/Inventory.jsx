@@ -3,6 +3,13 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+const BodegaEnum = ['PRINCIPAL', 'AUXILIAR', 'CAPRIELLA', 'SHERYLANDIA'];
+const SeccionEnum = [
+  'CUARTO_1', 'CUARTO_2', 'CUARTO_3', 'CUARTO_4',
+  'SALA', 'OFICINA', 'APTO', 'COCINA',
+  'PATIO', 'HERRAMIENTAS'
+];
+
 const Inventory = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,12 +20,12 @@ const Inventory = () => {
   // Form state
   const [formData, setFormData] = useState({
     nombre: '',
-    clase: 'CLASE_B',
-    bodega: '',
-    seccion: '',
+    claseA: 0,
+    claseB: 0,
+    claseC: 0,
+    bodega: 'PRINCIPAL',
+    seccion: 'SALA',
     vlrUnitario: 0,
-    disponibles: 0,
-    enReparacion: 0,
     observaciones: ''
   });
 
@@ -43,7 +50,7 @@ const Inventory = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const existenciaTotal = (parseInt(formData.disponibles) || 0) + (parseInt(formData.enReparacion) || 0);
+  const existenciaTotal = (parseInt(formData.claseA) || 0) + (parseInt(formData.claseB) || 0) + (parseInt(formData.claseC) || 0);
   const vlrTotal = existenciaTotal * (parseFloat(formData.vlrUnitario) || 0);
 
   const handleSubmit = async (e) => {
@@ -67,12 +74,12 @@ const Inventory = () => {
     setEditingItem(item);
     setFormData({
       nombre: item.nombre,
-      clase: item.clase,
+      claseA: item.claseA,
+      claseB: item.claseB,
+      claseC: item.claseC,
       bodega: item.bodega,
       seccion: item.seccion,
       vlrUnitario: item.vlrUnitario,
-      disponibles: item.disponibles,
-      enReparacion: item.enReparacion,
       observaciones: item.observaciones || ''
     });
     setIsModalOpen(true);
@@ -95,12 +102,12 @@ const Inventory = () => {
   const resetForm = () => {
     setFormData({
       nombre: '',
-      clase: 'CLASE_B',
-      bodega: '',
-      seccion: '',
+      claseA: 0,
+      claseB: 0,
+      claseC: 0,
+      bodega: 'PRINCIPAL',
+      seccion: 'SALA',
       vlrUnitario: 0,
-      disponibles: 0,
-      enReparacion: 0,
       observaciones: ''
     });
   };
@@ -144,7 +151,7 @@ const Inventory = () => {
               <tr className="bg-zinc-50 border-b border-zinc-200">
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[50px]">ID</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3">Nombre</th>
-                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[80px]">Clase</th>
+                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[150px]">Clase (A|B|C)</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[120px]">Bodega</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px]">Sección</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px] text-center">Estado (D/R)</th>
@@ -165,12 +172,14 @@ const Inventory = () => {
                   <td className="px-3 py-3 text-zinc-400 font-display text-[11px]">#{index + 1}</td>
                   <td className="px-3 py-3 font-medium text-zinc-900">{item.nombre}</td>
                   <td className="px-3 py-3">
-                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded border ${item.clase === 'CLASE_A' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>
-                      {item.clase === 'CLASE_A' ? 'CLASE_A' : 'CLASE_B'}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span title="VIP" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-emerald-50 text-emerald-600 border-emerald-200">A:{item.claseA}</span>
+                      <span title="Operativo" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-zinc-800 text-white border-zinc-900">B:{item.claseB}</span>
+                      <span title="Dañado/Taller" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-red-50 text-red-600 border-red-200">C:{item.claseC}</span>
+                    </div>
                   </td>
-                  <td className="px-3 py-3 text-zinc-500">{item.bodega}</td>
-                  <td className="px-3 py-3 text-zinc-500">{item.seccion}</td>
+                  <td className="px-3 py-3 text-zinc-500 uppercase text-[11px] font-medium">{item.bodega}</td>
+                  <td className="px-3 py-3 text-zinc-500 uppercase text-[11px] font-medium">{item.seccion.replace('_', ' ')}</td>
                   <td className="px-3 py-3 text-center">
                     <span className="font-display font-medium text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200 text-[12px]">
                       {item.disponibles}/{item.enReparacion}
@@ -216,40 +225,39 @@ const Inventory = () => {
                 <input required name="nombre" value={formData.nombre} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary transition-colors" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[13px] font-medium text-zinc-600">Clase *</label>
-                  <select name="clase" value={formData.clase} onChange={handleInputChange} className="h-9 px-2 border border-zinc-200 rounded focus:border-primary bg-white">
-                    <option value="CLASE_A">CLASE A (VIP)</option>
-                    <option value="CLASE_B">CLASE B (Operativa)</option>
-                  </select>
+                  <label className="text-[13px] font-medium text-zinc-600">Clase A (VIP) *</label>
+                  <input required type="number" name="claseA" value={formData.claseA} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary font-display" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[13px] font-medium text-zinc-600">Valor Unitario ($) *</label>
-                  <input required type="number" name="vlrUnitario" value={formData.vlrUnitario} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary font-display" />
+                  <label className="text-[13px] font-medium text-zinc-600">Clase B (OP) *</label>
+                  <input required type="number" name="claseB" value={formData.claseB} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary font-display" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[13px] font-medium text-zinc-600">Clase C (Taller) *</label>
+                  <input required type="number" name="claseC" value={formData.claseC} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary font-display" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[13px] font-medium text-zinc-600">Bodega *</label>
-                  <input required name="bodega" value={formData.bodega} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary" />
+                  <select name="bodega" value={formData.bodega} onChange={handleInputChange} className="h-9 px-2 border border-zinc-200 rounded focus:border-primary bg-white uppercase text-[12px]">
+                    {BodegaEnum.map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[13px] font-medium text-zinc-600">Sección *</label>
-                  <input required name="seccion" value={formData.seccion} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary" />
+                  <select name="seccion" value={formData.seccion} onChange={handleInputChange} className="h-9 px-2 border border-zinc-200 rounded focus:border-primary bg-white uppercase text-[12px]">
+                    {SeccionEnum.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
+                  </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[13px] font-medium text-zinc-600">Disponibles *</label>
-                  <input required type="number" name="disponibles" value={formData.disponibles} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary font-display" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[13px] font-medium text-zinc-600">En Reparación *</label>
-                  <input required type="number" name="enReparacion" value={formData.enReparacion} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary font-display" />
-                </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[13px] font-medium text-zinc-600">Valor Unitario ($) *</label>
+                <input required type="number" name="vlrUnitario" value={formData.vlrUnitario} onChange={handleInputChange} className="h-9 px-3 border border-zinc-200 rounded focus:border-primary font-display" />
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -258,7 +266,7 @@ const Inventory = () => {
               </div>
 
               {/* Summary Area */}
-              <div className="mt-4 p-4 bg-zinc-900 rounded border border-zinc-800 flex flex-col gap-2">
+              <div className="mt-4 p-4 bg-zinc-900 rounded border border-zinc-800 flex flex-col gap-2 shadow-none">
                 <div className="flex justify-between text-zinc-400 text-[13px]">
                   <span>Existencia Total:</span>
                   <span className="text-white font-display font-medium">{existenciaTotal} uds</span>

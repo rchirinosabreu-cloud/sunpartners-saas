@@ -23,9 +23,24 @@ enum Department {
   LOGISTICA
 }
 
-enum Class {
-  CLASE_A
-  CLASE_B
+enum Bodega {
+  PRINCIPAL
+  AUXILIAR
+  CAPRIELLA
+  SHERYLANDIA
+}
+
+enum Seccion {
+  CUARTO_1
+  CUARTO_2
+  CUARTO_3
+  CUARTO_4
+  SALA
+  OFICINA
+  APTO
+  COCINA
+  PATIO
+  HERRAMIENTAS
 }
 
 enum EventStatus {
@@ -50,13 +65,12 @@ model User {
 model InventoryItem {
   id              String       @id @default(uuid())
   nombre          String
-  clase           Class
-  bodega          String
-  seccion         String
-  existenciaTotal Int
+  claseA          Int          @default(0) // VIP
+  claseB          Int          @default(0) // Operativo
+  claseC          Int          @default(0) // Dañado/Taller
+  bodega          Bodega
+  seccion         Seccion
   vlrUnitario     Float
-  disponibles     Int          @default(0)
-  enReparacion    Int          @default(0)
   observaciones   String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
