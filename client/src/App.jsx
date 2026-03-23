@@ -6,6 +6,9 @@ import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import Events from './pages/Events';
 import Clients from './pages/Clients';
+import QuotationList from './pages/QuotationList';
+import QuotationDetail from './pages/QuotationDetail';
+import NewQuotation from './pages/NewQuotation';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -34,7 +37,9 @@ const App = () => {
             <Route path="inventario" element={<Inventory />} />
             <Route path="eventos" element={<Events />} />
             <Route path="clientes" element={<Clients />} />
-            <Route path="cotizaciones" element={<div className="p-8 text-zinc-500 font-body">Módulo de Cotizaciones en desarrollo...</div>} />
+            <Route path="cotizaciones" element={<QuotationList />} />
+            <Route path="cotizaciones/nueva" element={<NewQuotation />} />
+            <Route path="cotizaciones/:id" element={<QuotationDetail />} />
             <Route path="equipo" element={<div className="p-8 text-zinc-500 font-body">Módulo de Equipo en desarrollo...</div>} />
           </Route>
         </Routes>

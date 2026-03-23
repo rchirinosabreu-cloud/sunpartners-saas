@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,63 +8,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-model User {
-  id                   String      @id @default(uuid())
-  email                String      @unique
-  password             String
-  nombre               String
-  role                 Role        @default(EDITOR)
-  department           Department?
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-  deletedAt            DateTime?
-  deletedJustification String?
-}
-
-model InventoryItem {
-  id                   String       @id @default(uuid())
-  nombre               String
-  claseA               Int          @default(0)
-  claseB               Int          @default(0)
-  claseC               Int          @default(0)
-  bodega               Bodega
-  seccion              Seccion
-  vlrUnitario          Float
-  observaciones        String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  deletedAt            DateTime?
-  deletedJustification String?
-  rentals              RentalItem[]
-}
-
-model Event {
-  id                   String       @id @default(uuid())
-  nombre_cliente       String
-  fecha_inicio         DateTime
-  fecha_fin            DateTime
-  ubicacion            String
-  estado               EventStatus  @default(BORRADOR)
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  deletedAt            DateTime?
-  deletedJustification String?
-  items                RentalItem[]
-}
-
-model RentalItem {
-  id                   String        @id @default(uuid())
-  eventId              String
-  inventoryId          String
-  cantidad             Int
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
-  deletedAt            DateTime?
-  deletedJustification String?
-  event                Event         @relation(fields: [eventId], references: [id])
-  inventory            InventoryItem @relation(fields: [inventoryId], references: [id])
 }
 
 enum Role {
@@ -97,8 +43,120 @@ enum Seccion {
   HERRAMIENTAS
 }
 
-enum EventStatus {
+enum QuotationStatus {
   BORRADOR
-  CONFIRMADO
-  FINALIZADO
+  ENVIADA
+  APROBADA
+  EJECUCION
+  FINALIZADA
+  CANCELADA
+}
+
+model User {
+  id                   String      @id @default(uuid())
+  email                String      @unique
+  password             String
+  nombre               String
+  role                 Role        @default(EDITOR)
+  department           Department?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  logs                 EventLog[]
+}
+
+model Client {
+  id                   String      @id @default(uuid())
+  nombre               String
+  identificacion       String?     @unique // NIT or Cédula
+  telefono             String?
+  email                String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  quotations           Quotation[]
+}
+
+model InventoryItem {
+  id                   String       @id @default(uuid())
+  nombre               String
+  claseA               Int          @default(0)
+  claseB               Int          @default(0)
+  claseC               Int          @default(0)
+  bodega               Bodega
+  seccion              Seccion
+  vlrUnitario          Float        // Valor del activo
+  rentalPrice          Float        @default(0) // Precio de alquiler sugerido
+  observaciones        String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  items                QuotationItem[]
+}
+
+model Quotation {
+  id                   String          @id @default(uuid())
+  nombre_evento        String
+  tipo_evento          String?
+  fecha_inicio         DateTime
+  fecha_fin            DateTime
+  ubicacion            String
+  estado               QuotationStatus @default(BORRADOR)
+  vlrTotal             Float           @default(0)
+
+  clientId             String
+  client               Client          @relation(fields: [clientId], references: [id])
+
+  items                QuotationItem[]
+  planning             PlanningStep?
+  logs                 EventLog[]
+
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+}
+
+model QuotationItem {
+  id               String        @id @default(uuid())
+  quotationId      String
+  quotation        Quotation     @relation(fields: [quotationId], references: [id])
+  inventoryId      String
+  inventory        InventoryItem @relation(fields: [inventoryId], references: [id])
+
+  cantidad         Int
+  precio_pactado   Float
+  clase_asignada   String        @default("A") // "A" or "B"
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+  deletedJustification String?
+}
+
+model PlanningStep {
+  id           String    @id @default(uuid())
+  quotationId  String    @unique
+  quotation    Quotation @relation(fields: [quotationId], references: [id])
+
+  cronograma   String?   @db.Text // Texto libre
+  personal     Json?     // Structured table: [{nombre: string, rol: string, contacto: string}]
+  transporte   Json?     // Structured table: [{vehiculo: string, placa: string, responsable: string}]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model EventLog {
+  id           String    @id @default(uuid())
+  quotationId  String
+  quotation    Quotation @relation(fields: [quotationId], references: [id])
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+
+  message      String
+  createdAt    DateTime  @default(now())
 }

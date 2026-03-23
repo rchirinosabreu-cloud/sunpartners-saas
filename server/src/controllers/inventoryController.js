@@ -39,7 +39,7 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { nombre, claseA, claseB, claseC, bodega, seccion, vlrUnitario, observaciones } = req.body;
+    const { nombre, claseA, claseB, claseC, bodega, seccion, vlrUnitario, rentalPrice, observaciones } = req.body;
 
     const newItem = await prisma.inventoryItem.create({
       data: {
@@ -50,6 +50,7 @@ exports.create = async (req, res) => {
         bodega,
         seccion,
         vlrUnitario: parseFloat(vlrUnitario) || 0,
+        rentalPrice: parseFloat(rentalPrice) || (parseFloat(vlrUnitario) || 0) * 0.1,
         observaciones
       }
     });
@@ -68,6 +69,7 @@ exports.update = async (req, res) => {
     if (data.claseB !== undefined) data.claseB = parseInt(data.claseB);
     if (data.claseC !== undefined) data.claseC = parseInt(data.claseC);
     if (data.vlrUnitario !== undefined) data.vlrUnitario = parseFloat(data.vlrUnitario);
+    if (data.rentalPrice !== undefined) data.rentalPrice = parseFloat(data.rentalPrice);
 
     const updatedItem = await prisma.inventoryItem.update({
       where: { id: req.params.id },

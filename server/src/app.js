@@ -5,6 +5,8 @@ const dotenv = require('dotenv');
 const path = require('path');
 const authRoutes = require('./routes/auth');
 const inventoryRoutes = require('./routes/inventory');
+const clientRoutes = require('./routes/clients');
+const quotationRoutes = require('./routes/quotations');
 const bootstrapAdmin = require('./bootstrap');
 
 dotenv.config();
@@ -45,6 +47,8 @@ if (process.env.NODE_ENV === 'production') {
 // Rutas de API
 app.use('/api/auth', authRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/quotations', quotationRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

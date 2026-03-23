@@ -43,6 +43,7 @@ const AppLayout = () => {
 
   const menuItems = [
     { to: '/', icon: 'dashboard', label: 'Dashboard' },
+    { to: '/cotizaciones', icon: 'receipt_long', label: 'Cotizaciones' },
     { to: '/inventario', icon: 'inventory_2', label: 'Inventario' },
     { to: '/eventos', icon: 'event', label: 'Eventos' },
     { to: '/clientes', icon: 'group', label: 'Clientes' },
