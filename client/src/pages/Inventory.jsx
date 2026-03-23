@@ -150,14 +150,14 @@ const Inventory = () => {
             <thead>
               <tr className="bg-zinc-50 border-b border-zinc-200">
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[50px]">ID</th>
-                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3">Nombre</th>
-                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[150px]">Clase (A|B|C)</th>
+                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 max-w-[200px]">Nombre</th>
+                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[160px]">Clase (A|B|C)</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[120px]">Bodega</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px]">Sección</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px] text-center">Estado (D/R)</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px] text-right">Existencia Total</th>
-                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px] text-right">Vlr. Unitario</th>
-                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px] text-right">Vlr. Total</th>
+                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[120px] text-right">Vlr. Unitario</th>
+                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[140px] text-right">Vlr. Total</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[150px]">Observaciones</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[60px]"></th>
               </tr>
@@ -170,12 +170,12 @@ const Inventory = () => {
               ) : filteredItems.map((item, index) => (
                 <tr key={item.id} className="border-b border-zinc-200 hover:bg-zinc-50 transition-colors">
                   <td className="px-3 py-3 text-zinc-400 font-display text-[11px]">#{index + 1}</td>
-                  <td className="px-3 py-3 font-medium text-zinc-900">{item.nombre}</td>
+                  <td className="px-3 py-3 font-medium text-zinc-900 max-w-[200px] truncate" title={item.nombre}>{item.nombre}</td>
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-1">
-                      <span title="VIP" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-emerald-50 text-emerald-600 border-emerald-200">A:{item.claseA}</span>
-                      <span title="Operativo" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-[#109CCB] text-white border-[#109CCB]">B:{item.claseB}</span>
-                      <span title="Dañado/Taller" className="px-1.5 py-0.5 text-[10px] font-bold rounded border bg-red-50 text-red-600 border-red-200">C:{item.claseC}</span>
+                      <span title="VIP" className="w-12 inline-flex justify-center py-0.5 text-[10px] font-bold rounded border bg-emerald-50 text-emerald-600 border-emerald-200 text-center">A:{item.claseA}</span>
+                      <span title="Operativo" className="w-12 inline-flex justify-center py-0.5 text-[10px] font-bold rounded border bg-[#109CCB] text-white border-[#109CCB] text-center">B:{item.claseB}</span>
+                      <span title="Dañado/Taller" className="w-12 inline-flex justify-center py-0.5 text-[10px] font-bold rounded border bg-red-50 text-red-600 border-red-200 text-center">C:{item.claseC}</span>
                     </div>
                   </td>
                   <td className="px-3 py-3 text-zinc-500 uppercase text-[11px] font-medium">{item.bodega}</td>
