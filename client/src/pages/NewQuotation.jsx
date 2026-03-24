@@ -20,12 +20,12 @@ const NewQuotation = () => {
     nombre_evento: '',
     tipo_evento: 'Corporativo',
     ubicacion: '',
-    fecha_inicio: '',
-    fecha_fin: '',
-    fecha_montaje_inicio: '',
-    fecha_montaje_fin: '',
-    fecha_desmontaje_inicio: '',
-    fecha_desmontaje_fin: '',
+    fecha_inicio: null,
+    fecha_fin: null,
+    fecha_montaje_inicio: null,
+    fecha_montaje_fin: null,
+    fecha_desmontaje_inicio: null,
+    fecha_desmontaje_fin: null,
     bitacora: '',
     items: [],
     services: []
@@ -125,6 +125,18 @@ const NewQuotation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate required dates
+    if (!formData.fecha_inicio || !formData.fecha_fin) {
+      setModal({
+        isOpen: true,
+        title: 'Error de Validación',
+        content: 'Error: Faltan fechas obligatorias por completar.',
+        type: 'error'
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await axios.post('/api/quotations', formData, { withCredentials: true });
@@ -133,7 +145,7 @@ const NewQuotation = () => {
       setModal({
         isOpen: true,
         title: 'Error de Validación',
-        content: err.response?.data?.error || 'No se pudo procesar la cotización en este momento.',
+        content: 'Error: Faltan fechas obligatorias por completar o datos inválidos.',
         type: 'error'
       });
     } finally {
@@ -187,6 +199,7 @@ const NewQuotation = () => {
           border-radius: 2px !important;
           border: 1px solid #e4e4e7 !important;
           box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+          z-index: 9999 !important;
         }
         .flatpickr-day.selected {
           background: #12aee2 !important;
@@ -215,13 +228,15 @@ const NewQuotation = () => {
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
           <div>
-            <h2 className="font-display text-3xl font-black tracking-tight text-zinc-900 uppercase italic">Luxury BTL Experience</h2>
+            <h2 className="font-display text-3xl font-black tracking-tight text-zinc-900 uppercase italic">
+              {formData.nombre_evento || 'Constructor de Cotizaciones'}
+            </h2>
             <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Constructor Maestro • Estándar Premium</p>
           </div>
         </div>
         <div className="bg-zinc-900 text-white px-6 py-2.5 rounded-sm flex flex-col items-end shadow-xl">
            <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Total Estimado (IVA Inc.)</span>
-           <span className="text-xl font-black tracking-tighter text-primary">${total.toLocaleString()}</span>
+           <span className="text-xl font-black tracking-tighter text-primary">${total.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>
       </div>
 
@@ -258,7 +273,7 @@ const NewQuotation = () => {
               </div>
 
               {showNewClientForm && (
-                <div className="bg-zinc-900 p-8 rounded border border-zinc-800 space-y-6 shadow-2xl">
+                <div className="bg-zinc-50 p-8 rounded border-2 border-zinc-100 space-y-6 shadow-sm">
                   <h4 className="text-xs font-black uppercase tracking-widest text-primary">Alta de Cliente Corporativo</h4>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
@@ -273,11 +288,11 @@ const NewQuotation = () => {
                         placeholder={field.p}
                         value={newClient[field.f]}
                         onChange={e => setNewClient({...newClient, [field.f]: e.target.value})}
-                        className="bg-zinc-800 border border-zinc-700 text-white rounded px-4 py-2.5 text-sm outline-none focus:border-primary"
+                        className="bg-white border-2 border-zinc-100 text-zinc-900 rounded px-4 py-2.5 text-sm font-medium outline-none focus:border-primary"
                       />
                     ))}
                   </div>
-                  <button onClick={handleCreateClient} className="bg-primary text-white px-8 py-2.5 rounded text-[11px] font-black uppercase tracking-widest hover:opacity-90 transition-all">Guardar en Base de Datos</button>
+                  <button onClick={handleCreateClient} className="bg-zinc-900 text-white px-8 py-2.5 rounded text-[11px] font-black uppercase tracking-widest hover:bg-primary transition-all">Guardar en Base de Datos</button>
                 </div>
               )}
 
@@ -290,7 +305,7 @@ const NewQuotation = () => {
                     placeholder="Ej: Lanzamiento Marca XYZ 2024"
                     value={formData.nombre_evento}
                     onChange={(e) => setFormData({ ...formData, nombre_evento: e.target.value })}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded px-5 py-3.5 text-base font-bold uppercase tracking-tight"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded px-5 py-3.5 text-base font-bold tracking-tight outline-none focus:border-primary transition-all"
                   />
                 </div>
                 <div>
@@ -301,7 +316,7 @@ const NewQuotation = () => {
                     placeholder="Ej: Centro de Convenciones Ágora"
                     value={formData.ubicacion}
                     onChange={(e) => setFormData({ ...formData, ubicacion: e.target.value })}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded px-5 py-3.5 text-base font-bold"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded px-5 py-3.5 text-base font-bold outline-none focus:border-primary transition-all"
                   />
                 </div>
               </div>
@@ -322,25 +337,25 @@ const NewQuotation = () => {
                       </h4>
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">Check-In (Inicio)</label>
+                          <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">INICIO</label>
                           <Flatpickr
                             data-enable-time
                             value={formData[phase.start]}
-                            onChange={([date]) => setFormData({...formData, [phase.start]: date})}
+                            onChange={([date]) => setFormData(prev => ({...prev, [phase.start]: date}))}
                             options={flatpickrConfig}
-                            className="w-full border border-zinc-200 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer"
-                            placeholder="Seleccionar fecha..."
+                            className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                            placeholder="Seleccionar..."
                           />
                         </div>
                         <div>
-                          <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">Check-Out (Fin)</label>
+                          <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">FIN</label>
                           <Flatpickr
                             data-enable-time
                             value={formData[phase.end]}
-                            onChange={([date]) => setFormData({...formData, [phase.end]: date})}
+                            onChange={([date]) => setFormData(prev => ({...prev, [phase.end]: date}))}
                             options={flatpickrConfig}
-                            className="w-full border border-zinc-200 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer"
-                            placeholder="Seleccionar fecha..."
+                            className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                            placeholder="Seleccionar..."
                           />
                         </div>
                       </div>
@@ -385,7 +400,7 @@ const NewQuotation = () => {
                          </div>
                          <div className="w-40 text-right">
                            <label className="block text-[8px] font-black uppercase text-zinc-400 mb-1">SUBTOTAL ITEM</label>
-                           <div className="text-sm font-black text-zinc-900 tracking-tight">$ {(item.cantidad * item.precio_pactado).toLocaleString()}</div>
+                           <div className="text-sm font-black text-zinc-900 tracking-tight">$ {(item.cantidad * item.precio_pactado).toLocaleString('es-CO')}</div>
                          </div>
                          <button type="button" onClick={() => removeItem(idx)} className="text-zinc-300 hover:text-red-500 transition-colors"><span className="material-symbols-outlined text-[22px]">delete_sweep</span></button>
                        </div>
@@ -428,16 +443,16 @@ const NewQuotation = () => {
                      <div className="space-y-4">
                         <div className="flex justify-between text-xs font-bold text-zinc-400 uppercase tracking-widest">
                           <span>Subtotal Neto</span>
-                          <span className="text-white">$ {subtotal.toLocaleString()}</span>
+                          <span className="text-white">$ {subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</span>
                         </div>
                         <div className="flex justify-between text-xs font-bold text-zinc-400 uppercase tracking-widest">
                           <span>IVA (19.0%)</span>
-                          <span className="text-white">$ {iva.toLocaleString()}</span>
+                          <span className="text-white">$ {iva.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</span>
                         </div>
                         <div className="h-px bg-zinc-800 my-4"></div>
-                        <div className="flex justify-between items-end">
+                        <div className="flex justify-between items-center">
                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Total General</span>
-                           <span className="text-3xl font-black tracking-tighter text-white">$ {total.toLocaleString()}</span>
+                           <span className="text-2xl font-black tracking-tighter text-white whitespace-nowrap">$ {total.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</span>
                         </div>
                      </div>
                   </div>
