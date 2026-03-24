@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = '/api';
 
 const BodegaEnum = ['PRINCIPAL', 'AUXILIAR', 'CAPRIELLA', 'SHERYLANDIA'];
 const SeccionEnum = [
   'CUARTO_1', 'CUARTO_2', 'CUARTO_3', 'CUARTO_4',
   'SALA', 'OFICINA', 'APTO', 'COCINA',
-  'PATIO', 'HERRAMIENTAS'
+  'PATIO', 'HERRAMIENTAS', 'GENERAL'
 ];
 
 const Inventory = () => {
@@ -164,9 +164,9 @@ const Inventory = () => {
             </thead>
             <tbody className="text-[13px]">
               {loading ? (
-                <tr><td colSpan="11" className="p-8 text-center text-zinc-500 font-body">Cargando inventario...</td></tr>
+                <tr><td colSpan="11" className="p-8 text-center text-zinc-500 font-body italic animate-pulse">Consultando motor de inventario...</td></tr>
               ) : filteredItems.length === 0 ? (
-                <tr><td colSpan="11" className="p-8 text-center text-zinc-500 font-body">No se encontraron artículos.</td></tr>
+                <tr><td colSpan="11" className="p-8 text-center text-zinc-500 font-body">No se encontraron artículos en la base de datos vinculada.</td></tr>
               ) : filteredItems.map((item, index) => (
                 <tr key={item.id} className="border-b border-zinc-200 hover:bg-zinc-50 transition-colors">
                   <td className="px-3 py-3 text-zinc-400 font-display text-[11px]">#{index + 1}</td>
@@ -179,7 +179,7 @@ const Inventory = () => {
                     </div>
                   </td>
                   <td className="px-3 py-3 text-zinc-500 uppercase text-[11px] font-medium">{item.bodega}</td>
-                  <td className="px-3 py-3 text-zinc-500 uppercase text-[11px] font-medium">{item.seccion.replace('_', ' ')}</td>
+                  <td className="px-3 py-3 text-zinc-500 uppercase text-[11px] font-medium">{(item.seccion || 'GENERAL').replace('_', ' ')}</td>
                   <td className="px-3 py-3 text-center">
                     <span className="font-display font-medium text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200 text-[12px]">
                       {item.disponibles}/{item.enReparacion}
