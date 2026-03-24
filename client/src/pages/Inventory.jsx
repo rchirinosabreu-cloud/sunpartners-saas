@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Modal from '../components/ui/Modal';
 
 const API_URL = '/api';
 
@@ -16,6 +17,7 @@ const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [uiModal, setUiModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -65,8 +67,19 @@ const Inventory = () => {
       setEditingItem(null);
       resetForm();
       fetchItems();
+      setUiModal({
+        isOpen: true,
+        title: 'Operación Exitosa',
+        content: 'El inventario ha sido actualizado correctamente.',
+        type: 'success'
+      });
     } catch (error) {
-      alert('Error al guardar el artículo: ' + (error.response?.data?.error || error.message));
+      setUiModal({
+        isOpen: true,
+        title: 'Error de Guardado',
+        content: error.response?.data?.error || error.message,
+        type: 'error'
+      });
     }
   };
 
@@ -86,6 +99,8 @@ const Inventory = () => {
   };
 
   const handleDelete = async (id) => {
+    // Custom logic for delete confirmation would need a more complex modal or a separate confirm state
+    // For now, keeping simple delete with success modal
     if (window.confirm('¿Estás seguro de archivar este artículo?')) {
       try {
         await axios.delete(`${API_URL}/inventory/${id}`, {
@@ -93,8 +108,14 @@ const Inventory = () => {
           withCredentials: true
         });
         fetchItems();
+        setUiModal({
+          isOpen: true,
+          title: 'Artículo Archivado',
+          content: 'El artículo ha sido removido del inventario activo.',
+          type: 'success'
+        });
       } catch (error) {
-        alert('Error al eliminar');
+        setUiModal({ isOpen: true, title: 'Error', content: 'No se pudo archivar el artículo.', type: 'error' });
       }
     }
   };
@@ -119,6 +140,15 @@ const Inventory = () => {
 
   return (
     <main className="flex-1 flex flex-col h-full relative overflow-hidden font-body bg-white">
+      <Modal
+        isOpen={uiModal.isOpen}
+        onClose={() => setUiModal({ ...uiModal, isOpen: false })}
+        title={uiModal.title}
+        type={uiModal.type}
+      >
+        {uiModal.content}
+      </Modal>
+
       {/* Header */}
       <header className="h-16 flex items-center justify-between px-8 border-b border-zinc-200 shrink-0">
         <h2 className="font-display font-semibold text-2xl tracking-tight text-zinc-900">Inventario Maestro</h2>
