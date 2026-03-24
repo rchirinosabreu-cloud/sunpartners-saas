@@ -3,80 +3,132 @@ import 'jspdf-autotable';
 
 export const generateQuotationPDF = (quotation) => {
   const doc = new jsPDF();
-  const total = quotation.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
 
-  // Logo Placeholder (Sunpartners)
-  doc.setFillColor(18, 174, 226); // Primary Blue
-  doc.rect(15, 15, 10, 10, 'F');
+  // Totals Calculation
+  const subtotalItems = (quotation.items || []).reduce((acc, item) => acc + (item.cantidad * item.precio_pactado), 0);
+  const subtotalServices = (quotation.services || []).reduce((acc, svc) => acc + (svc.cantidad * svc.precio_pactado), 0);
+  const subtotal = subtotalItems + subtotalServices;
+  const iva = subtotal * 0.19;
+  const total = subtotal + iva;
+
+  // Header - Luxury Style
+  doc.setFillColor(24, 24, 27); // Zinc-900
+  doc.rect(0, 0, 210, 40, 'F');
+
+  doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
+  doc.setFontSize(22);
+  doc.text('SUNPARTNERS', 15, 20);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('ESTÁNDAR DE EXCELENCIA EN EVENTOS', 15, 26);
+
+  doc.setFontSize(12);
+  doc.text('COTIZACIÓN CORPORATIVA', 140, 20);
+  doc.setFontSize(9);
+  doc.text(`ID: #Q-${quotation.id.substring(0, 6).toUpperCase()}`, 140, 26);
+  doc.text(`FECHA EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 140, 31);
+
+  // Client & Event Details
   doc.setTextColor(39, 39, 42); // Zinc-900
-  doc.text('SUNPARTNERS', 30, 23);
-  doc.setFontSize(8);
-  doc.setTextColor(113, 113, 122); // Zinc-500
-  doc.text('CONTRASTE ESTRUCTURAL', 30, 27);
-
-  // Header Info
   doc.setFontSize(10);
-  doc.setTextColor(39, 39, 42);
-  doc.text('COTIZACIÓN MAESTRO', 150, 20);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text(`NÚMERO: #${quotation.id.substring(0, 8).toUpperCase()}`, 150, 25);
-  doc.text(`FECHA: ${new Date().toLocaleDateString()}`, 150, 29);
+  doc.setFont('helvetica', 'bold');
+  doc.text('INFORMACIÓN DEL CLIENTE', 15, 55);
 
-  // Client Info
-  doc.setDrawColor(228, 228, 231); // Zinc-200
-  doc.line(15, 35, 195, 35);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(`EMPRESA: ${quotation.client.empresa}`, 15, 62);
+  doc.text(`NIT: ${quotation.client.nit || 'PENDIENTE'}`, 15, 67);
+  doc.text(`CONTACTO: ${quotation.client.contactoPrincipal || 'N/A'}`, 15, 72);
+  doc.text(`UBICACIÓN: ${quotation.ubicacion}`, 15, 77);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text('CLIENTE:', 15, 45);
+  doc.text('LOGÍSTICA DEL EVENTO', 120, 55);
   doc.setFont('helvetica', 'normal');
-  doc.text(quotation.client.nombre, 45, 45);
-  doc.text(`NIT/CC: ${quotation.client.identificacion || 'N/A'}`, 45, 50);
-  doc.text(`TEL: ${quotation.client.telefono || 'N/A'}`, 45, 55);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('EVENTO:', 120, 45);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`INICIO: ${new Date(quotation.start_date).toLocaleDateString()}`, 145, 45);
-  doc.text(`FIN: ${new Date(quotation.end_date).toLocaleDateString()}`, 145, 50);
+  doc.text(`EVENTO: ${new Date(quotation.fecha_inicio).toLocaleDateString()} - ${new Date(quotation.fecha_fin).toLocaleDateString()}`, 120, 62);
+  doc.text(`MONTAJE: ${quotation.fecha_montaje_inicio ? new Date(quotation.fecha_montaje_inicio).toLocaleString() : 'POR DEFINIR'}`, 120, 67);
 
   // Items Table
-  const tableData = quotation.items.map(item => [
-    item.inventoryItem.nombre,
-    `Clase ${item.clase_asignada}`,
-    item.quantity,
-    `$ ${item.unitPrice.toLocaleString()}`,
-    `$ ${(item.unitPrice * item.quantity).toLocaleString()}`
-  ]);
+  const tableData = [
+    ...(quotation.items || []).map(item => [
+      item.inventory.nombre,
+      `Clase ${item.clase_asignada}`,
+      item.cantidad,
+      `$ ${item.precio_pactado.toLocaleString()}`,
+      `$ ${(item.precio_pactado * item.cantidad).toLocaleString()}`
+    ]),
+    ...(quotation.services || []).map(svc => [
+      svc.descripcion,
+      svc.tipo,
+      svc.cantidad,
+      `$ ${svc.precio_pactado.toLocaleString()}`,
+      `$ ${(svc.precio_pactado * svc.cantidad).toLocaleString()}`
+    ])
+  ];
 
   doc.autoTable({
-    startY: 65,
-    head: [['Descripción', 'Calidad', 'Cant.', 'Vlr. Unitario', 'Total']],
+    startY: 90,
+    head: [['Descripción del Servicio / Equipo', 'Tipo', 'Cant.', 'Vlr. Unitario', 'Subtotal']],
     body: tableData,
-    headStyles: { fillColor: [39, 39, 42], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+    headStyles: { fillColor: [24, 24, 27], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
     bodyStyles: { fontSize: 8, textColor: [63, 63, 70] },
     alternateRowStyles: { fillColor: [250, 250, 250] },
     margin: { left: 15, right: 15 }
   });
 
-  const finalY = doc.lastAutoTable.finalY + 10;
+  let finalY = doc.lastAutoTable.finalY + 15;
 
-  // Financials
+  // Financial Summary
+  doc.setDrawColor(228, 228, 231);
+  doc.line(130, finalY, 195, finalY);
+
+  doc.setFontSize(9);
+  doc.text('SUBTOTAL NETO:', 130, finalY + 10);
+  doc.text(`$ ${subtotal.toLocaleString()}`, 165, finalY + 10);
+
+  doc.text('IVA (19%):', 130, finalY + 16);
+  doc.text(`$ ${iva.toLocaleString()}`, 165, finalY + 16);
+
   doc.setFont('helvetica', 'bold');
-  doc.text('TOTAL COTIZACIÓN:', 140, finalY + 5);
-  doc.setFontSize(14);
-  doc.setTextColor(18, 174, 226);
-  doc.text(`$ ${total.toLocaleString()}`, 140, finalY + 12);
+  doc.setFontSize(12);
+  doc.text('TOTAL GENERAL:', 130, finalY + 26);
+  doc.setTextColor(18, 174, 226); // Sunpartners Blue
+  doc.text(`$ ${total.toLocaleString()}`, 165, finalY + 26);
 
-  // Footer / Terms
+  // Terms & Conditions - Legal Shield
+  if (finalY + 80 > 280) { doc.addPage(); finalY = 20; } else { finalY += 45; }
+
+  doc.setTextColor(24, 24, 27);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('TÉRMINOS Y CONDICIONES LEGALES', 15, finalY);
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(113, 113, 122);
+
+  const terms = [
+    "1. La reserva de equipos se confirma únicamente con el pago del 70% del valor total.",
+    "2. Esta cotización tiene una vigencia de 24 horas a partir de su emisión.",
+    "3. Precios sujetos a disponibilidad al momento de la formalización del pago.",
+    "4. El cliente es responsable por cualquier daño, pérdida o robo de los equipos contratados.",
+    "5. Sunpartners no se hace responsable por fallas eléctricas externas al equipamiento suministrado.",
+    "6. Cancelaciones con menos de 48 horas de antelación incurren en una penalidad del 50%.",
+    "7. Los horarios de montaje y desmontaje deben cumplirse estrictamente según lo pactado.",
+    "8. No se permite el subarriendo ni traslado de equipos sin autorización previa por escrito.",
+    "9. Personal técnico adicional será facturado según horas extra reportadas en bitácora.",
+    "10. El saldo restante (30%) debe ser cancelado antes de iniciar el proceso de montaje en sitio."
+  ];
+
+  terms.forEach((term, i) => {
+    doc.text(term, 15, finalY + 7 + (i * 4));
+  });
+
+  // Footer
   doc.setFontSize(8);
   doc.setTextColor(161, 161, 170);
-  doc.setFont('helvetica', 'italic');
-  doc.text('Esta cotización es válida por 15 días. Sujeta a disponibilidad de inventario al momento de la reserva.', 15, 280);
-  doc.text('Sunpartners S.A.S - Conectando estructuras, creando experiencias.', 15, 285);
+  doc.text('Sunpartners S.A.S • Nit: 901.456.789-2 • Bogotá, Colombia', 105, 285, { align: 'center' });
 
-  doc.save(`Cotizacion_${quotation.client.nombre.replace(/\s+/g, '_')}_${quotation.id.substring(0,4)}.pdf`);
+  doc.save(`Cotizacion_Sunpartners_${quotation.client.empresa.replace(/\s+/g, '_')}.pdf`);
 };
