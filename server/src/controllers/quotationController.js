@@ -104,6 +104,75 @@ exports.create = async (req, res) => {
   }
 };
 
+exports.update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+        clientId,
+        nombre_evento,
+        tipo_evento,
+        ubicacion,
+        fecha_inicio,
+        fecha_fin,
+        fecha_montaje_inicio,
+        fecha_montaje_fin,
+        fecha_desmontaje_inicio,
+        fecha_desmontaje_fin,
+        bitacora,
+        items,
+        services
+    } = req.body;
+
+    // Delete existing items and services to replace them
+    await prisma.quotationItem.deleteMany({ where: { quotationId: id } });
+    await prisma.quotationService.deleteMany({ where: { quotationId: id } });
+
+    const quotation = await prisma.quotation.update({
+      where: { id },
+      data: {
+        clientId,
+        nombre_evento: nombre_evento || 'Evento sin nombre',
+        tipo_evento: tipo_evento || 'Corporativo',
+        ubicacion: ubicacion || 'Por definir',
+        fecha_inicio: new Date(fecha_inicio),
+        fecha_fin: new Date(fecha_fin),
+        fecha_montaje_inicio: fecha_montaje_inicio ? new Date(fecha_montaje_inicio) : null,
+        fecha_montaje_fin: fecha_montaje_fin ? new Date(fecha_montaje_fin) : null,
+        fecha_desmontaje_inicio: fecha_desmontaje_inicio ? new Date(fecha_desmontaje_inicio) : null,
+        fecha_desmontaje_fin: fecha_desmontaje_fin ? new Date(fecha_desmontaje_fin) : null,
+        bitacora,
+        items: {
+          create: (items || []).map(item => ({
+            inventoryId: item.inventoryId,
+            cantidad: parseInt(item.cantidad),
+            precio_pactado: parseFloat(item.precio_pactado),
+            clase_asignada: item.clase_asignada || 'A'
+          }))
+        },
+        services: {
+          create: (services || []).map(svc => ({
+            tipo: svc.tipo,
+            descripcion: svc.descripcion,
+            cantidad: parseInt(svc.cantidad || 1),
+            precio_pactado: parseFloat(svc.precio_pactado)
+          }))
+        },
+        logs: {
+          create: {
+            message: 'Cotización actualizada y modificada en el sistema',
+            userId: req.userId
+          }
+        }
+      },
+      include: { items: true, services: true }
+    });
+
+    res.json(quotation);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.generateSecureLink = async (req, res) => {
   try {
     const { id } = req.params;

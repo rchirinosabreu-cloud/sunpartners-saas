@@ -194,7 +194,7 @@ const Inventory = () => {
             </thead>
             <tbody className="text-[13px]">
               {loading ? (
-                <tr><td colSpan="11" className="p-8 text-center text-zinc-500 font-body italic animate-pulse">Consultando motor de inventario...</td></tr>
+                <tr><td colSpan="11" className="p-8 text-center text-zinc-500 font-body animate-pulse">Consultando motor de inventario...</td></tr>
               ) : filteredItems.length === 0 ? (
                 <tr><td colSpan="11" className="p-8 text-center text-zinc-500 font-body">No se encontraron artículos en la base de datos vinculada.</td></tr>
               ) : filteredItems.map((item, index) => (
@@ -218,7 +218,7 @@ const Inventory = () => {
                   <td className="px-3 py-3 text-right font-display text-[14px]">{item.existenciaTotal}</td>
                   <td className="px-3 py-3 text-right text-zinc-600 font-display">${item.vlrUnitario.toLocaleString()}</td>
                   <td className="px-3 py-3 text-right font-display font-semibold text-zinc-900">${(item.vlrTotal || 0).toLocaleString()}</td>
-                  <td className="px-3 py-3 text-zinc-400 italic text-[12px] truncate max-w-[150px]">{item.observaciones || '-'}</td>
+                  <td className="px-3 py-3 text-zinc-400 text-[12px] truncate max-w-[150px]">{item.observaciones || '-'}</td>
                   <td className="px-3 py-3 text-right">
                     <div className="flex items-center justify-end">
                       <button onClick={() => handleEdit(item)} className="p-1 text-zinc-400 hover:text-primary transition-colors">
