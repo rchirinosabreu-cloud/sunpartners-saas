@@ -47,9 +47,17 @@ enum QuotationStatus {
   BORRADOR
   ENVIADA
   APROBADA
+  REVISION_SOLICITADA
+  CANCELADA
   EJECUCION
   FINALIZADA
-  CANCELADA
+}
+
+enum RejectionType {
+  PRECIO
+  FECHAS
+  CAMBIO_PLAN
+  OTRO
 }
 
 model User {
@@ -68,8 +76,12 @@ model User {
 
 model Client {
   id                   String      @id @default(uuid())
-  nombre               String
-  identificacion       String?     @unique // NIT or Cédula
+  empresa              String
+  nit                  String?     @unique
+  contactoPrincipal    String?
+  cargo                String?
+  direccion            String?
+  ciudad               String?
   telefono             String?
   email                String?
   createdAt            DateTime    @default(now())
@@ -103,14 +115,27 @@ model Quotation {
   tipo_evento          String?
   fecha_inicio         DateTime
   fecha_fin            DateTime
+
+  fecha_montaje_inicio     DateTime?
+  fecha_montaje_fin        DateTime?
+  fecha_desmontaje_inicio   DateTime?
+  fecha_desmontaje_fin      DateTime?
+
   ubicacion            String
   estado               QuotationStatus @default(BORRADOR)
   vlrTotal             Float           @default(0)
+
+  bitacora             String?         @db.Text
+  secureHash           String?         @unique
+
+  rejectionType        RejectionType?
+  rejectionReason      String?
 
   clientId             String
   client               Client          @relation(fields: [clientId], references: [id])
 
   items                QuotationItem[]
+  services             QuotationService[]
   planning             PlanningStep?
   logs                 EventLog[]
 
@@ -137,6 +162,22 @@ model QuotationItem {
   deletedJustification String?
 }
 
+model QuotationService {
+  id               String        @id @default(uuid())
+  quotationId      String
+  quotation        Quotation     @relation(fields: [quotationId], references: [id])
+
+  tipo             String        // "Personal" or "Transporte"
+  descripcion      String
+  cantidad         Int           @default(1)
+  precio_pactado   Float
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+  deletedJustification String?
+}
+
 model PlanningStep {
   id           String    @id @default(uuid())
   quotationId  String    @unique
@@ -154,8 +195,8 @@ model EventLog {
   id           String    @id @default(uuid())
   quotationId  String
   quotation    Quotation @relation(fields: [quotationId], references: [id])
-  userId       String
-  user         User      @relation(fields: [userId], references: [id])
+  userId       String?
+  user         User?      @relation(fields: [userId], references: [id])
 
   message      String
   createdAt    DateTime  @default(now())

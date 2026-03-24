@@ -3,7 +3,7 @@ const prisma = require('../db');
 exports.getAll = async (req, res) => {
   try {
     const clients = await prisma.client.findMany({
-      orderBy: { nombre: 'asc' }
+      orderBy: { empresa: 'asc' }
     });
     res.json(clients);
   } catch (error) {
