@@ -12,6 +12,7 @@ router.post('/public/:hash/reject', (req, res) => quotationController.rejectByHa
 router.get('/', authMiddleware, (req, res) => quotationController.getAll(req, res));
 router.get('/:id', authMiddleware, (req, res) => quotationController.getById(req, res));
 router.post('/', authMiddleware, (req, res) => quotationController.create(req, res));
+router.put('/:id', authMiddleware, (req, res) => quotationController.update(req, res));
 router.post('/:id/secure-link', authMiddleware, (req, res) => quotationController.generateSecureLink(req, res));
 router.put('/:id/status', authMiddleware, (req, res) => quotationController.updateStatus(req, res));
 router.put('/:id/planning', authMiddleware, (req, res) => quotationController.upsertPlanning(req, res));

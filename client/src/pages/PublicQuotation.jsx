@@ -62,7 +62,7 @@ const PublicQuotation = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center font-body italic text-zinc-500">
+  if (loading) return <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center font-body text-zinc-500">
     <div className="size-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
     Sincronizando Propuesta Digital...
   </div>;
@@ -131,7 +131,7 @@ const PublicQuotation = () => {
                  </div>
               </div>
               <div className="space-y-2">
-                 <h2 className="text-5xl font-black tracking-tighter text-zinc-900 uppercase italic leading-none">{quotation.nombre_evento}</h2>
+                 <h2 className="text-5xl font-black tracking-tighter text-zinc-900 uppercase leading-none">{quotation.nombre_evento}</h2>
                  <div className="inline-block bg-zinc-900 text-white px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] shadow-lg">
                    PROPUESTA #Q-{quotation.id.substring(0,6).toUpperCase()}
                  </div>
@@ -273,7 +273,7 @@ const PublicQuotation = () => {
       {showApproveModal && (
         <div className="fixed inset-0 bg-zinc-900/90 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
           <div className="bg-white border-4 border-zinc-900 w-full max-w-lg p-12 rounded-sm shadow-[0_40px_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
-            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 italic">Aceptación de Términos</h3>
+            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6">Aceptación de Términos</h3>
             <p className="text-xs text-zinc-500 font-bold mb-10 uppercase tracking-widest leading-relaxed">¿Desea proceder con la formalización de este proyecto? Al confirmar, acepta los términos y condiciones legales y el proceso de reserva de inventario se activará de forma inmediata.</p>
             <div className="flex flex-col gap-4">
               <button
@@ -299,7 +299,7 @@ const PublicQuotation = () => {
       {showRejectModal && (
         <div className="fixed inset-0 bg-zinc-900/90 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
           <div className="bg-white border-4 border-zinc-900 w-full max-w-2xl p-12 rounded-sm shadow-[0_40px_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
-            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 text-red-600 italic">Solicitud de Ajustes</h3>
+            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 text-red-600">Solicitud de Ajustes</h3>
             <div className="space-y-8">
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-4">Motivo de la Revisión</label>

@@ -77,7 +77,7 @@ const Clients = () => {
             </thead>
             <tbody className="text-sm divide-y divide-zinc-50">
               {loading ? (
-                <tr><td colSpan="5" className="p-12 text-center text-zinc-400 italic font-medium animate-pulse uppercase text-[10px] tracking-widest">Sincronizando base de clientes...</td></tr>
+                <tr><td colSpan="5" className="p-12 text-center text-zinc-400 font-medium animate-pulse uppercase text-[10px] tracking-widest">Sincronizando base de clientes...</td></tr>
               ) : filteredClients.length === 0 ? (
                 <tr><td colSpan="5" className="p-12 text-center text-zinc-400 font-bold uppercase text-[11px] tracking-widest">No se encontraron clientes registrados.</td></tr>
               ) : filteredClients.map((client, idx) => (

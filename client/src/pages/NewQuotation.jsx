@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Modal from '../components/ui/Modal';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import 'flatpickr/dist/themes/light.css';
 
 const NewQuotation = () => {
+  const { id } = useParams();
+  const isEditing = !!id;
   const [activeTab, setActiveTab] = useState(1);
   const [clients, setClients] = useState([]);
   const [inventory, setInventory] = useState([]);
@@ -45,6 +47,36 @@ const NewQuotation = () => {
         ]);
         setClients(cRes.data);
         setInventory(iRes.data);
+
+        if (isEditing) {
+          const qRes = await axios.get(`/api/quotations/${id}`, { withCredentials: true });
+          const q = qRes.data;
+          setFormData({
+            clientId: q.clientId,
+            nombre_evento: q.nombre_evento,
+            tipo_evento: q.tipo_evento,
+            ubicacion: q.ubicacion,
+            fecha_inicio: q.fecha_inicio ? new Date(q.fecha_inicio) : null,
+            fecha_fin: q.fecha_fin ? new Date(q.fecha_fin) : null,
+            fecha_montaje_inicio: q.fecha_montaje_inicio ? new Date(q.fecha_montaje_inicio) : null,
+            fecha_montaje_fin: q.fecha_montaje_fin ? new Date(q.fecha_montaje_fin) : null,
+            fecha_desmontaje_inicio: q.fecha_desmontaje_inicio ? new Date(q.fecha_desmontaje_inicio) : null,
+            fecha_desmontaje_fin: q.fecha_desmontaje_fin ? new Date(q.fecha_desmontaje_fin) : null,
+            bitacora: q.bitacora || '',
+            items: q.items.map(it => ({
+              inventoryId: it.inventoryId,
+              cantidad: it.cantidad,
+              precio_pactado: it.precio_pactado,
+              clase_asignada: it.clase_asignada
+            })),
+            services: q.services.map(sv => ({
+              tipo: sv.tipo,
+              descripcion: sv.descripcion,
+              cantidad: sv.cantidad,
+              precio_pactado: sv.precio_pactado
+            }))
+          });
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -52,7 +84,7 @@ const NewQuotation = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [id, isEditing]);
 
   const handleCreateClient = async (e) => {
     e.preventDefault();
@@ -139,8 +171,13 @@ const NewQuotation = () => {
 
     setSaving(true);
     try {
-      const res = await axios.post('/api/quotations', formData, { withCredentials: true });
-      navigate(`/cotizaciones/${res.data.id}`);
+      if (isEditing) {
+        await axios.put(`/api/quotations/${id}`, formData, { withCredentials: true });
+        navigate(`/cotizaciones/${id}`);
+      } else {
+        const res = await axios.post('/api/quotations', formData, { withCredentials: true });
+        navigate(`/cotizaciones/${res.data.id}`);
+      }
     } catch (err) {
       setModal({
         isOpen: true,
@@ -153,7 +190,7 @@ const NewQuotation = () => {
     }
   };
 
-  if (loading) return <div className="p-8 font-body text-zinc-500 text-center mt-20 italic animate-pulse">Sincronizando con motor Luxury BTL...</div>;
+  if (loading) return <div className="p-8 font-body text-zinc-500 text-center mt-20 animate-pulse">Sincronizando con motor Luxury BTL...</div>;
 
   const TabButton = ({ num, label, icon }) => (
     <div className="flex flex-col items-center flex-1 relative">
@@ -228,10 +265,12 @@ const NewQuotation = () => {
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
           <div>
-            <h2 className="font-display text-3xl font-black tracking-tight text-zinc-900 uppercase italic">
-              {formData.nombre_evento || 'Constructor de Cotizaciones'}
+            <h2 className="font-display text-3xl font-black tracking-tight text-zinc-900 uppercase">
+              {isEditing ? `Editando: ${formData.nombre_evento}` : (formData.nombre_evento || 'Constructor de Cotizaciones')}
             </h2>
-            <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Constructor Maestro • Estándar Premium</p>
+            <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">
+              {isEditing ? 'Modo de Edición • Actualización de Propuesta' : 'Constructor Maestro • Estándar Premium'}
+            </p>
           </div>
         </div>
         <div className="bg-zinc-900 text-white px-6 py-2.5 rounded-sm flex flex-col items-end shadow-xl">
@@ -330,37 +369,41 @@ const NewQuotation = () => {
                     { l: 'Fase Evento', start: 'fecha_inicio', end: 'fecha_fin', icon: 'celebration', color: 'text-primary' },
                     { l: 'Fase Montaje', start: 'fecha_montaje_inicio', end: 'fecha_montaje_fin', icon: 'build', color: 'text-zinc-900' },
                     { l: 'Fase Desmontaje', start: 'fecha_desmontaje_inicio', end: 'fecha_desmontaje_fin', icon: 'restart_alt', color: 'text-zinc-900' }
-                  ].map((phase, i) => (
-                    <div key={i} className="space-y-6 p-6 border-2 border-zinc-100 rounded bg-white shadow-sm hover:border-zinc-300 transition-all">
-                      <h4 className={`text-xs font-black uppercase tracking-widest flex items-center gap-3 ${phase.color}`}>
-                         <span className="material-symbols-outlined text-[20px]">{phase.icon}</span> {phase.l}
-                      </h4>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">INICIO</label>
-                          <Flatpickr
-                            data-enable-time
-                            value={formData[phase.start]}
-                            onChange={([date]) => setFormData(prev => ({...prev, [phase.start]: date}))}
-                            options={flatpickrConfig}
-                            className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                            placeholder="Seleccionar..."
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">FIN</label>
-                          <Flatpickr
-                            data-enable-time
-                            value={formData[phase.end]}
-                            onChange={([date]) => setFormData(prev => ({...prev, [phase.end]: date}))}
-                            options={flatpickrConfig}
-                            className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                            placeholder="Seleccionar..."
-                          />
+                  ].map((phase, i) => {
+                    const startDateKey = phase.start;
+                    const endDateKey = phase.end;
+                    return (
+                      <div key={i} className="space-y-6 p-6 border-2 border-zinc-100 rounded bg-white shadow-sm hover:border-zinc-300 transition-all">
+                        <h4 className={`text-xs font-black uppercase tracking-widest flex items-center gap-3 ${phase.color}`}>
+                          <span className="material-symbols-outlined text-[20px]">{phase.icon}</span> {phase.l}
+                        </h4>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">INICIO</label>
+                            <Flatpickr
+                              data-enable-time
+                              value={formData[startDateKey]}
+                              onChange={([date]) => setFormData(prev => ({...prev, [startDateKey]: date}))}
+                              options={flatpickrConfig}
+                              className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                              placeholder="Seleccionar..."
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">FIN</label>
+                            <Flatpickr
+                              data-enable-time
+                              value={formData[endDateKey]}
+                              onChange={([date]) => setFormData(prev => ({...prev, [endDateKey]: date}))}
+                              options={flatpickrConfig}
+                              className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                              placeholder="Seleccionar..."
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                </div>
             </div>
           )}
@@ -379,13 +422,15 @@ const NewQuotation = () => {
                      const invItem = inventory.find(i => i.id === item.inventoryId);
                      const isOverStock = invItem && item.cantidad > (invItem.claseA + invItem.claseB);
                      return (
-                       <div key={idx} className={`flex gap-4 items-center p-4 rounded border-2 transition-all ${isOverStock ? 'border-brand-alert bg-brand-alert/5' : 'border-zinc-50 bg-zinc-50/30'}`}>
-                         <div className="flex-1">
+                       <div key={idx} className={`flex gap-4 items-start p-4 rounded border-2 transition-all ${isOverStock ? 'border-brand-alert bg-brand-alert/5' : 'border-zinc-50 bg-zinc-50/30'}`}>
+                         <div className="flex-1 min-h-[64px]">
                            <select value={item.inventoryId} onChange={e => updateItem(idx, 'inventoryId', e.target.value)} className="w-full bg-white border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold outline-none focus:border-primary">
                              <option value="">-- Artículo de Inventario --</option>
                              {inventory.map(i => <option key={i.id} value={i.id}>{i.nombre} (Disponibles A+B: {i.claseA + i.claseB})</option>)}
                            </select>
-                           {isOverStock && <p className="text-[9px] text-brand-alert font-black mt-2 uppercase tracking-widest">⚠️ Alerta stock: Disponible {(invItem.claseA + invItem.claseB)} | Solicitado {item.cantidad}</p>}
+                           <div className="h-5">
+                             {isOverStock && <p className="text-[9px] text-brand-alert font-black mt-1 uppercase tracking-widest animate-in fade-in slide-in-from-top-1">⚠️ Alerta stock: Disponible {(invItem.claseA + invItem.claseB)} | Solicitado {item.cantidad}</p>}
+                           </div>
                          </div>
                          <div className="w-24">
                            <label className="block text-[8px] font-black uppercase text-zinc-400 mb-1">CANT.</label>
@@ -398,11 +443,10 @@ const NewQuotation = () => {
                               <option value="B">Clase B</option>
                             </select>
                          </div>
-                         <div className="w-40 text-right">
-                           <label className="block text-[8px] font-black uppercase text-zinc-400 mb-1">SUBTOTAL ITEM</label>
+                         <div className="w-40 text-right pt-4">
                            <div className="text-sm font-black text-zinc-900 tracking-tight">$ {(item.cantidad * item.precio_pactado).toLocaleString('es-CO')}</div>
                          </div>
-                         <button type="button" onClick={() => removeItem(idx)} className="text-zinc-300 hover:text-red-500 transition-colors"><span className="material-symbols-outlined text-[22px]">delete_sweep</span></button>
+                         <button type="button" onClick={() => removeItem(idx)} className="mt-4 text-zinc-300 hover:text-red-500 transition-colors"><span className="material-symbols-outlined text-[22px]">delete_sweep</span></button>
                        </div>
                      );
                    })}
@@ -470,7 +514,7 @@ const NewQuotation = () => {
                     <div className="space-y-4">
                        <p className="font-bold uppercase text-[10px] text-zinc-400 tracking-widest border-b border-zinc-200 pb-2">Datos de Cliente</p>
                        <p className="font-black text-zinc-900 text-lg uppercase">{clients.find(c => c.id === formData.clientId)?.empresa || "Cliente no seleccionado"}</p>
-                       <p className="text-zinc-600 font-medium tracking-tight italic">"{formData.nombre_evento}"</p>
+                       <p className="text-zinc-600 font-medium tracking-tight">"{formData.nombre_evento}"</p>
                     </div>
                     <div className="space-y-4">
                        <p className="font-bold uppercase text-[10px] text-zinc-400 tracking-widest border-b border-zinc-200 pb-2">Logística y Ubicación</p>
@@ -509,7 +553,7 @@ const NewQuotation = () => {
                   <button type="button" onClick={() => setActiveTab(activeTab + 1)} className="bg-zinc-900 text-white px-12 py-3.5 rounded text-[11px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-xl">Siguiente Estación</button>
                 ) : (
                   <button type="submit" disabled={saving} className="bg-primary text-white px-16 py-3.5 rounded text-[11px] font-black uppercase tracking-widest hover:opacity-90 shadow-2xl disabled:opacity-50 flex items-center gap-3">
-                    {saving ? 'Procesando...' : 'Generar Cotización Maestro'}
+                    {saving ? 'Procesando...' : (isEditing ? 'Actualizar Cotización Maestro' : 'Generar Cotización Maestro')}
                     <span className="material-symbols-outlined text-[18px]">bolt</span>
                   </button>
                 )}

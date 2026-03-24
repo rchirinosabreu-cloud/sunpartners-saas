@@ -68,7 +68,7 @@ const QuotationDetail = () => {
     }
   };
 
-  if (loading) return <div className="p-8 font-body text-zinc-500 text-center mt-20 italic animate-pulse">Sincronizando con el motor de negocio...</div>;
+  if (loading) return <div className="p-8 font-body text-zinc-500 text-center mt-20 animate-pulse">Sincronizando con el motor de negocio...</div>;
   if (!quotation) return <div className="p-8 font-body text-red-500 text-center">Cotización no encontrada.</div>;
 
   const subtotalItems = (quotation.items || []).reduce((acc, item) => acc + (item.cantidad * item.precio_pactado), 0);
@@ -143,6 +143,16 @@ const QuotationDetail = () => {
                PDF Interno
              </button>
 
+             {quotation.estado === 'REVISION_SOLICITADA' && (
+               <button
+                onClick={() => navigate(`/cotizaciones/editar/${id}`)}
+                className="flex items-center gap-2 bg-brand-alert text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg"
+               >
+                 <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                 Editar y Corregir
+               </button>
+             )}
+
              {!linkData ? (
                <button
                 onClick={handleGenerateLink}
@@ -196,7 +206,7 @@ const QuotationDetail = () => {
                     <h4 className="font-bold uppercase text-sm tracking-wider">Ajustes Solicitados por el Cliente</h4>
                   </div>
                   <p className="text-sm font-bold text-zinc-900 mb-1">Motivo: {quotation.rejectionType}</p>
-                  <p className="text-sm text-zinc-600 italic">"{quotation.rejectionReason}"</p>
+                  <p className="text-sm text-zinc-600">"{quotation.rejectionReason}"</p>
                 </div>
               )}
 

@@ -14,7 +14,7 @@ import PublicQuotation from './pages/PublicQuotation';
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen font-body italic text-zinc-400">Autenticando sesión...</div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen font-body text-zinc-400">Autenticando sesión...</div>;
   if (!user) return <Navigate to="/login" />;
 
   return children;
@@ -45,6 +45,7 @@ const App = () => {
             <Route path="clientes" element={<Clients />} />
             <Route path="cotizaciones" element={<QuotationList />} />
             <Route path="cotizaciones/nueva" element={<NewQuotation />} />
+            <Route path="cotizaciones/editar/:id" element={<NewQuotation />} />
             <Route path="cotizaciones/:id" element={<QuotationDetail />} />
             <Route path="equipo" element={<div className="p-8 text-zinc-500 font-body uppercase text-xs font-black tracking-widest">Módulo de Equipo en desarrollo...</div>} />
           </Route>
