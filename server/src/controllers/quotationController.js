@@ -1,4 +1,13 @@
 const prisma = require('../db');
+const crypto = require('crypto');
+
+const includeAll = {
+  client: true,
+  items: { include: { inventory: true } },
+  services: true,
+  planning: true,
+  logs: { include: { user: true }, orderBy: { createdAt: 'desc' } }
+};
 
 exports.getAll = async (req, res) => {
   try {
@@ -21,12 +30,7 @@ exports.getById = async (req, res) => {
   try {
     const quotation = await prisma.quotation.findUnique({
       where: { id: req.params.id },
-      include: {
-        client: true,
-        items: { include: { inventory: true } },
-        planning: true,
-        logs: { include: { user: true }, orderBy: { createdAt: 'desc' } }
-      }
+      include: includeAll
     });
     if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
     res.json(quotation);
@@ -44,11 +48,15 @@ exports.create = async (req, res) => {
         ubicacion,
         fecha_inicio,
         fecha_fin,
+        fecha_montaje_inicio,
+        fecha_montaje_fin,
+        fecha_desmontaje_inicio,
+        fecha_desmontaje_fin,
+        bitacora,
         items,
+        services,
         estado = 'BORRADOR'
     } = req.body;
-
-    // items: [{ inventoryId, cantidad, precio_pactado, clase_asignada }]
 
     const quotation = await prisma.quotation.create({
       data: {
@@ -58,13 +66,26 @@ exports.create = async (req, res) => {
         ubicacion: ubicacion || 'Por definir',
         fecha_inicio: new Date(fecha_inicio),
         fecha_fin: new Date(fecha_fin),
+        fecha_montaje_inicio: fecha_montaje_inicio ? new Date(fecha_montaje_inicio) : null,
+        fecha_montaje_fin: fecha_montaje_fin ? new Date(fecha_montaje_fin) : null,
+        fecha_desmontaje_inicio: fecha_desmontaje_inicio ? new Date(fecha_desmontaje_inicio) : null,
+        fecha_desmontaje_fin: fecha_desmontaje_fin ? new Date(fecha_desmontaje_fin) : null,
+        bitacora,
         estado,
         items: {
-          create: items.map(item => ({
+          create: (items || []).map(item => ({
             inventoryId: item.inventoryId,
             cantidad: parseInt(item.cantidad),
             precio_pactado: parseFloat(item.precio_pactado),
             clase_asignada: item.clase_asignada || 'A'
+          }))
+        },
+        services: {
+          create: (services || []).map(svc => ({
+            tipo: svc.tipo,
+            descripcion: svc.descripcion,
+            cantidad: parseInt(svc.cantidad || 1),
+            precio_pactado: parseFloat(svc.precio_pactado)
           }))
         },
         logs: {
@@ -74,10 +95,105 @@ exports.create = async (req, res) => {
           }
         }
       },
-      include: { items: true }
+      include: { items: true, services: true }
     });
 
     res.status(201).json(quotation);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.generateSecureLink = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const secureHash = crypto.randomBytes(32).toString('hex');
+
+    const updated = await prisma.quotation.update({
+      where: { id },
+      data: {
+        secureHash,
+        estado: 'ENVIADA',
+        logs: {
+          create: {
+            message: 'Link seguro generado y cotización marcada como ENVIADA',
+            userId: req.userId
+          }
+        }
+      }
+    });
+
+    res.json({ hash: secureHash, url: `/q/${secureHash}` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getByHash = async (req, res) => {
+  try {
+    const { hash } = req.params;
+    const quotation = await prisma.quotation.findUnique({
+      where: { secureHash: hash },
+      include: includeAll
+    });
+
+    if (!quotation) return res.status(404).json({ error: 'Cotización no válida o expirada' });
+    res.json(quotation);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.approveByHash = async (req, res) => {
+  try {
+    const { hash } = req.params;
+    const quotation = await prisma.quotation.findUnique({ where: { secureHash: hash } });
+
+    if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
+
+    const updated = await prisma.quotation.update({
+      where: { id: quotation.id },
+      data: {
+        estado: 'APROBADA',
+        logs: {
+          create: {
+            message: 'Cotización APROBADA por el cliente vía portal público'
+          }
+        }
+      }
+    });
+
+    res.json({ message: 'Cotización aprobada con éxito', status: 'APROBADA' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.rejectByHash = async (req, res) => {
+  try {
+    const { hash } = req.params;
+    const { rejectionType, rejectionReason } = req.body;
+
+    if (!rejectionType) return res.status(400).json({ error: 'El motivo de rechazo es obligatorio' });
+
+    const quotation = await prisma.quotation.findUnique({ where: { secureHash: hash } });
+    if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
+
+    const updated = await prisma.quotation.update({
+      where: { id: quotation.id },
+      data: {
+        estado: 'REVISION_SOLICITADA',
+        rejectionType,
+        rejectionReason,
+        logs: {
+          create: {
+            message: `Cliente solicitó revisión. Motivo: ${rejectionType}. Detalle: ${rejectionReason || 'Ninguno'}`
+          }
+        }
+      }
+    });
+
+    res.json({ message: 'Solicitud de revisión enviada', status: 'REVISION_SOLICITADA' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -89,7 +205,6 @@ exports.updateStatus = async (req, res) => {
     const current = await prisma.quotation.findUnique({ where: { id: req.params.id } });
 
     if (estado === 'APROBADA' || estado === 'EJECUCION') {
-      // Check availability before allowing approval
       const conflict = await checkAvailability(req.params.id);
       if (conflict) {
         return res.status(400).json({
@@ -143,7 +258,6 @@ async function checkAvailability(quotationId) {
   const start = q.fecha_inicio;
   const end = q.fecha_fin;
 
-  // Find all confirmed/executing quotations that overlap
   const overlaps = await prisma.quotation.findMany({
     where: {
       id: { not: quotationId },
@@ -155,22 +269,20 @@ async function checkAvailability(quotationId) {
     include: { items: true }
   });
 
-  // Calculate total committed stock for each item in the overlap period
   const committed = {};
   overlaps.forEach(overlap => {
     overlap.items.forEach(item => {
-      committed[item.inventoryItemId] = (committed[item.inventoryItemId] || 0) + item.quantity;
+      committed[item.inventoryId] = (committed[item.inventoryId] || 0) + item.cantidad;
     });
   });
 
-  // Check each item in current quotation against total stock (claseA + claseB)
   for (const item of q.items) {
-    const inv = await prisma.inventoryItem.findUnique({ where: { id: item.inventoryItemId } });
+    const inv = await prisma.inventoryItem.findUnique({ where: { id: item.inventoryId } });
     const totalAvailable = (inv.claseA || 0) + (inv.claseB || 0);
-    const alreadyCommitted = committed[item.inventoryItemId] || 0;
+    const alreadyCommitted = committed[item.inventoryId] || 0;
 
-    if (alreadyCommitted + item.quantity > totalAvailable) {
-      return `Stock insuficiente para "${inv.nombre}". Disponible total (A+B): ${totalAvailable}, Comprometido en otras fechas: ${alreadyCommitted}, Solicitado: ${item.quantity}`;
+    if (alreadyCommitted + item.cantidad > totalAvailable) {
+      return `Stock insuficiente para "${inv.nombre}". Disponible total (A+B): ${totalAvailable}, Comprometido en otras fechas: ${alreadyCommitted}, Solicitado: ${item.cantidad}`;
     }
   }
 
