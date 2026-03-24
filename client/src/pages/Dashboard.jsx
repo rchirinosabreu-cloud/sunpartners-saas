@@ -20,11 +20,22 @@ const MetricCard = ({ label, value, unit, icon, alert = false }) => (
 
 const Dashboard = () => {
   const events = [
-    { id: 'EV-2041', client: 'Boda Martínez Silva', date: '25 Oct, 09:00', location: 'Hacienda Los Encinos', status: 'Confirmado' },
-    { id: 'EV-2042', client: 'Congreso Tech 2024', date: '26 Oct, 07:30', location: 'Centro de Convenciones', status: 'Pendiente' },
-    { id: 'EV-2043', client: 'Cena Corporativa ACME', date: '26 Oct, 18:00', location: 'Hotel Plaza Central', status: 'Confirmado' },
-    { id: 'EV-2044', client: 'Fiesta de Fin de Año', date: '28 Oct, 20:00', location: 'Salón Cristal', status: 'Borrador' },
+    { id: 'EV-2041', client: 'Boda Martínez Silva', date: new Date('2026-03-24T09:00:00'), location: 'Hacienda Los Encinos', status: 'Confirmado' },
+    { id: 'EV-2042', client: 'Congreso Tech 2024', date: new Date('2026-03-26T07:30:00'), location: 'Centro de Convenciones', status: 'Pendiente' },
+    { id: 'EV-2043', client: 'Cena Corporativa ACME', date: new Date('2026-03-26T18:00:00'), location: 'Hotel Plaza Central', status: 'Confirmado' },
+    { id: 'EV-2044', client: 'Fiesta de Fin de Año', date: new Date('2026-03-28T20:00:00'), location: 'Salón Cristal', status: 'Borrador' },
   ];
+
+  const formatEventDate = (date) => {
+    return new Intl.DateTimeFormat('es-CO', {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    }).format(date);
+  };
 
   return (
     <div className="p-8">
@@ -62,7 +73,7 @@ const Dashboard = () => {
                   <tr key={event.id} className="hover:bg-zinc-50 transition-colors">
                     <td className="px-5 py-4 font-display font-medium text-zinc-900">{event.id}</td>
                     <td className="px-5 py-4 text-zinc-900 font-medium">{event.client}</td>
-                    <td className="px-5 py-4 text-zinc-500">{event.date}</td>
+                    <td className="px-5 py-4 text-zinc-500">{formatEventDate(event.date)}</td>
                     <td className="px-5 py-4 text-zinc-500">{event.location}</td>
                     <td className="px-5 py-4">
                       <span className={cn(

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import Modal from '../components/ui/Modal';
 
 const PublicQuotation = () => {
   const { hash } = useParams();
@@ -12,6 +13,7 @@ const PublicQuotation = () => {
   const [rejection, setRejection] = useState({ type: 'PRECIO', reason: '' });
   const [processing, setProcessing] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [uiModal, setUiModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
 
   useEffect(() => {
     const fetchQuotation = async () => {
@@ -19,7 +21,7 @@ const PublicQuotation = () => {
         const res = await axios.get(`/api/quotations/public/${hash}`);
         setQuotation(res.data);
       } catch (err) {
-        setError(err.response?.data?.error || 'No se pudo cargar la cotización');
+        setError(err.response?.data?.error || 'No se pudo cargar la propuesta digital.');
       } finally {
         setLoading(false);
       }
@@ -34,7 +36,7 @@ const PublicQuotation = () => {
       setFinished(true);
       setShowApproveModal(false);
     } catch (err) {
-      alert('Error al aprobar');
+      setUiModal({ isOpen: true, title: 'Error', content: 'No se pudo procesar la aprobación. Intenta de nuevo.', type: 'error' });
     } finally {
       setProcessing(false);
     }
@@ -42,7 +44,7 @@ const PublicQuotation = () => {
 
   const handleReject = async () => {
     if (!rejection.reason && rejection.type === 'OTRO') {
-      alert('Por favor, especifica el motivo');
+      setUiModal({ isOpen: true, title: 'Atención', content: 'Por favor, especifica el motivo del ajuste.', type: 'warning' });
       return;
     }
     setProcessing(true);
@@ -54,24 +56,36 @@ const PublicQuotation = () => {
       setFinished(true);
       setShowRejectModal(false);
     } catch (err) {
-      alert('Error al enviar solicitud');
+      setUiModal({ isOpen: true, title: 'Error', content: 'Error al enviar la solicitud de revisión.', type: 'error' });
     } finally {
       setProcessing(false);
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-zinc-50 flex items-center justify-center font-body italic text-zinc-400">Verificando credenciales de acceso...</div>;
-  if (error) return <div className="min-h-screen bg-zinc-50 flex items-center justify-center font-body text-red-500 font-bold uppercase tracking-widest">{error}</div>;
+  if (loading) return <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center font-body italic text-zinc-500">
+    <div className="size-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
+    Sincronizando Propuesta Digital...
+  </div>;
+
+  if (error) return (
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-8 font-body">
+      <div className="bg-white border-2 border-red-100 p-12 rounded-sm text-center shadow-xl">
+        <span className="material-symbols-outlined text-red-500 text-5xl mb-6">error</span>
+        <h2 className="text-xl font-black uppercase text-zinc-900 mb-2">Acceso No Válido</h2>
+        <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.2em]">{error}</p>
+      </div>
+    </div>
+  );
 
   if (finished) {
     return (
       <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center font-body p-8 text-center">
-         <div className="size-20 rounded-full bg-primary/20 flex items-center justify-center mb-8 border-2 border-primary/50">
-            <span className="material-symbols-outlined text-primary text-[40px] font-black">check_circle</span>
+         <div className="size-24 rounded-full bg-primary/20 flex items-center justify-center mb-8 border-2 border-primary/50 shadow-[0_0_40px_rgba(18,174,226,0.2)]">
+            <span className="material-symbols-outlined text-primary text-[48px] font-black">check_circle</span>
          </div>
-         <h2 className="text-white text-3xl font-black uppercase tracking-tighter mb-4">¡Gestión Completada!</h2>
-         <p className="text-zinc-400 max-w-md mx-auto font-bold uppercase text-xs tracking-widest leading-relaxed">Tu respuesta ha sido registrada exitosamente. El equipo de Sunpartners se pondrá en contacto contigo en breve para los siguientes pasos.</p>
-         <div className="mt-12 text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em]">Sunpartners SaaS • Estándar de Excelencia</div>
+         <h2 className="text-white text-4xl font-black uppercase tracking-tighter mb-4">Gestión Finalizada</h2>
+         <p className="text-zinc-400 max-w-md mx-auto font-bold uppercase text-[11px] tracking-widest leading-relaxed">Su respuesta ha sido procesada por nuestro motor de negocio. Un ejecutivo de Sunpartners se pondrá en contacto con usted en breve.</p>
+         <div className="mt-20 text-[9px] font-black text-zinc-700 uppercase tracking-[0.6em]">Luxury BTL System • Excellence as Standard</div>
       </div>
     );
   }
@@ -82,206 +96,248 @@ const PublicQuotation = () => {
   const iva = subtotal * 0.19;
   const total = subtotal + iva;
 
+  const formatPublicDate = (dateString) => {
+    if (!dateString) return 'PENDIENTE';
+    return new Intl.DateTimeFormat('es-CO', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    }).format(new Date(dateString));
+  };
+
   return (
-    <div className="min-h-screen bg-[#FAFAFA] font-body p-4 md:p-12">
-      <div className="max-w-5xl mx-auto bg-white border border-zinc-200 rounded shadow-sm overflow-hidden">
-        {/* Public Header */}
-        <div className="p-8 md:p-12 border-b border-zinc-100 flex flex-col md:flex-row justify-between items-start gap-8">
+    <div className="min-h-screen bg-[#F4F4F5] font-body py-12 px-4 md:px-8 lg:px-12">
+      <Modal isOpen={uiModal.isOpen} onClose={() => setUiModal({ ...uiModal, isOpen: false })} title={uiModal.title} type={uiModal.type}>
+        {uiModal.content}
+      </Modal>
+
+      <div className="max-w-6xl mx-auto bg-white border border-zinc-200 rounded-sm shadow-2xl overflow-hidden relative">
+        {/* Aesthetic Stripe */}
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-blue-600"></div>
+
+        {/* Public Header - Ultra Clean */}
+        <div className="p-12 md:p-20 border-b border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
            <div>
-              <div className="flex items-center gap-3 mb-8">
-                 <div className="size-10 bg-zinc-900 flex items-center justify-center rounded-sm">
-                    <span className="material-symbols-outlined text-white text-[24px]">dataset</span>
+              <div className="flex items-center gap-4 mb-12">
+                 <div className="size-12 bg-zinc-900 flex items-center justify-center rounded-sm shadow-xl">
+                    <span className="material-symbols-outlined text-white text-[28px] fill">architecture</span>
                  </div>
-                 <h1 className="text-xl font-black uppercase tracking-[0.2em] text-zinc-900">SUNPARTNERS</h1>
+                 <div>
+                    <h1 className="text-2xl font-black uppercase tracking-[0.3em] text-zinc-900 leading-none mb-1">SUNPARTNERS</h1>
+                    <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">Estándar de Excelencia</p>
+                 </div>
               </div>
-              <div className="space-y-1">
-                 <h2 className="text-3xl font-black tracking-tighter text-zinc-900 uppercase">{quotation.nombre_evento}</h2>
-                 <p className="text-xs font-black text-primary uppercase tracking-widest">Cotización #Q-{quotation.id.substring(0,6).toUpperCase()}</p>
+              <div className="space-y-2">
+                 <h2 className="text-5xl font-black tracking-tighter text-zinc-900 uppercase italic leading-none">{quotation.nombre_evento}</h2>
+                 <div className="inline-block bg-zinc-900 text-white px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] shadow-lg">
+                   PROPUESTA #Q-{quotation.id.substring(0,6).toUpperCase()}
+                 </div>
               </div>
            </div>
-           <div className="text-left md:text-right space-y-4">
-              <div>
-                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Cliente</span>
-                 <p className="text-sm font-bold text-zinc-900 uppercase">{quotation.client.empresa}</p>
-                 <p className="text-xs font-medium text-zinc-500">{quotation.client.nit}</p>
+           <div className="flex flex-col items-start md:items-end gap-10">
+              <div className="text-left md:text-right space-y-4">
+                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block border-b border-zinc-100 pb-2">Destinatario Corporativo</span>
+                 <p className="text-xl font-black text-zinc-900 uppercase tracking-tight">{quotation.client.empresa}</p>
+                 <div className="text-[11px] font-bold text-zinc-500 space-y-1">
+                    <p>NIT: {quotation.client.nit || 'PENDIENTE'}</p>
+                    <p>CIUDAD: {quotation.client.ciudad || 'BOGOTÁ, COL'}</p>
+                 </div>
               </div>
-              <div>
-                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Fecha del Evento</span>
-                 <p className="text-sm font-bold text-zinc-900">{new Date(quotation.fecha_inicio).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <div className="text-left md:text-right">
+                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block border-b border-zinc-100 pb-2 mb-3">Cronograma del Proyecto</span>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                    <div>
+                       <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Inicio de Evento</p>
+                       <p className="text-sm font-black text-zinc-800">{formatPublicDate(quotation.fecha_inicio)}</p>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Fase Montaje</p>
+                       <p className="text-sm font-black text-zinc-800">{formatPublicDate(quotation.fecha_montaje_inicio)}</p>
+                    </div>
+                 </div>
               </div>
            </div>
         </div>
 
-        {/* Items Table */}
-        <div className="p-8 md:p-12">
+        {/* Breakdown Table */}
+        <div className="px-12 md:px-20 py-16">
+           <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-10 border-l-4 border-primary pl-6">Desglose de Equipamiento y Logística</h3>
            <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-zinc-200">
-                  <th className="pb-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Descripción del Artículo / Servicio</th>
-                  <th className="pb-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 text-center">Cant.</th>
-                  <th className="pb-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Vlr. Unitario</th>
-                  <th className="pb-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Total</th>
+                <tr className="border-b-2 border-zinc-900">
+                  <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900">Descripción Técnica</th>
+                  <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-center">Cant.</th>
+                  <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-right">Inversión Un.</th>
+                  <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-right">Subtotal</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-50">
+              <tbody className="divide-y divide-zinc-100">
                 {(quotation.items || []).map((item, idx) => (
-                  <tr key={idx}>
-                    <td className="py-6">
-                       <p className="font-bold text-sm text-zinc-900">{item.inventory.nombre}</p>
-                       <span className="text-[10px] font-black text-zinc-400 uppercase tracking-tighter">Categoría: Equipamiento Estándar</span>
+                  <tr key={idx} className="group">
+                    <td className="py-8">
+                       <p className="font-black text-base text-zinc-900 uppercase tracking-tight group-hover:text-primary transition-colors">{item.inventory.nombre}</p>
+                       <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1 block">Estándar de Calidad: Clase {item.clase_asignada}</span>
                     </td>
-                    <td className="py-6 text-center font-bold text-sm text-zinc-600">{item.cantidad}</td>
-                    <td className="py-6 text-right font-bold text-sm text-zinc-600">$ {item.precio_pactado.toLocaleString()}</td>
-                    <td className="py-6 text-right font-black text-sm text-zinc-900">$ {(item.cantidad * item.precio_pactado).toLocaleString()}</td>
+                    <td className="py-8 text-center font-black text-zinc-600">{item.cantidad}</td>
+                    <td className="py-8 text-right font-bold text-zinc-500">$ {item.precio_pactado.toLocaleString()}</td>
+                    <td className="py-8 text-right font-black text-lg text-zinc-900 tracking-tighter">$ {(item.cantidad * item.precio_pactado).toLocaleString()}</td>
                   </tr>
                 ))}
                 {(quotation.services || []).map((svc, idx) => (
                   <tr key={idx}>
-                    <td className="py-6">
-                       <p className="font-bold text-sm text-zinc-900">{svc.descripcion}</p>
-                       <span className="text-[10px] font-black text-primary uppercase tracking-tighter">{svc.tipo} Especializado</span>
+                    <td className="py-8 border-l-4 border-zinc-900 pl-4 bg-zinc-50/30">
+                       <p className="font-black text-base text-zinc-900 uppercase tracking-tight">{svc.descripcion}</p>
+                       <span className="text-[9px] font-black text-primary uppercase tracking-widest mt-1 block">{svc.tipo} Especializado</span>
                     </td>
-                    <td className="py-6 text-center font-bold text-sm text-zinc-600">{svc.cantidad}</td>
-                    <td className="py-6 text-right font-bold text-sm text-zinc-600">$ {svc.precio_pactado.toLocaleString()}</td>
-                    <td className="py-6 text-right font-black text-sm text-zinc-900">$ {(svc.cantidad * svc.precio_pactado).toLocaleString()}</td>
+                    <td className="py-8 text-center font-black text-zinc-600 bg-zinc-50/30">{svc.cantidad}</td>
+                    <td className="py-8 text-right font-bold text-zinc-500 bg-zinc-50/30">$ {svc.precio_pactado.toLocaleString()}</td>
+                    <td className="py-8 text-right font-black text-lg text-zinc-900 tracking-tighter bg-zinc-50/30">$ {(svc.cantidad * svc.precio_pactado).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
            </table>
         </div>
 
-        {/* Totals & T&C Block */}
-        <div className="bg-zinc-50/50 p-8 md:p-12 border-t border-zinc-100 flex flex-col md:flex-row justify-between gap-12">
-           <div className="max-w-xl">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-900 mb-6">Términos y Condiciones del Servicio</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+        {/* Totals & Legal Block */}
+        <div className="bg-zinc-900 p-12 md:p-20 text-white flex flex-col lg:flex-row justify-between gap-16">
+           <div className="max-w-2xl">
+              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary mb-8 border-b border-zinc-800 pb-4">Términos y Condiciones Legales</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                 {[
-                  "La reserva se confirma con el pago del 50% del valor total.",
-                  "Precios sujetos a disponibilidad al momento del pago.",
-                  "Cancelaciones con menos de 48h incurren en penalidad del 30%.",
-                  "El cliente es responsable por daños o pérdida de equipos.",
-                  "Horarios de montaje y desmontaje deben respetarse estrictamente.",
-                  "Personal técnico incluido solo si se especifica en servicios.",
-                  "Esta cotización tiene una validez de 5 días hábiles.",
-                  "No se permiten subarriendos de los equipos contratados.",
+                  "La reserva de equipos se confirma únicamente con el pago del 70% del valor total.",
+                  "Esta cotización tiene una vigencia de 24 horas a partir de su emisión.",
+                  "Precios sujetos a disponibilidad al momento de la formalización del pago.",
+                  "El cliente es responsable por cualquier daño, pérdida o robo de los equipos.",
                   "Sunpartners no se hace responsable por fallas eléctricas externas.",
-                  "El saldo restante debe pagarse antes del inicio del montaje."
+                  "Cancelaciones con menos de 48 horas incurren en penalidad del 50%.",
+                  "Los horarios de montaje y desmontaje deben cumplirse estrictamente.",
+                  "No se permite el subarriendo ni traslado de equipos sin autorización.",
+                  "Personal técnico adicional será facturado según bitácora de obra.",
+                  "El saldo restante (30%) debe cancelarse antes del inicio del montaje."
                 ].map((text, i) => (
-                  <div key={i} className="flex gap-2">
-                    <span className="text-[10px] font-black text-primary">{i+1}.</span>
-                    <p className="text-[10px] leading-tight text-zinc-500 font-bold uppercase">{text}</p>
+                  <div key={i} className="flex gap-3 items-start">
+                    <span className="text-[10px] font-black text-primary leading-none pt-0.5">{i+1}.</span>
+                    <p className="text-[10px] leading-relaxed text-zinc-500 font-bold uppercase tracking-tight">{text}</p>
                   </div>
                 ))}
               </div>
            </div>
-           <div className="min-w-[280px] space-y-4">
-              <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-zinc-400">
+           <div className="min-w-[320px] space-y-6 lg:border-l lg:border-zinc-800 lg:pl-16">
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                 <span>Subtotal Neto</span>
-                <span className="text-zinc-900">$ {subtotal.toLocaleString()}</span>
+                <span className="text-zinc-200">$ {subtotal.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-zinc-400">
-                <span>IVA (19%)</span>
-                <span className="text-zinc-900">$ {iva.toLocaleString()}</span>
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                <span>IVA Causado (19%)</span>
+                <span className="text-zinc-200">$ {iva.toLocaleString()}</span>
               </div>
-              <div className="pt-4 border-t border-zinc-200 flex justify-between items-end">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Total Final</span>
-                <span className="text-4xl font-black tracking-tighter text-zinc-900">$ {total.toLocaleString()}</span>
+              <div className="pt-8 border-t border-zinc-800 flex justify-between items-end">
+                <span className="text-[11px] font-black uppercase tracking-[0.4em] text-primary">Inversión Total</span>
+                <span className="text-5xl font-black tracking-tighter text-white">$ {total.toLocaleString()}</span>
               </div>
            </div>
         </div>
 
-        {/* Final Actions */}
-        <div className="p-12 flex flex-col md:flex-row justify-center items-center gap-6 border-t border-zinc-100 bg-white">
+        {/* Luxury Actions */}
+        <div className="p-16 flex flex-col md:flex-row justify-center items-center gap-10 bg-white border-t border-zinc-100">
            <button
             onClick={() => setShowApproveModal(true)}
-            className="w-full md:w-auto bg-zinc-900 text-white px-12 py-4 rounded-sm text-xs font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all shadow-xl flex items-center justify-center gap-3"
+            className="w-full md:w-auto bg-zinc-900 text-white px-20 py-5 rounded-sm text-[11px] font-black uppercase tracking-[0.4em] hover:bg-primary transition-all shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center gap-4"
            >
-             <span className="material-symbols-outlined text-[20px]">check_circle</span>
-             Aprobar Cotización
+             <span className="material-symbols-outlined text-[20px] fill">verified</span>
+             Confirmar Propuesta
            </button>
            <button
             onClick={() => setShowRejectModal(true)}
-            className="w-full md:w-auto bg-white border-2 border-zinc-200 text-zinc-400 px-12 py-4 rounded-sm text-xs font-black uppercase tracking-[0.2em] hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center gap-3"
+            className="w-full md:w-auto bg-white border-2 border-zinc-200 text-zinc-400 px-16 py-5 rounded-sm text-[11px] font-black uppercase tracking-[0.4em] hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center gap-4 group"
            >
-             <span className="material-symbols-outlined text-[20px]">chat_bubble</span>
+             <span className="material-symbols-outlined text-[20px] group-hover:animate-pulse">rate_review</span>
              Solicitar Ajustes
            </button>
         </div>
       </div>
 
-      <div className="mt-12 text-center">
-         <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.5em]">Powered by Sunpartners SaaS Engine v2.0</p>
+      <div className="mt-16 text-center space-y-4">
+         <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.8em]">Sunpartners Luxury Logistics • BTL Excellence</p>
+         <div className="flex justify-center gap-4 opacity-20 grayscale">
+            <div className="size-2 rounded-full bg-zinc-900"></div>
+            <div className="size-2 rounded-full bg-zinc-900"></div>
+            <div className="size-2 rounded-full bg-zinc-900"></div>
+         </div>
       </div>
 
-      {/* Approve Modal */}
+      {/* Approve Modal - Premium Style */}
       {showApproveModal && (
-        <div className="fixed inset-0 bg-zinc-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white border-2 border-zinc-900 w-full max-w-md p-8 rounded-sm animate-in fade-in zoom-in duration-200">
-            <h3 className="text-xl font-black uppercase tracking-tighter mb-4">Confirmar Aprobación</h3>
-            <p className="text-sm text-zinc-500 font-bold mb-8 uppercase tracking-tight leading-relaxed">¿Deseas confirmar la reserva de equipos y servicios para este evento? Al aprobar, el equipo de Sunpartners iniciará el proceso logístico.</p>
-            <div className="flex gap-4">
+        <div className="fixed inset-0 bg-zinc-900/90 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
+          <div className="bg-white border-4 border-zinc-900 w-full max-w-lg p-12 rounded-sm shadow-[0_40px_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
+            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 italic">Aceptación de Términos</h3>
+            <p className="text-xs text-zinc-500 font-bold mb-10 uppercase tracking-widest leading-relaxed">¿Desea proceder con la formalización de este proyecto? Al confirmar, acepta los términos y condiciones legales y el proceso de reserva de inventario se activará de forma inmediata.</p>
+            <div className="flex flex-col gap-4">
               <button
                 disabled={processing}
                 onClick={handleApprove}
-                className="flex-1 bg-zinc-900 text-white py-3 rounded-sm text-xs font-black uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50"
+                className="bg-primary text-white py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-50 shadow-xl"
               >
-                {processing ? 'Procesando...' : 'Confirmar'}
+                {processing ? 'Formalizando...' : 'Aceptar y Formalizar'}
               </button>
               <button
                 disabled={processing}
                 onClick={() => setShowApproveModal(false)}
-                className="flex-1 bg-zinc-100 text-zinc-900 py-3 rounded-sm text-xs font-black uppercase tracking-widest hover:bg-zinc-200"
+                className="bg-zinc-100 text-zinc-400 py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:bg-zinc-200 transition-all"
               >
-                Cancelar
+                Volver a la Propuesta
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Reject Modal */}
+      {/* Reject Modal - Premium Style */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-zinc-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white border-2 border-zinc-900 w-full max-w-lg p-8 rounded-sm animate-in fade-in zoom-in duration-200">
-            <h3 className="text-xl font-black uppercase tracking-tighter mb-4 text-red-600">Solicitar Ajustes</h3>
-            <div className="space-y-6">
+        <div className="fixed inset-0 bg-zinc-900/90 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
+          <div className="bg-white border-4 border-zinc-900 w-full max-w-2xl p-12 rounded-sm shadow-[0_40px_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
+            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 text-red-600 italic">Solicitud de Ajustes</h3>
+            <div className="space-y-8">
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Motivo Principal</label>
+                <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-4">Motivo de la Revisión</label>
                 <select
                   value={rejection.type}
                   onChange={e => setRejection({...rejection, type: e.target.value})}
-                  className="w-full border-2 border-zinc-100 rounded-sm px-4 py-3 text-sm font-bold uppercase outline-none focus:border-zinc-900"
+                  className="w-full border-2 border-zinc-100 bg-zinc-50 rounded-sm px-6 py-4 text-xs font-black uppercase tracking-widest outline-none focus:border-zinc-900 transition-all"
                 >
                   <option value="PRECIO">Optimización de Presupuesto</option>
-                  <option value="FECHAS">Cambio de Fechas / Horarios</option>
-                  <option value="CAMBIO_PLAN">Ajuste en la Selección de Equipos</option>
-                  <option value="OTRO">Otro Motivo</option>
+                  <option value="FECHAS">Ajuste de Cronograma / Fechas</option>
+                  <option value="CAMBIO_PLAN">Revisión de Equipamiento</option>
+                  <option value="OTRO">Otros Requerimientos</option>
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Detalles del Ajuste</label>
+                <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-4">Comentarios del Cliente</label>
                 <textarea
-                  rows="4"
+                  rows="5"
                   value={rejection.reason}
                   onChange={e => setRejection({...rejection, reason: e.target.value})}
-                  className="w-full border-2 border-zinc-100 rounded-sm px-4 py-3 text-sm font-medium outline-none focus:border-zinc-900"
-                  placeholder="Por favor, describe qué cambios necesitas para que podamos actualizar la propuesta..."
+                  className="w-full border-2 border-zinc-100 rounded-sm p-6 text-sm font-medium outline-none focus:border-zinc-900 transition-all placeholder:text-zinc-300"
+                  placeholder="Por favor, detalle los cambios requeridos para que nuestro equipo pueda actualizar su propuesta técnica..."
                 ></textarea>
               </div>
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-4 pt-6">
                 <button
                   disabled={processing}
                   onClick={handleReject}
-                  className="flex-1 bg-zinc-900 text-white py-3 rounded-sm text-xs font-black uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50"
+                  className="flex-1 bg-zinc-900 text-white py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:bg-red-600 disabled:opacity-50 transition-all shadow-xl"
                 >
                   {processing ? 'Enviando...' : 'Enviar Solicitud'}
                 </button>
                 <button
                   disabled={processing}
                   onClick={() => setShowRejectModal(false)}
-                  className="flex-1 bg-zinc-100 text-zinc-900 py-3 rounded-sm text-xs font-black uppercase tracking-widest hover:bg-zinc-200"
+                  className="flex-1 bg-zinc-100 text-zinc-400 py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:bg-zinc-200 transition-all"
                 >
-                  Regresar
+                  Cancelar
                 </button>
               </div>
             </div>

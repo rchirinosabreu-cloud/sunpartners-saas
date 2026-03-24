@@ -84,7 +84,19 @@ const QuotationDetail = () => {
     { id: 'historial', label: 'Historial', icon: 'history' },
   ];
 
-  const formatDate = (date) => date ? new Date(date).toLocaleString() : 'N/A';
+  const formatHierarchyDate = (dateString) => {
+    if (!dateString) return 'PENDIENTE';
+    const date = new Date(dateString);
+    const datePart = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'numeric', year: 'numeric' }).format(date);
+    const timePart = new Intl.DateTimeFormat('es-CO', { hour: 'numeric', minute: 'numeric', hour12: true }).format(date);
+
+    return (
+      <div className="flex flex-col">
+        <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-tight">{datePart}</span>
+        <span className="text-zinc-900 text-sm font-black uppercase">{timePart}</span>
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#FAFAFA] font-body">
@@ -283,19 +295,19 @@ const QuotationDetail = () => {
                 { label: 'EVENTO', start: quotation.fecha_inicio, end: quotation.fecha_fin, icon: 'celebration' },
                 { label: 'DESMONTAJE', start: quotation.fecha_desmontaje_inicio, end: quotation.fecha_desmontaje_fin, icon: 'restart_alt' }
               ].map((f, i) => (
-                <div key={i} className="bg-white border border-zinc-200 rounded p-6">
+                <div key={i} className="bg-white border border-zinc-200 rounded p-6 shadow-sm">
                    <div className="flex items-center gap-2 mb-6 border-b border-zinc-50 pb-4">
                       <span className="material-symbols-outlined text-zinc-400">{f.icon}</span>
                       <h4 className="text-xs font-black uppercase tracking-widest text-zinc-900">{f.label}</h4>
                    </div>
-                   <div className="space-y-4">
+                   <div className="space-y-6">
                       <div>
-                        <span className="text-[10px] font-black text-zinc-400 uppercase block">Inicio</span>
-                        <span className="text-sm font-bold text-zinc-700">{formatDate(f.start)}</span>
+                        <span className="text-[8px] font-black text-zinc-400 uppercase block mb-1 tracking-widest">Inicio Despliegue</span>
+                        {formatHierarchyDate(f.start)}
                       </div>
                       <div>
-                        <span className="text-[10px] font-black text-zinc-400 uppercase block">Finalización</span>
-                        <span className="text-sm font-bold text-zinc-700">{formatDate(f.end)}</span>
+                        <span className="text-[8px] font-black text-zinc-400 uppercase block mb-1 tracking-widest">Cierre Fase</span>
+                        {formatHierarchyDate(f.end)}
                       </div>
                    </div>
                 </div>
