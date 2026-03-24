@@ -115,13 +115,13 @@ model Quotation {
   id                   String          @id @default(uuid())
   nombre_evento        String
   tipo_evento          String?
-  fecha_inicio         DateTime
-  fecha_fin            DateTime
 
-  fecha_montaje_inicio     DateTime?
-  fecha_montaje_fin        DateTime?
-  fecha_desmontaje_inicio   DateTime?
-  fecha_desmontaje_fin      DateTime?
+  montaje_inicio       DateTime
+  montaje_fin          DateTime
+  evento_inicio        DateTime
+  evento_fin           DateTime
+  desmontaje_inicio    DateTime
+  desmontaje_fin       DateTime
 
   ubicacion            String
   estado               QuotationStatus @default(BORRADOR)

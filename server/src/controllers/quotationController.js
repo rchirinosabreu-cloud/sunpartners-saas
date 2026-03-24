@@ -46,12 +46,12 @@ exports.create = async (req, res) => {
         nombre_evento,
         tipo_evento,
         ubicacion,
-        fecha_inicio,
-        fecha_fin,
-        fecha_montaje_inicio,
-        fecha_montaje_fin,
-        fecha_desmontaje_inicio,
-        fecha_desmontaje_fin,
+        montaje_inicio,
+        montaje_fin,
+        evento_inicio,
+        evento_fin,
+        desmontaje_inicio,
+        desmontaje_fin,
         bitacora,
         items,
         services,
@@ -64,12 +64,12 @@ exports.create = async (req, res) => {
         nombre_evento: nombre_evento || 'Evento sin nombre',
         tipo_evento: tipo_evento || 'Corporativo',
         ubicacion: ubicacion || 'Por definir',
-        fecha_inicio: new Date(fecha_inicio),
-        fecha_fin: new Date(fecha_fin),
-        fecha_montaje_inicio: fecha_montaje_inicio ? new Date(fecha_montaje_inicio) : null,
-        fecha_montaje_fin: fecha_montaje_fin ? new Date(fecha_montaje_fin) : null,
-        fecha_desmontaje_inicio: fecha_desmontaje_inicio ? new Date(fecha_desmontaje_inicio) : null,
-        fecha_desmontaje_fin: fecha_desmontaje_fin ? new Date(fecha_desmontaje_fin) : null,
+        montaje_inicio: new Date(montaje_inicio),
+        montaje_fin: new Date(montaje_fin),
+        evento_inicio: new Date(evento_inicio),
+        evento_fin: new Date(evento_fin),
+        desmontaje_inicio: new Date(desmontaje_inicio),
+        desmontaje_fin: new Date(desmontaje_fin),
         bitacora,
         estado,
         items: {
@@ -112,12 +112,12 @@ exports.update = async (req, res) => {
         nombre_evento,
         tipo_evento,
         ubicacion,
-        fecha_inicio,
-        fecha_fin,
-        fecha_montaje_inicio,
-        fecha_montaje_fin,
-        fecha_desmontaje_inicio,
-        fecha_desmontaje_fin,
+        montaje_inicio,
+        montaje_fin,
+        evento_inicio,
+        evento_fin,
+        desmontaje_inicio,
+        desmontaje_fin,
         bitacora,
         items,
         services
@@ -134,12 +134,12 @@ exports.update = async (req, res) => {
         nombre_evento: nombre_evento || 'Evento sin nombre',
         tipo_evento: tipo_evento || 'Corporativo',
         ubicacion: ubicacion || 'Por definir',
-        fecha_inicio: new Date(fecha_inicio),
-        fecha_fin: new Date(fecha_fin),
-        fecha_montaje_inicio: fecha_montaje_inicio ? new Date(fecha_montaje_inicio) : null,
-        fecha_montaje_fin: fecha_montaje_fin ? new Date(fecha_montaje_fin) : null,
-        fecha_desmontaje_inicio: fecha_desmontaje_inicio ? new Date(fecha_desmontaje_inicio) : null,
-        fecha_desmontaje_fin: fecha_desmontaje_fin ? new Date(fecha_desmontaje_fin) : null,
+        montaje_inicio: new Date(montaje_inicio),
+        montaje_fin: new Date(montaje_fin),
+        evento_inicio: new Date(evento_inicio),
+        evento_fin: new Date(evento_fin),
+        desmontaje_inicio: new Date(desmontaje_inicio),
+        desmontaje_fin: new Date(desmontaje_fin),
         bitacora,
         items: {
           create: (items || []).map(item => ({
@@ -324,15 +324,15 @@ async function checkAvailability(quotationId) {
     include: { items: true }
   });
 
-  const start = q.fecha_inicio;
-  const end = q.fecha_fin;
+  const start = q.montaje_inicio;
+  const end = q.desmontaje_fin;
 
   const overlaps = await prisma.quotation.findMany({
     where: {
       id: { not: quotationId },
       estado: { in: ['APROBADA', 'EJECUCION'] },
       OR: [
-        { fecha_inicio: { lte: end }, fecha_fin: { gte: start } }
+        { montaje_inicio: { lte: end }, desmontaje_fin: { gte: start } }
       ]
     },
     include: { items: true }

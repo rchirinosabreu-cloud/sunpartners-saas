@@ -147,15 +147,19 @@ const PublicQuotation = () => {
                  </div>
               </div>
               <div className="text-left md:text-right">
-                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block border-b border-zinc-100 pb-2 mb-3">Cronograma del Proyecto</span>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block border-b border-zinc-100 pb-2 mb-3">Cronograma Detallado</span>
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-6">
                     <div>
-                       <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Inicio de Evento</p>
-                       <p className="text-sm font-black text-zinc-800">{formatPublicDate(quotation.fecha_inicio)}</p>
+                       <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Montaje (Inicio)</p>
+                       <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.montaje_inicio)}</p>
                     </div>
                     <div>
-                       <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Fase Montaje</p>
-                       <p className="text-sm font-black text-zinc-800">{formatPublicDate(quotation.fecha_montaje_inicio)}</p>
+                       <p className="text-[9px] font-black text-primary uppercase mb-1">Evento (Inicio)</p>
+                       <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.evento_inicio)}</p>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Desmontaje (Fin)</p>
+                       <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.desmontaje_fin)}</p>
                     </div>
                  </div>
               </div>

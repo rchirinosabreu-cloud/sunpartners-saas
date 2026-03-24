@@ -22,12 +22,12 @@ const NewQuotation = () => {
     nombre_evento: '',
     tipo_evento: 'Corporativo',
     ubicacion: '',
-    fecha_inicio: null,
-    fecha_fin: null,
-    fecha_montaje_inicio: null,
-    fecha_montaje_fin: null,
-    fecha_desmontaje_inicio: null,
-    fecha_desmontaje_fin: null,
+    montaje_inicio: null,
+    montaje_fin: null,
+    evento_inicio: null,
+    evento_fin: null,
+    desmontaje_inicio: null,
+    desmontaje_fin: null,
     bitacora: '',
     items: [],
     services: []
@@ -56,12 +56,12 @@ const NewQuotation = () => {
             nombre_evento: q.nombre_evento,
             tipo_evento: q.tipo_evento,
             ubicacion: q.ubicacion,
-            fecha_inicio: q.fecha_inicio ? new Date(q.fecha_inicio) : null,
-            fecha_fin: q.fecha_fin ? new Date(q.fecha_fin) : null,
-            fecha_montaje_inicio: q.fecha_montaje_inicio ? new Date(q.fecha_montaje_inicio) : null,
-            fecha_montaje_fin: q.fecha_montaje_fin ? new Date(q.fecha_montaje_fin) : null,
-            fecha_desmontaje_inicio: q.fecha_desmontaje_inicio ? new Date(q.fecha_desmontaje_inicio) : null,
-            fecha_desmontaje_fin: q.fecha_desmontaje_fin ? new Date(q.fecha_desmontaje_fin) : null,
+            montaje_inicio: q.montaje_inicio ? new Date(q.montaje_inicio) : null,
+            montaje_fin: q.montaje_fin ? new Date(q.montaje_fin) : null,
+            evento_inicio: q.evento_inicio ? new Date(q.evento_inicio) : null,
+            evento_fin: q.evento_fin ? new Date(q.evento_fin) : null,
+            desmontaje_inicio: q.desmontaje_inicio ? new Date(q.desmontaje_inicio) : null,
+            desmontaje_fin: q.desmontaje_fin ? new Date(q.desmontaje_fin) : null,
             bitacora: q.bitacora || '',
             items: q.items.map(it => ({
               inventoryId: it.inventoryId,
@@ -155,15 +155,34 @@ const NewQuotation = () => {
 
   const { subtotal, iva, total } = calculateFinancials();
 
+  const validateTimeline = () => {
+    const dates = [
+      { label: 'Inicio de Montaje', val: formData.montaje_inicio },
+      { label: 'Fin de Montaje', val: formData.montaje_fin },
+      { label: 'Inicio de Evento', val: formData.evento_inicio },
+      { label: 'Fin de Evento', val: formData.evento_fin },
+      { label: 'Inicio de Desmontaje', val: formData.desmontaje_inicio },
+      { label: 'Fin de Desmontaje', val: formData.desmontaje_fin },
+    ];
+
+    for (let i = 0; i < dates.length; i++) {
+      if (!dates[i].val) return `La fecha "${dates[i].label}" es obligatoria.`;
+      if (i > 0 && dates[i].val <= dates[i-1].val) {
+        return `Conflicto cronológico: "${dates[i].label}" debe ser posterior a "${dates[i-1].label}".`;
+      }
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required dates
-    if (!formData.fecha_inicio || !formData.fecha_fin) {
+    const timelineError = validateTimeline();
+    if (timelineError) {
       setModal({
         isOpen: true,
-        title: 'Error de Validación',
-        content: 'Error: Faltan fechas obligatorias por completar.',
+        title: 'Error de Cronología',
+        content: timelineError,
         type: 'error'
       });
       return;
@@ -365,45 +384,98 @@ const NewQuotation = () => {
           {activeTab === 2 && (
             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-400">
                <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                  {[
-                    { l: 'Fase Evento', start: 'fecha_inicio', end: 'fecha_fin', icon: 'celebration', color: 'text-primary' },
-                    { l: 'Fase Montaje', start: 'fecha_montaje_inicio', end: 'fecha_montaje_fin', icon: 'build', color: 'text-zinc-900' },
-                    { l: 'Fase Desmontaje', start: 'fecha_desmontaje_inicio', end: 'fecha_desmontaje_fin', icon: 'restart_alt', color: 'text-zinc-900' }
-                  ].map((phase, i) => {
-                    const startDateKey = phase.start;
-                    const endDateKey = phase.end;
-                    return (
-                      <div key={i} className="space-y-6 p-6 border-2 border-zinc-100 rounded bg-white shadow-sm hover:border-zinc-300 transition-all">
-                        <h4 className={`text-xs font-black uppercase tracking-widest flex items-center gap-3 ${phase.color}`}>
-                          <span className="material-symbols-outlined text-[20px]">{phase.icon}</span> {phase.l}
-                        </h4>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">INICIO</label>
-                            <Flatpickr
-                              data-enable-time
-                              value={formData[startDateKey]}
-                              onChange={([date]) => setFormData(prev => ({...prev, [startDateKey]: date}))}
-                              options={flatpickrConfig}
-                              className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                              placeholder="Seleccionar..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">FIN</label>
-                            <Flatpickr
-                              data-enable-time
-                              value={formData[endDateKey]}
-                              onChange={([date]) => setFormData(prev => ({...prev, [endDateKey]: date}))}
-                              options={flatpickrConfig}
-                              className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                              placeholder="Seleccionar..."
-                            />
-                          </div>
-                        </div>
+                  {/* FASE MONTAJE */}
+                  <div className="space-y-6 p-6 border-2 border-zinc-100 rounded bg-white shadow-sm hover:border-zinc-300 transition-all">
+                    <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-3 text-zinc-900">
+                      <span className="material-symbols-outlined text-[20px]">build</span> 01. Fase Montaje
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">INICIO MONTAJE</label>
+                        <Flatpickr
+                          data-enable-time
+                          value={formData.montaje_inicio}
+                          onChange={([date]) => setFormData(prev => ({...prev, montaje_inicio: date}))}
+                          options={flatpickrConfig}
+                          className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                          placeholder="Seleccionar..."
+                        />
                       </div>
-                    );
-                  })}
+                      <div>
+                        <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">FIN MONTAJE</label>
+                        <Flatpickr
+                          data-enable-time
+                          value={formData.montaje_fin}
+                          onChange={([date]) => setFormData(prev => ({...prev, montaje_fin: date}))}
+                          options={flatpickrConfig}
+                          className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                          placeholder="Seleccionar..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FASE EVENTO */}
+                  <div className="space-y-6 p-6 border-2 border-zinc-100 rounded bg-white shadow-sm hover:border-zinc-300 transition-all">
+                    <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-3 text-primary">
+                      <span className="material-symbols-outlined text-[20px]">celebration</span> 02. Fase Evento
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">INICIO EVENTO</label>
+                        <Flatpickr
+                          data-enable-time
+                          value={formData.evento_inicio}
+                          onChange={([date]) => setFormData(prev => ({...prev, evento_inicio: date}))}
+                          options={flatpickrConfig}
+                          className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                          placeholder="Seleccionar..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">FIN EVENTO</label>
+                        <Flatpickr
+                          data-enable-time
+                          value={formData.evento_fin}
+                          onChange={([date]) => setFormData(prev => ({...prev, evento_fin: date}))}
+                          options={flatpickrConfig}
+                          className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                          placeholder="Seleccionar..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FASE DESMONTAJE */}
+                  <div className="space-y-6 p-6 border-2 border-zinc-100 rounded bg-white shadow-sm hover:border-zinc-300 transition-all">
+                    <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-3 text-zinc-900">
+                      <span className="material-symbols-outlined text-[20px]">restart_alt</span> 03. Fase Desmontaje
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">INICIO DESMONTAJE</label>
+                        <Flatpickr
+                          data-enable-time
+                          value={formData.desmontaje_inicio}
+                          onChange={([date]) => setFormData(prev => ({...prev, desmontaje_inicio: date}))}
+                          options={flatpickrConfig}
+                          className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                          placeholder="Seleccionar..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">FIN DESMONTAJE</label>
+                        <Flatpickr
+                          data-enable-time
+                          value={formData.desmontaje_fin}
+                          onChange={([date]) => setFormData(prev => ({...prev, desmontaje_fin: date}))}
+                          options={flatpickrConfig}
+                          className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
+                          placeholder="Seleccionar..."
+                        />
+                      </div>
+                    </div>
+                  </div>
                </div>
             </div>
           )}
@@ -521,7 +593,7 @@ const NewQuotation = () => {
                        <p className="font-bold text-zinc-900 uppercase flex items-center gap-2">
                          <span className="material-symbols-outlined text-[18px]">place</span> {formData.ubicacion}
                        </p>
-                       <p className="text-zinc-600 font-bold uppercase text-xs">Evento: {formData.fecha_inicio ? new Date(formData.fecha_inicio).toLocaleDateString() : 'Pendiente'}</p>
+                       <p className="text-zinc-600 font-bold uppercase text-xs">Evento: {formData.evento_inicio ? new Date(formData.evento_inicio).toLocaleDateString() : 'Pendiente'}</p>
                     </div>
                   </div>
                </div>
