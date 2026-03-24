@@ -1,30 +1,62 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import Modal from '../components/ui/Modal';
+
 const Clients = () => {
-  const clients = [
-    { name: 'Grupo Eventia S.A.', type: 'Corporativo VIP', email: 'marcos@eventia.com', phone: '+52 55 1234 5678', lastEvent: '12 Oct 2023', ltv: '$145,000', status: 'Activo' },
-    { name: 'Ana Sofía Robles', type: 'Particular', email: 'ana@gmail.com', phone: '+52 55 9876 5432', lastEvent: '05 Sep 2023', ltv: '$12,500', status: 'Activo' },
-    { name: 'Banquetes del Sol', type: 'Pago Pendiente', email: 'sol@banquetes.mx', lastEvent: '28 Ago 2023', ltv: '$89,200', status: 'En Mora' },
-    { name: 'Hotel Gran Vía', type: 'Socio Comercial', lastEvent: '15 Jul 2023', ltv: '$210,000', status: 'Inactivo' },
-    { name: 'Producciones X', type: 'Agencia', lastEvent: '02 Jun 2023', ltv: '$54,300', status: 'Activo' },
-  ];
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [uiModal, setUiModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const response = await axios.get('/api/clients', { withCredentials: true });
+        setClients(response.data);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClients();
+  }, []);
+
+  const filteredClients = clients.filter(c =>
+    (c.empresa || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.nit || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <main className="flex-1 flex flex-col h-full bg-background-light overflow-hidden font-body">
+    <main className="flex-1 flex flex-col h-full bg-[#FAFAFA] overflow-hidden font-body">
+      <Modal
+        isOpen={uiModal.isOpen}
+        onClose={() => setUiModal({ ...uiModal, isOpen: false })}
+        title={uiModal.title}
+        type={uiModal.type}
+      >
+        {uiModal.content}
+      </Modal>
+
       {/* Header */}
-      <header className="h-16 border-b border-zinc-200 flex items-center justify-between px-8 shrink-0 bg-background-light">
+      <header className="h-16 border-b border-zinc-200 flex items-center justify-between px-8 shrink-0 bg-white shadow-sm">
         <div className="flex items-center flex-1">
-          <h2 className="font-display font-semibold text-[24px] text-zinc-900">Directorio de Clientes</h2>
+          <h2 className="font-display font-black text-[22px] text-zinc-900 uppercase tracking-tight">Directorio de Clientes</h2>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="relative w-64">
+          <div className="relative w-72">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-[18px]">search</span>
             <input
-              className="w-full h-9 pl-9 pr-3 text-sm border border-zinc-200 rounded bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-primary focus:ring-0 transition-colors"
-              placeholder="Buscar cliente, email o teléfono..."
+              className="w-full h-10 pl-10 pr-4 text-sm border-2 border-zinc-100 rounded-sm bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 transition-all font-medium"
+              placeholder="Buscar por Empresa, NIT o Email..."
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="h-9 px-4 bg-primary text-white text-sm font-semibold rounded hover:bg-primary-hover transition-colors flex items-center">
-            <span className="material-symbols-outlined text-[18px] mr-1">add</span>
+          <button className="h-10 px-6 bg-zinc-900 text-white text-xs font-black uppercase tracking-widest rounded-sm hover:bg-zinc-800 transition-all flex items-center shadow-lg">
+            <span className="material-symbols-outlined text-[18px] mr-2">person_add</span>
             Nuevo Cliente
           </button>
         </div>
@@ -32,82 +64,54 @@ const Clients = () => {
 
       {/* Content Area */}
       <div className="flex-1 overflow-auto p-8">
-        {/* Table Container */}
-        <div className="border border-zinc-200 rounded bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto border-2 border-zinc-100 rounded-sm bg-white shadow-sm overflow-hidden">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="bg-zinc-50 border-b border-zinc-200">
-                <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider w-1/4">Cliente / Empresa</th>
-                <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider w-1/4">Contacto</th>
-                <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider w-1/6">Último Evento</th>
-                <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider w-1/6 text-right">Valor Total (LTV)</th>
-                <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider w-1/12 text-center">Estado</th>
-                <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider w-1/12 text-center">Acciones</th>
+              <tr className="bg-zinc-50/50 border-b-2 border-zinc-100">
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] w-1/3">Empresa / Razón Social</th>
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] w-1/4">NIT / Identificación</th>
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] w-1/4">Contacto Principal</th>
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] text-center w-32">Estado</th>
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] text-right w-20"></th>
               </tr>
             </thead>
-            <tbody className="text-sm divide-y divide-zinc-200">
-              {clients.map((client, idx) => (
-                <tr key={idx} className="hover:bg-zinc-50 transition-colors group cursor-pointer">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-zinc-900">{client.name}</div>
-                    <div className={`text-xs mt-0.5 ${client.status === 'En Mora' ? 'text-alert' : 'text-zinc-500'}`}>
-                      {client.type}
+            <tbody className="text-sm divide-y divide-zinc-50">
+              {loading ? (
+                <tr><td colSpan="5" className="p-12 text-center text-zinc-400 italic font-medium animate-pulse uppercase text-[10px] tracking-widest">Sincronizando base de clientes...</td></tr>
+              ) : filteredClients.length === 0 ? (
+                <tr><td colSpan="5" className="p-12 text-center text-zinc-400 font-bold uppercase text-[11px] tracking-widest">No se encontraron clientes registrados.</td></tr>
+              ) : filteredClients.map((client, idx) => (
+                <tr key={client.id} className="hover:bg-zinc-50/80 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-primary">
+                  <td className="px-6 py-5">
+                    <div className="font-black text-zinc-900 uppercase tracking-tight text-[13px]">{client.empresa}</div>
+                    <div className="text-[10px] font-bold text-zinc-400 mt-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">mail</span>
+                      {client.email || 'SIN EMAIL'}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center space-x-3">
-                      {client.email && (
-                        <button className="text-zinc-400 hover:text-primary transition-colors flex items-center group/btn" title="Enviar Email">
-                          <span className="material-symbols-outlined text-[16px]">mail</span>
-                          <span className="ml-1 text-xs opacity-0 group-hover/btn:opacity-100 transition-opacity">{client.email}</span>
-                        </button>
-                      )}
-                      {client.phone && (
-                        <button className="text-zinc-400 hover:text-primary transition-colors flex items-center group/btn" title="Llamar">
-                          <span className="material-symbols-outlined text-[16px]">call</span>
-                          <span className="ml-1 text-xs opacity-0 group-hover/btn:opacity-100 transition-opacity">{client.phone}</span>
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-zinc-900">{client.lastEvent}</td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="font-display font-medium text-[15px] text-zinc-900">{client.ltv}</span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${
-                      client.status === 'Activo' ? 'bg-green-50 text-green-700 border-green-200' :
-                      client.status === 'En Mora' ? 'bg-orange-50 text-alert border-orange-200' :
-                      'bg-zinc-50 text-zinc-500 border-zinc-200'
-                    }`}>
-                      {client.status}
+                  <td className="px-6 py-5">
+                    <span className="bg-zinc-100 px-2 py-1 rounded-sm text-[11px] font-black text-zinc-600 tracking-tighter">
+                      {client.nit || 'PENDIENTE'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <button className="text-zinc-400 hover:text-zinc-900 transition-colors">
-                      <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                  <td className="px-6 py-5">
+                    <div className="font-bold text-zinc-700 text-[12px] uppercase">{client.contactoPrincipal || 'No asignado'}</div>
+                    <div className="text-[10px] font-medium text-zinc-400 mt-0.5">{client.cargo || '-'}</div>
+                  </td>
+                  <td className="px-6 py-5 text-center">
+                    <span className="inline-flex items-center px-3 py-1 rounded-sm text-[9px] font-black uppercase tracking-widest bg-green-50 text-green-700 border border-green-100 shadow-sm">
+                      ACTIVO
+                    </span>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <button className="text-zinc-300 hover:text-zinc-900 transition-colors">
+                      <span className="material-symbols-outlined text-[20px]">settings_suggest</span>
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="mt-4 flex items-center justify-between text-sm text-zinc-500">
-          <span>Mostrando 5 de 142 clientes</span>
-          <div className="flex space-x-1">
-            <button className="w-8 h-8 flex items-center justify-center border border-zinc-200 rounded hover:bg-zinc-50 transition-colors disabled:opacity-50" disabled>
-              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center border border-primary bg-primary/10 text-primary font-medium rounded">1</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-zinc-200 rounded hover:bg-zinc-50 transition-colors text-zinc-900">2</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-zinc-200 rounded hover:bg-zinc-50 transition-colors text-zinc-900">3</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-zinc-200 rounded hover:bg-zinc-50 transition-colors text-zinc-900">
-              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-            </button>
-          </div>
         </div>
       </div>
     </main>
