@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/ui/Modal';
+import Flatpickr from 'react-flatpickr';
+import 'flatpickr/dist/flatpickr.css';
+import 'flatpickr/dist/themes/light.css';
 
 const NewQuotation = () => {
   const [activeTab, setActiveTab] = useState(1);
@@ -160,8 +163,40 @@ const NewQuotation = () => {
     </div>
   );
 
+  const flatpickrConfig = {
+    enableTime: true,
+    dateFormat: "d/m/Y h:i K",
+    time_24hr: false,
+    locale: {
+      firstDayOfWeek: 1,
+      weekdays: {
+        shorthand: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
+        longhand: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+      },
+      months: {
+        shorthand: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+        longhand: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+      },
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto font-body bg-[#FAFAFA] min-h-screen">
+      <style>{`
+        .flatpickr-calendar {
+          border-radius: 2px !important;
+          border: 1px solid #e4e4e7 !important;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        }
+        .flatpickr-day.selected {
+          background: #12aee2 !important;
+          border-color: #12aee2 !important;
+        }
+        .flatpickr-day:hover {
+          background: #f4f4f5 !important;
+        }
+      `}</style>
+
       <Modal
         isOpen={modal.isOpen}
         onClose={() => setModal({ ...modal, isOpen: false })}
@@ -288,11 +323,25 @@ const NewQuotation = () => {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">Check-In (Inicio)</label>
-                          <input type="datetime-local" value={formData[phase.start]} onChange={e => setFormData({...formData, [phase.start]: e.target.value})} className="w-full border border-zinc-200 rounded px-4 py-2 text-sm font-bold" />
+                          <Flatpickr
+                            data-enable-time
+                            value={formData[phase.start]}
+                            onChange={([date]) => setFormData({...formData, [phase.start]: date})}
+                            options={flatpickrConfig}
+                            className="w-full border border-zinc-200 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer"
+                            placeholder="Seleccionar fecha..."
+                          />
                         </div>
                         <div>
                           <label className="block text-[9px] font-black uppercase text-zinc-400 mb-1.5 tracking-tighter">Check-Out (Fin)</label>
-                          <input type="datetime-local" value={formData[phase.end]} onChange={e => setFormData({...formData, [phase.end]: e.target.value})} className="w-full border border-zinc-200 rounded px-4 py-2 text-sm font-bold" />
+                          <Flatpickr
+                            data-enable-time
+                            value={formData[phase.end]}
+                            onChange={([date]) => setFormData({...formData, [phase.end]: date})}
+                            options={flatpickrConfig}
+                            className="w-full border border-zinc-200 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer"
+                            placeholder="Seleccionar fecha..."
+                          />
                         </div>
                       </div>
                     </div>
@@ -413,7 +462,7 @@ const NewQuotation = () => {
                        <p className="font-bold text-zinc-900 uppercase flex items-center gap-2">
                          <span className="material-symbols-outlined text-[18px]">place</span> {formData.ubicacion}
                        </p>
-                       <p className="text-zinc-600 font-bold uppercase text-xs">Evento: {new Date(formData.fecha_inicio).toLocaleDateString()}</p>
+                       <p className="text-zinc-600 font-bold uppercase text-xs">Evento: {formData.fecha_inicio ? new Date(formData.fecha_inicio).toLocaleDateString() : 'Pendiente'}</p>
                     </div>
                   </div>
                </div>

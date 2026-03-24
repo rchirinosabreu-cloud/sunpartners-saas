@@ -96,6 +96,18 @@ const PublicQuotation = () => {
   const iva = subtotal * 0.19;
   const total = subtotal + iva;
 
+  const formatPublicDate = (dateString) => {
+    if (!dateString) return 'PENDIENTE';
+    return new Intl.DateTimeFormat('es-CO', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    }).format(new Date(dateString));
+  };
+
   return (
     <div className="min-h-screen bg-[#F4F4F5] font-body py-12 px-4 md:px-8 lg:px-12">
       <Modal isOpen={uiModal.isOpen} onClose={() => setUiModal({ ...uiModal, isOpen: false })} title={uiModal.title} type={uiModal.type}>
@@ -136,14 +148,14 @@ const PublicQuotation = () => {
               </div>
               <div className="text-left md:text-right">
                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block border-b border-zinc-100 pb-2 mb-3">Cronograma del Proyecto</span>
-                 <div className="grid grid-cols-2 gap-8">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                     <div>
                        <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Inicio de Evento</p>
-                       <p className="text-sm font-black text-zinc-800">{new Date(quotation.fecha_inicio).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                       <p className="text-sm font-black text-zinc-800">{formatPublicDate(quotation.fecha_inicio)}</p>
                     </div>
                     <div>
                        <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Fase Montaje</p>
-                       <p className="text-sm font-black text-zinc-800">{quotation.fecha_montaje_inicio ? new Date(quotation.fecha_montaje_inicio).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) : 'PEND'}</p>
+                       <p className="text-sm font-black text-zinc-800">{formatPublicDate(quotation.fecha_montaje_inicio)}</p>
                     </div>
                  </div>
               </div>
