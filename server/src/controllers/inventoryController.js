@@ -1,11 +1,13 @@
 const prisma = require('../db');
 
 const calculateComputedFields = (item) => {
-  const claseA = parseInt(item.claseA) || 0;
-  const claseB = parseInt(item.claseB) || 0;
-  const claseC = parseInt(item.claseC) || 0;
+  if (!item) return null;
+
+  const claseA = parseInt(item.claseA || 0);
+  const claseB = parseInt(item.claseB || 0);
+  const claseC = parseInt(item.claseC || 0);
   const existenciaTotal = claseA + claseB + claseC;
-  const vlrUnitario = parseFloat(item.vlrUnitario) || 0;
+  const vlrUnitario = parseFloat(item.vlrUnitario || 0);
 
   return {
     ...item,
@@ -19,8 +21,13 @@ const calculateComputedFields = (item) => {
 exports.getAll = async (req, res) => {
   try {
     const items = await prisma.inventoryItem.findMany();
-    res.json(items.map(calculateComputedFields));
+    if (!items) {
+      return res.json([]);
+    }
+    const processed = items.map(item => calculateComputedFields(item)).filter(Boolean);
+    res.json(processed);
   } catch (error) {
+    console.error('Inventory Controller Error:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -44,13 +51,13 @@ exports.create = async (req, res) => {
     const newItem = await prisma.inventoryItem.create({
       data: {
         nombre,
-        claseA: parseInt(claseA) || 0,
-        claseB: parseInt(claseB) || 0,
-        claseC: parseInt(claseC) || 0,
+        claseA: parseInt(claseA || 0),
+        claseB: parseInt(claseB || 0),
+        claseC: parseInt(claseC || 0),
         bodega,
         seccion,
-        vlrUnitario: parseFloat(vlrUnitario) || 0,
-        rentalPrice: parseFloat(rentalPrice) || (parseFloat(vlrUnitario) || 0) * 0.1,
+        vlrUnitario: parseFloat(vlrUnitario || 0),
+        rentalPrice: parseFloat(rentalPrice || (vlrUnitario * 0.1) || 0),
         observaciones
       }
     });
@@ -65,11 +72,11 @@ exports.update = async (req, res) => {
   try {
     const data = { ...req.body };
 
-    if (data.claseA !== undefined) data.claseA = parseInt(data.claseA);
-    if (data.claseB !== undefined) data.claseB = parseInt(data.claseB);
-    if (data.claseC !== undefined) data.claseC = parseInt(data.claseC);
-    if (data.vlrUnitario !== undefined) data.vlrUnitario = parseFloat(data.vlrUnitario);
-    if (data.rentalPrice !== undefined) data.rentalPrice = parseFloat(data.rentalPrice);
+    if (data.claseA !== undefined) data.claseA = parseInt(data.claseA || 0);
+    if (data.claseB !== undefined) data.claseB = parseInt(data.claseB || 0);
+    if (data.claseC !== undefined) data.claseC = parseInt(data.claseC || 0);
+    if (data.vlrUnitario !== undefined) data.vlrUnitario = parseFloat(data.vlrUnitario || 0);
+    if (data.rentalPrice !== undefined) data.rentalPrice = parseFloat(data.rentalPrice || 0);
 
     const updatedItem = await prisma.inventoryItem.update({
       where: { id: req.params.id },

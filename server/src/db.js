@@ -1,22 +1,31 @@
 const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 
-const prismaClient = new PrismaClient();
+const prismaClient = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL
+    }
+  }
+});
 
 const prisma = prismaClient.$extends({
   query: {
     $allModels: {
       async findMany({ model, operation, args, query }) {
-        args.where = { ...args.where, deletedAt: null };
+        if (!args) args = {};
+        if (!args.where) args.where = {};
+        args.where.deletedAt = null;
         return query(args);
       },
       async findFirst({ model, operation, args, query }) {
-        args.where = { ...args.where, deletedAt: null };
+        if (!args) args = {};
+        if (!args.where) args.where = {};
+        args.where.deletedAt = null;
         return query(args);
       },
       async findUnique({ model, operation, args, query }) {
-        // findUnique only allows unique fields. We convert it to findFirst to allow filtering by deletedAt: null
-        // We use the lowercase model name to access the prismaClient model property
+        if (!args) args = {};
         const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
         const result = await prismaClient[modelKey].findFirst({
           ...args,
@@ -25,7 +34,9 @@ const prisma = prismaClient.$extends({
         return result;
       },
       async count({ model, operation, args, query }) {
-        args.where = { ...args.where, deletedAt: null };
+        if (!args) args = {};
+        if (!args.where) args.where = {};
+        args.where.deletedAt = null;
         return query(args);
       },
     },
@@ -33,7 +44,6 @@ const prisma = prismaClient.$extends({
   model: {
     $allModels: {
       async softDelete(id, justification) {
-        // 'this' refers to the model (e.g., prisma.user, prisma.inventoryItem)
         return this.update({
           where: { id },
           data: {

@@ -41,6 +41,7 @@ enum Seccion {
   COCINA
   PATIO
   HERRAMIENTAS
+  GENERAL
 }
 
 enum QuotationStatus {
@@ -51,6 +52,7 @@ enum QuotationStatus {
   CANCELADA
   EJECUCION
   FINALIZADA
+  RECHAZADA
 }
 
 enum RejectionType {
@@ -76,7 +78,7 @@ model User {
 
 model Client {
   id                   String      @id @default(uuid())
-  empresa              String
+  empresa              String      @default("Sin Empresa")
   nit                  String?     @unique
   contactoPrincipal    String?
   cargo                String?
