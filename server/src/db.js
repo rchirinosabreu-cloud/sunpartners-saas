@@ -63,18 +63,27 @@ const prisma = prismaClient.$extends({
     },
     $allModels: {
       async findMany({ model, operation, args, query }) {
+        const modelsWithSoftDelete = ['User', 'Client', 'Inventory_Bodega', 'Inventory_Commercial', 'Quotation', 'QuotationItem', 'QuotationService'];
+        if (!modelsWithSoftDelete.includes(model)) return query(args);
+
         if (!args) args = {};
         if (!args.where) args.where = {};
         args.where.deletedAt = null;
         return query(args);
       },
       async findFirst({ model, operation, args, query }) {
+        const modelsWithSoftDelete = ['User', 'Client', 'Inventory_Bodega', 'Inventory_Commercial', 'Quotation', 'QuotationItem', 'QuotationService'];
+        if (!modelsWithSoftDelete.includes(model)) return query(args);
+
         if (!args) args = {};
         if (!args.where) args.where = {};
         args.where.deletedAt = null;
         return query(args);
       },
       async count({ model, operation, args, query }) {
+        const modelsWithSoftDelete = ['User', 'Client', 'Inventory_Bodega', 'Inventory_Commercial', 'Quotation', 'QuotationItem', 'QuotationService'];
+        if (!modelsWithSoftDelete.includes(model)) return query(args);
+
         if (!args) args = {};
         if (!args.where) args.where = {};
         args.where.deletedAt = null;

@@ -76,7 +76,9 @@ exports.create = async (req, res) => {
           create: (items || []).map(item => ({
             inventoryId: item.inventoryId,
             cantidad: parseInt(item.cantidad),
+            dias: parseInt(item.dias || 1),
             precio_pactado: parseFloat(item.precio_pactado),
+            precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
             clase_asignada: item.clase_asignada || 'A'
           }))
         },
@@ -85,7 +87,9 @@ exports.create = async (req, res) => {
             tipo: svc.tipo,
             descripcion: svc.descripcion,
             cantidad: parseInt(svc.cantidad || 1),
-            precio_pactado: parseFloat(svc.precio_pactado)
+            dias: parseInt(svc.dias || 1),
+            precio_pactado: parseFloat(svc.precio_pactado),
+            precio_dia_adicional: parseFloat(svc.precio_dia_adicional || 0)
           }))
         },
         logs: {
@@ -145,7 +149,9 @@ exports.update = async (req, res) => {
           create: (items || []).map(item => ({
             inventoryId: item.inventoryId,
             cantidad: parseInt(item.cantidad),
+            dias: parseInt(item.dias || 1),
             precio_pactado: parseFloat(item.precio_pactado),
+            precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
             clase_asignada: item.clase_asignada || 'A'
           }))
         },
@@ -154,7 +160,9 @@ exports.update = async (req, res) => {
             tipo: svc.tipo,
             descripcion: svc.descripcion,
             cantidad: parseInt(svc.cantidad || 1),
-            precio_pactado: parseFloat(svc.precio_pactado)
+            dias: parseInt(svc.dias || 1),
+            precio_pactado: parseFloat(svc.precio_pactado),
+            precio_dia_adicional: parseFloat(svc.precio_dia_adicional || 0)
           }))
         },
         logs: {

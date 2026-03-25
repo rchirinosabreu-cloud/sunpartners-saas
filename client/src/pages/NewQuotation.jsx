@@ -66,14 +66,18 @@ const NewQuotation = () => {
             items: q.items.map(it => ({
               inventoryId: it.inventoryId,
               cantidad: it.cantidad,
+              dias: it.dias,
               precio_pactado: it.precio_pactado,
+              precio_dia_adicional: it.precio_dia_adicional,
               clase_asignada: it.clase_asignada
             })),
             services: q.services.map(sv => ({
               tipo: sv.tipo,
               descripcion: sv.descripcion,
               cantidad: sv.cantidad,
-              precio_pactado: sv.precio_pactado
+              dias: sv.dias,
+              precio_pactado: sv.precio_pactado,
+              precio_dia_adicional: sv.precio_dia_adicional
             }))
           });
         }
@@ -133,7 +137,11 @@ const NewQuotation = () => {
     newItems[index][field] = value;
     if (field === 'inventoryId') {
       const item = inventory.find(i => i.id === value);
-      if (item) newItems[index].precio_pactado = item.valor_alquiler || 0;
+      if (item) {
+        newItems[index].precio_pactado = item.valor_alquiler || 0;
+        newItems[index].precio_dia_adicional = (item.valor_alquiler || 0) * 0.5; // Suggested 50% for extra days
+        newItems[index].dias = 1;
+      }
     }
     setFormData({ ...formData, items: newItems });
   };
@@ -144,9 +152,18 @@ const NewQuotation = () => {
     setFormData({ ...formData, services: newServices });
   };
 
+  const calculateLineTotal = (item) => {
+    const cant = parseInt(item.cantidad || 0);
+    const dias = parseInt(item.dias || 1);
+    const v1 = parseFloat(item.precio_pactado || 0);
+    const vExtra = parseFloat(item.precio_dia_adicional || 0);
+
+    return (cant * v1) + (cant * (Math.max(0, dias - 1)) * vExtra);
+  };
+
   const calculateFinancials = () => {
-    const subtotalItems = formData.items.reduce((acc, item) => acc + (item.cantidad * item.precio_pactado), 0);
-    const subtotalServices = formData.services.reduce((acc, svc) => acc + (svc.cantidad * svc.precio_pactado), 0);
+    const subtotalItems = formData.items.reduce((acc, item) => acc + calculateLineTotal(item), 0);
+    const subtotalServices = formData.services.reduce((acc, svc) => acc + calculateLineTotal(svc), 0);
     const subtotal = subtotalItems + subtotalServices;
     const iva = subtotal * 0.19;
     const total = subtotal + iva;
@@ -395,7 +412,7 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.montaje_inicio}
-                          onChange={([date]) => setFormData(prev => ({...prev, montaje_inicio: date}))}
+                          onChange={([date]) => setFormData({...formData, montaje_inicio: date})}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
                           placeholder="Seleccionar..."
@@ -406,7 +423,7 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.montaje_fin}
-                          onChange={([date]) => setFormData(prev => ({...prev, montaje_fin: date}))}
+                          onChange={([date]) => setFormData({...formData, montaje_fin: date})}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
                           placeholder="Seleccionar..."
@@ -426,7 +443,7 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.evento_inicio}
-                          onChange={([date]) => setFormData(prev => ({...prev, evento_inicio: date}))}
+                          onChange={([date]) => setFormData({...formData, evento_inicio: date})}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
                           placeholder="Seleccionar..."
@@ -437,7 +454,7 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.evento_fin}
-                          onChange={([date]) => setFormData(prev => ({...prev, evento_fin: date}))}
+                          onChange={([date]) => setFormData({...formData, evento_fin: date})}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
                           placeholder="Seleccionar..."
@@ -457,7 +474,7 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.desmontaje_inicio}
-                          onChange={([date]) => setFormData(prev => ({...prev, desmontaje_inicio: date}))}
+                          onChange={([date]) => setFormData({...formData, desmontaje_inicio: date})}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
                           placeholder="Seleccionar..."
@@ -468,7 +485,7 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.desmontaje_fin}
-                          onChange={([date]) => setFormData(prev => ({...prev, desmontaje_fin: date}))}
+                          onChange={([date]) => setFormData({...formData, desmontaje_fin: date})}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
                           placeholder="Seleccionar..."
@@ -481,77 +498,129 @@ const NewQuotation = () => {
           )}
 
           {activeTab === 3 && (
-            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-400">
-               <div>
-                 <div className="flex justify-between items-center mb-6">
-                   <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400 border-l-4 border-primary pl-4">Selección de Activos Luxury</h3>
-                   <button type="button" onClick={addItem} className="bg-zinc-900 text-white px-6 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary transition-all">
-                     <span className="material-symbols-outlined text-[16px]">add</span> Añadir Equipo
-                   </button>
-                 </div>
-                 <div className="space-y-3">
-                   {formData.items.map((item, idx) => {
-                     const invItem = inventory.find(i => i.id === item.inventoryId);
-                     const isOverStock = invItem && item.cantidad > (invItem.claseA + invItem.claseB);
-                     return (
-                       <div key={idx} className={`flex gap-4 items-start p-4 rounded border-2 transition-all ${isOverStock ? 'border-brand-alert bg-brand-alert/5' : 'border-zinc-50 bg-zinc-50/30'}`}>
-                         <div className="flex-1 min-h-[64px]">
-                           <select value={item.inventoryId} onChange={e => updateItem(idx, 'inventoryId', e.target.value)} className="w-full bg-white border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold outline-none focus:border-primary">
-                             <option value="">-- Artículo de Catálogo --</option>
-                             {inventory.map(i => <option key={i.id} value={i.id}>{i.nombre_comercial} (Disponibles A+B: {i.claseA + i.claseB})</option>)}
-                           </select>
-                           <div className="h-5">
-                             {isOverStock && <p className="text-[9px] text-brand-alert font-black mt-1 uppercase tracking-widest animate-in fade-in slide-in-from-top-1">⚠️ Alerta stock: Disponible {(invItem.claseA + invItem.claseB)} | Solicitado {item.cantidad}</p>}
-                           </div>
-                         </div>
-                         <div className="w-24">
-                           <label className="block text-[8px] font-black uppercase text-zinc-400 mb-1">CANT.</label>
-                           <input type="number" value={item.cantidad} onChange={e => updateItem(idx, 'cantidad', e.target.value)} className="w-full bg-white border-2 border-zinc-100 rounded px-3 py-2 text-sm font-black" />
-                         </div>
-                         <div className="w-28">
-                            <label className="block text-[8px] font-black uppercase text-zinc-400 mb-1">CALIDAD</label>
-                            <select value={item.clase_asignada} onChange={e => updateItem(idx, 'clase_asignada', e.target.value)} className="w-full bg-white border-2 border-zinc-100 rounded px-3 py-2 text-xs font-black uppercase">
-                              <option value="A">Clase A</option>
-                              <option value="B">Clase B</option>
-                            </select>
-                         </div>
-                         <div className="w-40 text-right pt-4">
-                           <div className="text-sm font-black text-zinc-900 tracking-tight">$ {(item.cantidad * item.precio_pactado).toLocaleString('es-CO')}</div>
-                         </div>
-                         <button type="button" onClick={() => removeItem(idx)} className="mt-4 text-zinc-300 hover:text-red-500 transition-colors"><span className="material-symbols-outlined text-[22px]">delete_sweep</span></button>
-                       </div>
-                     );
-                   })}
-                 </div>
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-400">
+               <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400 border-l-4 border-primary pl-4">Calculadora de Proyecto Unificada</h3>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={addItem} className="bg-zinc-900 text-white px-5 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary transition-all">
+                      <span className="material-symbols-outlined text-[16px]">inventory_2</span> + Equipo
+                    </button>
+                    <button type="button" onClick={() => addService('Personal')} className="bg-zinc-800 text-white px-5 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary transition-all">
+                      <span className="material-symbols-outlined text-[16px]">groups</span> + Personal
+                    </button>
+                    <button type="button" onClick={() => addService('Transporte')} className="bg-zinc-800 text-white px-5 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary transition-all">
+                      <span className="material-symbols-outlined text-[16px]">local_shipping</span> + Transporte
+                    </button>
+                  </div>
                </div>
 
-               <div className="pt-8 border-t border-zinc-100 grid grid-cols-1 lg:grid-cols-3 gap-10">
-                  <div className="lg:col-span-2 space-y-6">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400 border-l-4 border-zinc-900 pl-4">Servicios & Logística</h3>
-                      <div className="flex gap-3">
-                        <button type="button" onClick={() => addService('Personal')} className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 hover:text-primary transition-all">
-                            <span className="material-symbols-outlined text-[16px]">groups</span> + Personal
-                        </button>
-                        <button type="button" onClick={() => addService('Transporte')} className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 hover:text-primary transition-all">
-                            <span className="material-symbols-outlined text-[16px]">local_shipping</span> + Transporte
-                        </button>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                        {formData.services.map((svc, idx) => (
-                          <div key={idx} className="flex gap-4 items-center p-4 rounded border-2 border-zinc-50 bg-zinc-50/10">
-                            <div className="w-28 bg-zinc-900 text-white text-center py-1.5 rounded-sm text-[9px] font-black uppercase tracking-widest">{svc.tipo}</div>
-                            <div className="flex-1">
-                              <input type="text" value={svc.descripcion} onChange={e => updateService(idx, 'descripcion', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-4 py-1.5 text-sm font-bold" placeholder="Descripción del servicio especializado..." />
-                            </div>
-                            <div className="w-36">
-                              <input type="number" value={svc.precio_pactado} onChange={e => updateService(idx, 'precio_pactado', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-4 py-1.5 text-sm font-black text-right" placeholder="Costo" />
-                            </div>
-                            <button type="button" onClick={() => removeService(idx)} className="text-zinc-300 hover:text-red-500"><span className="material-symbols-outlined text-[20px]">close</span></button>
-                          </div>
-                        ))}
-                    </div>
+               <div className="w-full border-2 border-zinc-100 rounded overflow-hidden shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                       <tr className="bg-zinc-900 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                          <th className="p-4 w-[120px]">Concepto</th>
+                          <th className="p-4">Detalle</th>
+                          <th className="p-4 w-[100px] text-center">Cant.</th>
+                          <th className="p-4 w-[100px] text-center">Días</th>
+                          <th className="p-4 w-[150px] text-right">Vr. 1er Día</th>
+                          <th className="p-4 w-[150px] text-right">Vr. Día Adic.</th>
+                          <th className="p-4 w-[160px] text-right text-primary">Total Línea</th>
+                          <th className="p-4 w-[50px]"></th>
+                       </tr>
+                    </thead>
+                    <tbody className="bg-white">
+                       {/* INVENTORY ITEMS */}
+                       {formData.items.map((item, idx) => {
+                         const invItem = inventory.find(i => i.id === item.inventoryId);
+                         const isOverStock = invItem && item.cantidad > (invItem.claseA + invItem.claseB);
+                         return (
+                           <tr key={`item-${idx}`} className={`border-b border-zinc-50 transition-colors ${isOverStock ? 'bg-brand-alert/5' : 'hover:bg-zinc-50/50'}`}>
+                             <td className="p-4">
+                               <span className="px-2 py-1 rounded-sm bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter">Amenidades</span>
+                             </td>
+                             <td className="p-4">
+                               <select
+                                 value={item.inventoryId}
+                                 onChange={e => updateItem(idx, 'inventoryId', e.target.value)}
+                                 className="w-full bg-zinc-50 border border-zinc-200 rounded px-3 py-1.5 text-xs font-bold focus:border-primary outline-none"
+                               >
+                                 <option value="">-- Seleccionar Equipo --</option>
+                                 {inventory.map(i => <option key={i.id} value={i.id}>{i.nombre_comercial} (Disp: {i.claseA + i.claseB})</option>)}
+                               </select>
+                               {isOverStock && <p className="text-[9px] text-brand-alert font-black mt-1 uppercase">⚠️ Stock: {invItem.claseA + invItem.claseB}</p>}
+                             </td>
+                             <td className="p-4">
+                               <input type="number" value={item.cantidad} onChange={e => updateItem(idx, 'cantidad', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-2 py-1.5 text-xs font-black text-center" />
+                             </td>
+                             <td className="p-4">
+                               <input type="number" value={item.dias} onChange={e => updateItem(idx, 'dias', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-2 py-1.5 text-xs font-black text-center" />
+                             </td>
+                             <td className="p-4">
+                               <input type="number" value={item.precio_pactado} onChange={e => updateItem(idx, 'precio_pactado', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-2 py-1.5 text-xs font-black text-right" />
+                             </td>
+                             <td className="p-4">
+                               <input type="number" value={item.precio_dia_adicional} onChange={e => updateItem(idx, 'precio_dia_adicional', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-2 py-1.5 text-xs font-black text-right" />
+                             </td>
+                             <td className="p-4 text-right font-display font-black text-zinc-900">
+                               $ {calculateLineTotal(item).toLocaleString('es-CO')}
+                             </td>
+                             <td className="p-4 text-right">
+                               <button type="button" onClick={() => removeItem(idx)} className="text-zinc-300 hover:text-red-500"><span className="material-symbols-outlined text-[18px]">close</span></button>
+                             </td>
+                           </tr>
+                         );
+                       })}
+
+                       {/* SERVICES */}
+                       {formData.services.map((svc, idx) => (
+                         <tr key={`svc-${idx}`} className="border-b border-zinc-50 hover:bg-zinc-50/50 transition-colors">
+                            <td className="p-4">
+                               <span className="px-2 py-1 rounded-sm bg-zinc-900 text-white text-[9px] font-black uppercase tracking-tighter">{svc.tipo}</span>
+                            </td>
+                            <td className="p-4">
+                               <input
+                                 type="text"
+                                 value={svc.descripcion}
+                                 onChange={e => updateService(idx, 'descripcion', e.target.value)}
+                                 className="w-full bg-zinc-50 border border-zinc-200 rounded px-3 py-1.5 text-xs font-bold focus:border-primary outline-none"
+                                 placeholder={`Descripción del servicio de ${svc.tipo}...`}
+                               />
+                            </td>
+                            <td className="p-4">
+                               <input type="number" value={svc.cantidad} onChange={e => updateService(idx, 'cantidad', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-2 py-1.5 text-xs font-black text-center" />
+                            </td>
+                            <td className="p-4">
+                               <input type="number" value={svc.dias} onChange={e => updateService(idx, 'dias', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-2 py-1.5 text-xs font-black text-center" />
+                            </td>
+                            <td className="p-4">
+                               <input type="number" value={svc.precio_pactado} onChange={e => updateService(idx, 'precio_pactado', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-2 py-1.5 text-xs font-black text-right" />
+                            </td>
+                            <td className="p-4">
+                               <input type="number" value={svc.precio_dia_adicional} onChange={e => updateService(idx, 'precio_dia_adicional', e.target.value)} className="w-full bg-white border border-zinc-200 rounded px-2 py-1.5 text-xs font-black text-right" />
+                            </td>
+                            <td className="p-4 text-right font-display font-black text-zinc-900">
+                               $ {calculateLineTotal(svc).toLocaleString('es-CO')}
+                            </td>
+                            <td className="p-4 text-right">
+                               <button type="button" onClick={() => removeService(idx)} className="text-zinc-300 hover:text-red-500"><span className="material-symbols-outlined text-[18px]">close</span></button>
+                            </td>
+                         </tr>
+                       ))}
+                    </tbody>
+                  </table>
+               </div>
+
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6">
+                  <div className="lg:col-span-2">
+                     <div className="bg-zinc-50 p-6 rounded border-2 border-zinc-100">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
+                           <span className="material-symbols-outlined text-[18px]">info</span> Notas de Cálculo
+                        </h4>
+                        <p className="text-[11px] text-zinc-500 leading-relaxed">
+                           El motor aplica la fórmula: <span className="font-bold text-zinc-900">(Cant. × Vr.1erDía) + (Cant. × (Días - 1) × Vr.DíaAdic)</span>.
+                           Todos los valores son editables línea por línea para permitir flexibilidad en negociaciones Luxury BTL.
+                        </p>
+                     </div>
                   </div>
 
                   <div className="bg-zinc-900 rounded p-8 flex flex-col gap-6 shadow-2xl">
