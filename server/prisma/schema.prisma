@@ -180,9 +180,11 @@ model QuotationItem {
   inventoryId      String
   inventory        Inventory_Commercial @relation(fields: [inventoryId], references: [id])
 
-  cantidad         Int
-  precio_pactado   Float
-  clase_asignada   String        @default("A") // "A" or "B"
+  cantidad              Int
+  dias                  Int   @default(1)
+  precio_pactado        Float // Vr. Primer Día
+  precio_dia_adicional  Float @default(0)
+  clase_asignada        String @default("A") // "A" or "B"
 
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
@@ -195,10 +197,12 @@ model QuotationService {
   quotationId      String
   quotation        Quotation     @relation(fields: [quotationId], references: [id])
 
-  tipo             String        // "Personal" or "Transporte"
-  descripcion      String
-  cantidad         Int           @default(1)
-  precio_pactado   Float
+  tipo                  String        // "Personal" or "Transporte"
+  descripcion           String
+  cantidad              Int           @default(1)
+  dias                  Int           @default(1)
+  precio_pactado        Float         // Vr. Primer Día
+  precio_dia_adicional  Float         @default(0)
 
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
