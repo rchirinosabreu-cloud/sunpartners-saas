@@ -292,6 +292,10 @@ const QuotationDetail = () => {
                     <span className="text-sm font-bold text-zinc-900">{quotation.client.contactoPrincipal}</span>
                     <span className="text-xs text-zinc-500 block">{quotation.client.cargo}</span>
                   </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-black text-zinc-400 block">Fecha Principal</span>
+                    <span className="text-sm font-bold text-zinc-900">{new Date(quotation.evento_inicio).toLocaleDateString()}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -301,9 +305,9 @@ const QuotationDetail = () => {
         {activeTab === 'fechas' && (
            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { label: 'MONTAJE', start: quotation.fecha_montaje_inicio, end: quotation.fecha_montaje_fin, icon: 'build' },
-                { label: 'EVENTO', start: quotation.fecha_inicio, end: quotation.fecha_fin, icon: 'celebration' },
-                { label: 'DESMONTAJE', start: quotation.fecha_desmontaje_inicio, end: quotation.fecha_desmontaje_fin, icon: 'restart_alt' }
+                { label: 'MONTAJE', start: quotation.montaje_inicio, end: quotation.montaje_fin, icon: 'build' },
+                { label: 'EVENTO', start: quotation.evento_inicio, end: quotation.evento_fin, icon: 'celebration' },
+                { label: 'DESMONTAJE', start: quotation.desmontaje_inicio, end: quotation.desmontaje_fin, icon: 'restart_alt' }
               ].map((f, i) => (
                 <div key={i} className="bg-white border border-zinc-200 rounded p-6 shadow-sm">
                    <div className="flex items-center gap-2 mb-6 border-b border-zinc-50 pb-4">

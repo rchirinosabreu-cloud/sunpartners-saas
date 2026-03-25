@@ -46,8 +46,9 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFont('helvetica', 'bold');
   doc.text('LOGÍSTICA DEL EVENTO', 120, 55);
   doc.setFont('helvetica', 'normal');
-  doc.text(`EVENTO: ${new Date(quotation.fecha_inicio).toLocaleDateString()} - ${new Date(quotation.fecha_fin).toLocaleDateString()}`, 120, 62);
-  doc.text(`MONTAJE: ${quotation.fecha_montaje_inicio ? new Date(quotation.fecha_montaje_inicio).toLocaleString() : 'POR DEFINIR'}`, 120, 67);
+  doc.text(`MONTAJE: ${new Date(quotation.montaje_inicio).toLocaleString()}`, 120, 62);
+  doc.text(`EVENTO: ${new Date(quotation.evento_inicio).toLocaleString()}`, 120, 67);
+  doc.text(`DESMONTAJE: ${new Date(quotation.desmontaje_inicio).toLocaleString()}`, 120, 72);
 
   // Items Table
   const tableData = [

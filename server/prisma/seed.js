@@ -247,10 +247,10 @@ async function main() {
   });
 
   const client1 = await prisma.client.create({
-    data: { nombre: 'Grupo Eventia S.A.', email: 'marcos@eventia.com', telefono: '+52 55 1234 5678', identificacion: 'NIT-900.123.456-1' }
+    data: { empresa: 'Grupo Eventia S.A.', email: 'marcos@eventia.com', telefono: '+52 55 1234 5678', nit: '900.123.456-1', contactoPrincipal: 'Marcos Eventia' }
   });
   const client2 = await prisma.client.create({
-    data: { nombre: 'Ana Sofía Robles', email: 'ana@gmail.com', telefono: '+52 55 9876 5432', identificacion: 'CC-10203040' }
+    data: { empresa: 'Ana Sofía Robles', email: 'ana@gmail.com', telefono: '+52 55 9876 5432', nit: '10203040', contactoPrincipal: 'Ana Sofía' }
   });
 
   let importedCount = 0;
