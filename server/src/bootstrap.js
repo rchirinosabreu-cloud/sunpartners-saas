@@ -11,13 +11,21 @@ const bootstrapAdmin = async () => {
   }
 
   // Clean up all users to match new schema (Roles/Departments)
+  const FIXED_PASSWORD = "SunBTL2026_Premium";
   try {
     const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+    const hashedPassword = await bcrypt.hash(FIXED_PASSWORD, 10);
+
     if (existing) {
+        // Force update the password to the new one
+        await prisma.user.update({
+          where: { email: adminEmail },
+          data: { password: hashedPassword }
+        });
+        console.log(`[Sunpartners] Admin password updated successfully.`);
         return;
     }
 
-    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     await prisma.user.create({
       data: {
         email: adminEmail,
