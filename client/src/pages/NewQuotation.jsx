@@ -43,7 +43,7 @@ const NewQuotation = () => {
       try {
         const [cRes, iRes] = await Promise.all([
           axios.get('/api/clients', { withCredentials: true }),
-          axios.get('/api/inventory', { withCredentials: true })
+          axios.get('/api/inventory/commercial', { withCredentials: true })
         ]);
         setClients(cRes.data);
         setInventory(iRes.data);
@@ -133,7 +133,7 @@ const NewQuotation = () => {
     newItems[index][field] = value;
     if (field === 'inventoryId') {
       const item = inventory.find(i => i.id === value);
-      if (item) newItems[index].precio_pactado = item.rentalPrice || (item.vlrUnitario * 0.1);
+      if (item) newItems[index].precio_pactado = item.valor_alquiler || 0;
     }
     setFormData({ ...formData, items: newItems });
   };
@@ -497,8 +497,8 @@ const NewQuotation = () => {
                        <div key={idx} className={`flex gap-4 items-start p-4 rounded border-2 transition-all ${isOverStock ? 'border-brand-alert bg-brand-alert/5' : 'border-zinc-50 bg-zinc-50/30'}`}>
                          <div className="flex-1 min-h-[64px]">
                            <select value={item.inventoryId} onChange={e => updateItem(idx, 'inventoryId', e.target.value)} className="w-full bg-white border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold outline-none focus:border-primary">
-                             <option value="">-- Artículo de Inventario --</option>
-                             {inventory.map(i => <option key={i.id} value={i.id}>{i.nombre} (Disponibles A+B: {i.claseA + i.claseB})</option>)}
+                             <option value="">-- Artículo de Catálogo --</option>
+                             {inventory.map(i => <option key={i.id} value={i.id}>{i.nombre_comercial} (Disponibles A+B: {i.claseA + i.claseB})</option>)}
                            </select>
                            <div className="h-5">
                              {isOverStock && <p className="text-[9px] text-brand-alert font-black mt-1 uppercase tracking-widest animate-in fade-in slide-in-from-top-1">⚠️ Alerta stock: Disponible {(invItem.claseA + invItem.claseB)} | Solicitado {item.cantidad}</p>}

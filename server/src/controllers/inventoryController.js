@@ -1,54 +1,34 @@
 const prisma = require('../db');
 
-const calculateComputedFields = (item) => {
-  if (!item) return null;
-
-  const claseA = parseInt(item.claseA || 0);
-  const claseB = parseInt(item.claseB || 0);
-  const claseC = parseInt(item.claseC || 0);
-  const existenciaTotal = claseA + claseB + claseC;
-  const vlrUnitario = parseFloat(item.vlrUnitario || 0);
-
-  return {
-    ...item,
-    existenciaTotal,
-    disponibles: claseA + claseB,
-    enReparacion: claseC,
-    vlrTotal: existenciaTotal * vlrUnitario
-  };
-};
-
-exports.getAll = async (req, res) => {
+// --- BODEGA CONTROLLERS ---
+exports.getAllBodega = async (req, res) => {
   try {
-    const items = await prisma.inventoryItem.findMany();
-    if (!items) {
-      return res.json([]);
-    }
-    const processed = items.map(item => calculateComputedFields(item)).filter(Boolean);
+    const items = await prisma.inventory_Bodega.findMany({
+      include: { commercial: true }
+    });
+    const processed = items.map(item => {
+      const claseA = parseInt(item.claseA || 0);
+      const claseB = parseInt(item.claseB || 0);
+      const claseC = parseInt(item.claseC || 0);
+      const existenciaTotal = claseA + claseB + claseC;
+      return {
+        ...item,
+        existenciaTotal,
+        disponibles: claseA + claseB,
+        enReparacion: claseC,
+        vlrTotal: existenciaTotal * parseFloat(item.vlrUnitario || 0)
+      };
+    });
     res.json(processed);
   } catch (error) {
-    console.error('Inventory Controller Error:', error);
     res.status(500).json({ error: error.message });
   }
 };
 
-exports.getById = async (req, res) => {
+exports.createBodega = async (req, res) => {
   try {
-    const item = await prisma.inventoryItem.findUnique({
-      where: { id: req.params.id }
-    });
-    if (!item) return res.status(404).json({ error: 'Artículo no encontrado' });
-    res.json(calculateComputedFields(item));
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.create = async (req, res) => {
-  try {
-    const { nombre, claseA, claseB, claseC, bodega, seccion, vlrUnitario, rentalPrice, observaciones } = req.body;
-
-    const newItem = await prisma.inventoryItem.create({
+    const { nombre, claseA, claseB, claseC, bodega, seccion, vlrUnitario, observaciones, estado } = req.body;
+    const newItem = await prisma.inventory_Bodega.create({
       data: {
         nombre,
         claseA: parseInt(claseA || 0),
@@ -57,33 +37,69 @@ exports.create = async (req, res) => {
         bodega,
         seccion,
         vlrUnitario: parseFloat(vlrUnitario || 0),
-        rentalPrice: parseFloat(rentalPrice || (vlrUnitario * 0.1) || 0),
-        observaciones
+        observaciones,
+        estado: estado || 'ACTIVO'
       }
     });
-
-    res.status(201).json(calculateComputedFields(newItem));
+    res.status(201).json(newItem);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-exports.update = async (req, res) => {
+exports.updateBodega = async (req, res) => {
   try {
     const data = { ...req.body };
-
-    if (data.claseA !== undefined) data.claseA = parseInt(data.claseA || 0);
-    if (data.claseB !== undefined) data.claseB = parseInt(data.claseB || 0);
-    if (data.claseC !== undefined) data.claseC = parseInt(data.claseC || 0);
+    // Numeric conversions
+    ['claseA', 'claseB', 'claseC'].forEach(f => {
+       if (data[f] !== undefined) data[f] = parseInt(data[f] || 0);
+    });
     if (data.vlrUnitario !== undefined) data.vlrUnitario = parseFloat(data.vlrUnitario || 0);
-    if (data.rentalPrice !== undefined) data.rentalPrice = parseFloat(data.rentalPrice || 0);
 
-    const updatedItem = await prisma.inventoryItem.update({
+    const updated = await prisma.inventory_Bodega.update({
       where: { id: req.params.id },
       data
     });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-    res.json(calculateComputedFields(updatedItem));
+// --- COMMERCIAL CONTROLLERS ---
+exports.getAllCommercial = async (req, res) => {
+  try {
+    const items = await prisma.inventory_Commercial.findMany({
+      include: { bodega: true }
+    });
+    const processed = items.map(item => {
+      const claseA = parseInt(item.claseA || 0);
+      const claseB = parseInt(item.claseB || 0);
+      const claseC = parseInt(item.claseC || 0);
+      return {
+        ...item,
+        existenciaTotal: claseA + claseB + claseC,
+        disponibles: claseA + claseB,
+        enReparacion: claseC
+      };
+    });
+    res.json(processed);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateCommercial = async (req, res) => {
+  try {
+    const data = { ...req.body };
+    if (data.valor_alquiler !== undefined) data.valor_alquiler = parseFloat(data.valor_alquiler || 0);
+
+    // Note: Quantities sync back to Bodega via Prisma extension
+    const updated = await prisma.inventory_Commercial.update({
+      where: { id: req.params.id },
+      data
+    });
+    res.json(updated);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -91,8 +107,9 @@ exports.update = async (req, res) => {
 
 exports.softDelete = async (req, res) => {
   try {
-    const { justification } = req.body;
-    await prisma.inventoryItem.softDelete(req.params.id, justification);
+    const { justification, type } = req.body; // type: 'Bodega' or 'Commercial'
+    const model = type === 'Commercial' ? 'inventory_Commercial' : 'inventory_Bodega';
+    await prisma[model].softDelete(req.params.id, justification);
     res.json({ message: 'Artículo archivado correctamente' });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -4,6 +4,7 @@ import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
+import InventoryCommercial from './pages/InventoryCommercial';
 import Events from './pages/Events';
 import Clients from './pages/Clients';
 import QuotationList from './pages/QuotationList';
@@ -41,6 +42,7 @@ const App = () => {
           >
             <Route index element={<Dashboard />} />
             <Route path="inventario" element={<Inventory />} />
+            <Route path="comercial" element={<InventoryCommercial />} />
             <Route path="eventos" element={<Events />} />
             <Route path="clientes" element={<Clients />} />
             <Route path="cotizaciones" element={<QuotationList />} />

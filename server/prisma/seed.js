@@ -232,7 +232,8 @@ async function main() {
   await prisma.planningStep.deleteMany({});
   await prisma.eventLog.deleteMany({});
   await prisma.quotation.deleteMany({});
-  await prisma.inventoryItem.deleteMany({});
+  await prisma.inventory_Commercial.deleteMany({});
+  await prisma.inventory_Bodega.deleteMany({});
   await prisma.client.deleteMany({});
   await prisma.user.deleteMany({});
   console.log('Cleared existing database.');
@@ -287,15 +288,25 @@ async function main() {
     else if (claseLabel === 'C') { claseC += excelente; }
     else { claseA = excelente; }
 
-    await prisma.inventoryItem.create({
+    const itemBodega = await prisma.inventory_Bodega.create({
       data: {
         nombre,
         claseA, claseB, claseC,
         bodega: BODEGA_MAP[rawBodega] || 'PRINCIPAL',
         seccion: SECCION_MAP[normalizedSeccion] || 'SALA',
         vlrUnitario,
-        rentalPrice,
         observaciones: parts[9] || ''
+      }
+    });
+
+    await prisma.inventory_Commercial.create({
+      data: {
+        nombre_comercial: nombre,
+        claseA,
+        claseB,
+        claseC,
+        valor_alquiler: rentalPrice,
+        bodegaId: itemBodega.id
       }
     });
     importedCount++;
