@@ -273,7 +273,7 @@ const PublicQuotation = () => {
         <div className="p-16 flex flex-col md:flex-row justify-center items-center gap-10 bg-white border-t border-zinc-100">
            <button
             onClick={() => setShowApproveModal(true)}
-            className="w-full md:w-auto bg-primary text-white px-20 py-5 rounded-sm text-[11px] font-black uppercase tracking-[0.4em] hover:bg-[#d99414] transition-all shadow-[0_20px_50px_rgba(251,174,23,0.2)] flex items-center justify-center gap-4"
+            className="w-full md:w-auto bg-[#fbae17] text-zinc-900 px-20 py-5 rounded-sm text-[11px] font-black uppercase tracking-[0.4em] hover:bg-[#e5a015] transition-all shadow-[0_20px_50px_rgba(251,174,23,0.3)] flex items-center justify-center gap-4 border-b-4 border-black/10"
            >
              <span className="material-symbols-outlined text-[20px] fill">verified</span>
              Confirmar Propuesta
@@ -307,7 +307,7 @@ const PublicQuotation = () => {
               <button
                 disabled={processing}
                 onClick={handleApprove}
-                className="bg-primary text-white py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-50 shadow-xl"
+                className="bg-[#fbae17] text-zinc-900 py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-50 shadow-xl border-b-4 border-black/10"
               >
                 {processing ? 'Formalizando...' : 'Aceptar y Formalizar'}
               </button>
