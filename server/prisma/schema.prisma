@@ -55,6 +55,12 @@ enum QuotationStatus {
   RECHAZADA
 }
 
+enum ItemStatus {
+  ACTIVO
+  MANTENIMIENTO
+  DANADO
+}
+
 enum RejectionType {
   PRECIO
   FECHAS
@@ -93,7 +99,7 @@ model Client {
   quotations           Quotation[]
 }
 
-model InventoryItem {
+model Inventory_Bodega {
   id                   String       @id @default(uuid())
   nombre               String
   claseA               Int          @default(0)
@@ -101,14 +107,34 @@ model InventoryItem {
   claseC               Int          @default(0)
   bodega               Bodega
   seccion              Seccion
-  vlrUnitario          Float        // Valor del activo
-  rentalPrice          Float        @default(0) // Precio de alquiler sugerido
+  vlrUnitario          Float        // Valor del activo (Costo de compra)
+  estado               ItemStatus   @default(ACTIVO)
   observaciones        String?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
   deletedAt            DateTime?
   deletedJustification String?
-  items                QuotationItem[]
+
+  commercial           Inventory_Commercial?
+}
+
+model Inventory_Commercial {
+  id                   String       @id @default(uuid())
+  nombre_comercial     String       // Nombre "embellecido" para el cliente
+  claseA               Int          @default(0) // Sincronizado
+  claseB               Int          @default(0) // Sincronizado
+  claseC               Int          @default(0) // Sincronizado
+  valor_alquiler       Float        @default(0) // Precio sugerido de renta
+  estado               ItemStatus   @default(ACTIVO) // Sincronizado
+
+  bodegaId             String       @unique
+  bodega               Inventory_Bodega @relation(fields: [bodegaId], references: [id], onDelete: Cascade)
+
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  deletedAt            DateTime?    // Sincronizado
+
+  quotationItems       QuotationItem[]
 }
 
 model Quotation {
@@ -148,11 +174,11 @@ model Quotation {
 }
 
 model QuotationItem {
-  id               String        @id @default(uuid())
+  id               String               @id @default(uuid())
   quotationId      String
-  quotation        Quotation     @relation(fields: [quotationId], references: [id])
+  quotation        Quotation            @relation(fields: [quotationId], references: [id])
   inventoryId      String
-  inventory        InventoryItem @relation(fields: [inventoryId], references: [id])
+  inventory        Inventory_Commercial @relation(fields: [inventoryId], references: [id])
 
   cantidad         Int
   precio_pactado   Float

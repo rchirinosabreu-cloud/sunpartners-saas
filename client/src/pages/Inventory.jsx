@@ -34,7 +34,7 @@ const Inventory = () => {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/inventory`, { withCredentials: true });
+      const response = await axios.get(`${API_URL}/inventory/bodega`, { withCredentials: true });
       setItems(response.data);
     } catch (error) {
       console.error('Error fetching inventory:', error);
@@ -59,9 +59,9 @@ const Inventory = () => {
     e.preventDefault();
     try {
       if (editingItem) {
-        await axios.put(`${API_URL}/inventory/${editingItem.id}`, formData, { withCredentials: true });
+        await axios.put(`${API_URL}/inventory/bodega/${editingItem.id}`, formData, { withCredentials: true });
       } else {
-        await axios.post(`${API_URL}/inventory`, formData, { withCredentials: true });
+        await axios.post(`${API_URL}/inventory/bodega`, formData, { withCredentials: true });
       }
       setIsModalOpen(false);
       setEditingItem(null);
@@ -151,7 +151,10 @@ const Inventory = () => {
 
       {/* Header */}
       <header className="h-16 flex items-center justify-between px-8 border-b border-zinc-200 shrink-0">
-        <h2 className="font-display font-semibold text-2xl tracking-tight text-zinc-900">Inventario Maestro</h2>
+        <div>
+          <h2 className="font-display font-semibold text-2xl tracking-tight text-zinc-900 uppercase">Inventario de Bodega</h2>
+          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Control de Activos y Costos Maestros</p>
+        </div>
         <div className="flex items-center gap-4">
           <div className="relative w-[240px]">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-zinc-400">search</span>
@@ -184,6 +187,7 @@ const Inventory = () => {
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[160px]">Clase (A|B|C)</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[120px]">Bodega</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px]">Sección</th>
+                <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[110px]">Estado Op.</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px] text-center">Estado (D/R)</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[100px] text-right">Existencia Total</th>
                 <th className="font-display font-medium text-[11px] uppercase text-zinc-500 px-3 py-3 w-[120px] text-right">Vlr. Unitario</th>
@@ -210,6 +214,14 @@ const Inventory = () => {
                   </td>
                   <td className="px-3 py-3 text-zinc-500 uppercase text-[11px] font-medium">{item.bodega}</td>
                   <td className="px-3 py-3 text-zinc-500 uppercase text-[11px] font-medium">{(item.seccion || 'GENERAL').replace('_', ' ')}</td>
+                  <td className="px-3 py-3">
+                    <span className={`px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-widest ${
+                      item.estado === 'ACTIVO' ? 'bg-zinc-900 text-white' :
+                      item.estado === 'MANTENIMIENTO' ? 'bg-brand-alert text-black' : 'bg-red-500 text-white'
+                    }`}>
+                      {item.estado}
+                    </span>
+                  </td>
                   <td className="px-3 py-3 text-center">
                     <span className="font-display font-medium text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200 text-[12px]">
                       {item.disponibles}/{item.enReparacion}
@@ -271,6 +283,14 @@ const Inventory = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[13px] font-medium text-zinc-600">Estado Operacional *</label>
+                  <select name="estado" value={formData.estado} onChange={handleInputChange} className="h-9 px-2 border border-zinc-200 rounded focus:border-primary bg-white uppercase text-[12px] font-bold">
+                    <option value="ACTIVO">ACTIVO</option>
+                    <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+                    <option value="DANADO">DANADO</option>
+                  </select>
+                </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[13px] font-medium text-zinc-600">Bodega *</label>
                   <select name="bodega" value={formData.bodega} onChange={handleInputChange} className="h-9 px-2 border border-zinc-200 rounded focus:border-primary bg-white uppercase text-[12px]">

@@ -11,6 +11,56 @@ const prismaClient = new PrismaClient({
 
 const prisma = prismaClient.$extends({
   query: {
+    inventory_Bodega: {
+      async update({ args, query }) {
+        const result = await query(args);
+        // Sync Bodega -> Commercial (Name, Quantities, Status, and DeletedAt)
+        await prismaClient.inventory_Commercial.update({
+          where: { bodegaId: result.id },
+          data: {
+            nombre_comercial: result.nombre,
+            claseA: result.claseA,
+            claseB: result.claseB,
+            claseC: result.claseC,
+            estado: result.estado,
+            deletedAt: result.deletedAt
+          }
+        }).catch(() => {}); // Ignore if commercial doesn't exist yet
+        return result;
+      },
+      async create({ args, query }) {
+        const result = await query(args);
+        // Automatically create Commercial counterpart
+        await prismaClient.inventory_Commercial.create({
+          data: {
+            nombre_comercial: result.nombre,
+            claseA: result.claseA,
+            claseB: result.claseB,
+            claseC: result.claseC,
+            estado: result.estado,
+            bodegaId: result.id
+          }
+        });
+        return result;
+      }
+    },
+    inventory_Commercial: {
+      async update({ args, query }) {
+        const result = await query(args);
+        // Sync Commercial -> Bodega (Quantities, Status, and DeletedAt)
+        await prismaClient.inventory_Bodega.update({
+          where: { id: result.bodegaId },
+          data: {
+            claseA: result.claseA,
+            claseB: result.claseB,
+            claseC: result.claseC,
+            estado: result.estado,
+            deletedAt: result.deletedAt
+          }
+        }).catch(() => {});
+        return result;
+      }
+    },
     $allModels: {
       async findMany({ model, operation, args, query }) {
         if (!args) args = {};
@@ -24,15 +74,6 @@ const prisma = prismaClient.$extends({
         args.where.deletedAt = null;
         return query(args);
       },
-      async findUnique({ model, operation, args, query }) {
-        if (!args) args = {};
-        const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
-        const result = await prismaClient[modelKey].findFirst({
-          ...args,
-          where: { ...args.where, deletedAt: null },
-        });
-        return result;
-      },
       async count({ model, operation, args, query }) {
         if (!args) args = {};
         if (!args.where) args.where = {};
@@ -44,6 +85,7 @@ const prisma = prismaClient.$extends({
   model: {
     $allModels: {
       async softDelete(id, justification) {
+        // Just call update, the query extensions will handle the sync
         return this.update({
           where: { id },
           data: {

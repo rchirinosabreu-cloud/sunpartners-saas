@@ -346,12 +346,15 @@ async function checkAvailability(quotationId) {
   });
 
   for (const item of q.items) {
-    const inv = await prisma.inventoryItem.findUnique({ where: { id: item.inventoryId } });
+    const inv = await prisma.inventory_Commercial.findUnique({
+      where: { id: item.inventoryId },
+      include: { bodega: true }
+    });
     const totalAvailable = (inv.claseA || 0) + (inv.claseB || 0);
     const alreadyCommitted = committed[item.inventoryId] || 0;
 
     if (alreadyCommitted + item.cantidad > totalAvailable) {
-      return `Stock insuficiente para "${inv.nombre}". Disponible total (A+B): ${totalAvailable}, Comprometido en otras fechas: ${alreadyCommitted}, Solicitado: ${item.cantidad}`;
+      return `Stock insuficiente para "${inv.nombre_comercial}". Disponible total (A+B): ${totalAvailable}, Comprometido en otras fechas: ${alreadyCommitted}, Solicitado: ${item.cantidad}`;
     }
   }
 
