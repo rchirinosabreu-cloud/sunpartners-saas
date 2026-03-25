@@ -45,8 +45,8 @@ const NewQuotation = () => {
           axios.get('/api/clients', { withCredentials: true }),
           axios.get('/api/inventory/commercial', { withCredentials: true })
         ]);
-        setClients(cRes.data);
-        setInventory(iRes.data);
+        setClients(Array.isArray(cRes.data) ? cRes.data : []);
+        setInventory(Array.isArray(iRes.data) ? iRes.data : []);
 
         if (isEditing) {
           const qRes = await axios.get(`/api/quotations/${id}`, { withCredentials: true });
@@ -152,6 +152,14 @@ const NewQuotation = () => {
     setFormData({ ...formData, services: newServices });
   };
 
+  // Dedicated handlers for Logistics blindaje
+  const setMontajeInicio = (date) => setFormData(prev => ({ ...prev, montaje_inicio: date }));
+  const setMontajeFin = (date) => setFormData(prev => ({ ...prev, montaje_fin: date }));
+  const setEventoInicio = (date) => setFormData(prev => ({ ...prev, evento_inicio: date }));
+  const setEventoFin = (date) => setFormData(prev => ({ ...prev, evento_fin: date }));
+  const setDesmontajeInicio = (date) => setFormData(prev => ({ ...prev, desmontaje_inicio: date }));
+  const setDesmontajeFin = (date) => setFormData(prev => ({ ...prev, desmontaje_fin: date }));
+
   const calculateLineTotal = (item) => {
     const cant = parseInt(item.cantidad || 0);
     const dias = parseInt(item.dias || 1);
@@ -214,11 +222,11 @@ const NewQuotation = () => {
         const res = await axios.post('/api/quotations', formData, { withCredentials: true });
         navigate(`/cotizaciones/${res.data.id}`);
       }
-    } catch (err) {
+    } catch (error) {
       setModal({
         isOpen: true,
         title: 'Error de Validación',
-        content: 'Error: Faltan fechas obligatorias por completar o datos inválidos.',
+        content: error.response?.data?.error || 'Error: Faltan fechas obligatorias por completar o datos inválidos.',
         type: 'error'
       });
     } finally {
@@ -252,6 +260,7 @@ const NewQuotation = () => {
     enableTime: true,
     dateFormat: "d/m/Y h:i K",
     time_24hr: false,
+    allowInput: true,
     locale: {
       firstDayOfWeek: 1,
       weekdays: {
@@ -401,7 +410,9 @@ const NewQuotation = () => {
           {activeTab === 2 && (
             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-400">
                <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                  {/* FASE MONTAJE */}
+                  {/* EXPLICIT MAPPING - NO LOOPS */}
+
+                  {/* FASE 01: MONTAJE */}
                   <div className="space-y-6 p-6 border-2 border-zinc-100 rounded bg-white shadow-sm hover:border-zinc-300 transition-all">
                     <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-3 text-zinc-900">
                       <span className="material-symbols-outlined text-[20px]">build</span> 01. Fase Montaje
@@ -412,10 +423,10 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.montaje_inicio}
-                          onChange={([date]) => setFormData({...formData, montaje_inicio: date})}
+                          onChange={([date]) => setMontajeInicio(date)}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                          placeholder="Seleccionar..."
+                          placeholder="Día/Mes/Año --:--"
                         />
                       </div>
                       <div>
@@ -423,16 +434,16 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.montaje_fin}
-                          onChange={([date]) => setFormData({...formData, montaje_fin: date})}
+                          onChange={([date]) => setMontajeFin(date)}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                          placeholder="Seleccionar..."
+                          placeholder="Día/Mes/Año --:--"
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* FASE EVENTO */}
+                  {/* FASE 02: EVENTO */}
                   <div className="space-y-6 p-6 border-2 border-zinc-100 rounded bg-white shadow-sm hover:border-zinc-300 transition-all">
                     <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-3 text-primary">
                       <span className="material-symbols-outlined text-[20px]">celebration</span> 02. Fase Evento
@@ -443,10 +454,10 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.evento_inicio}
-                          onChange={([date]) => setFormData({...formData, evento_inicio: date})}
+                          onChange={([date]) => setEventoInicio(date)}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                          placeholder="Seleccionar..."
+                          placeholder="Día/Mes/Año --:--"
                         />
                       </div>
                       <div>
@@ -454,16 +465,16 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.evento_fin}
-                          onChange={([date]) => setFormData({...formData, evento_fin: date})}
+                          onChange={([date]) => setEventoFin(date)}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                          placeholder="Seleccionar..."
+                          placeholder="Día/Mes/Año --:--"
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* FASE DESMONTAJE */}
+                  {/* FASE 03: DESMONTAJE */}
                   <div className="space-y-6 p-6 border-2 border-zinc-100 rounded bg-white shadow-sm hover:border-zinc-300 transition-all">
                     <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-3 text-zinc-900">
                       <span className="material-symbols-outlined text-[20px]">restart_alt</span> 03. Fase Desmontaje
@@ -474,10 +485,10 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.desmontaje_inicio}
-                          onChange={([date]) => setFormData({...formData, desmontaje_inicio: date})}
+                          onChange={([date]) => setDesmontajeInicio(date)}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                          placeholder="Seleccionar..."
+                          placeholder="Día/Mes/Año --:--"
                         />
                       </div>
                       <div>
@@ -485,10 +496,10 @@ const NewQuotation = () => {
                         <Flatpickr
                           data-enable-time
                           value={formData.desmontaje_fin}
-                          onChange={([date]) => setFormData({...formData, desmontaje_fin: date})}
+                          onChange={([date]) => setDesmontajeFin(date)}
                           options={flatpickrConfig}
                           className="w-full border-2 border-zinc-100 rounded px-4 py-2 text-sm font-bold bg-zinc-50 cursor-pointer outline-none focus:border-primary"
-                          placeholder="Seleccionar..."
+                          placeholder="Día/Mes/Año --:--"
                         />
                       </div>
                     </div>

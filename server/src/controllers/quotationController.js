@@ -224,9 +224,17 @@ exports.getByHash = async (req, res) => {
 exports.approveByHash = async (req, res) => {
   try {
     const { hash } = req.params;
-    const quotation = await prisma.quotation.findUnique({ where: { secureHash: hash } });
+    const quotation = await prisma.quotation.findUnique({ where: { secureHash: hash }, include: { items: true } });
 
     if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
+
+    const conflict = await checkAvailability(quotation.id);
+    if (conflict) {
+      return res.status(400).json({
+        error: 'Disponibilidad Limitada',
+        details: 'Lo sentimos, algunos elementos de esta propuesta ya no cuentan con stock suficiente para las fechas seleccionadas. Por favor, solicite una revisión para ajustar el equipamiento.'
+      });
+    }
 
     const updated = await prisma.quotation.update({
       where: { id: quotation.id },

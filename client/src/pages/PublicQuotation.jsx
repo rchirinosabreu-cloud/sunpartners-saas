@@ -36,7 +36,13 @@ const PublicQuotation = () => {
       setFinished(true);
       setShowApproveModal(false);
     } catch (err) {
-      setUiModal({ isOpen: true, title: 'Error', content: 'No se pudo procesar la aprobación. Intenta de nuevo.', type: 'error' });
+      const msg = err.response?.data?.details || err.response?.data?.error || 'No se pudo procesar la aprobación. Intenta de nuevo.';
+      setUiModal({
+        isOpen: true,
+        title: 'Validación de Disponibilidad',
+        content: msg,
+        type: 'warning'
+      });
     } finally {
       setProcessing(false);
     }
@@ -62,7 +68,7 @@ const PublicQuotation = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center font-body text-zinc-500">
+  if (loading || !quotation) return <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center font-body text-zinc-500">
     <div className="size-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
     Sincronizando Propuesta Digital...
   </div>;
@@ -91,6 +97,7 @@ const PublicQuotation = () => {
   }
 
   const calculateLineTotalPublic = (item) => {
+    if (!item) return 0;
     const cant = parseInt(item.cantidad || 0);
     const dias = parseInt(item.dias || 1);
     const v1 = parseFloat(item.precio_pactado || 0);
@@ -98,8 +105,8 @@ const PublicQuotation = () => {
     return (cant * v1) + (cant * (Math.max(0, dias - 1)) * vExtra);
   };
 
-  const subtotalItems = (quotation.items || []).reduce((acc, item) => acc + calculateLineTotalPublic(item), 0);
-  const subtotalServices = (quotation.services || []).reduce((acc, svc) => acc + calculateLineTotalPublic(svc), 0);
+  const subtotalItems = (quotation?.items || []).reduce((acc, item) => acc + calculateLineTotalPublic(item), 0);
+  const subtotalServices = (quotation?.services || []).reduce((acc, svc) => acc + calculateLineTotalPublic(svc), 0);
   const subtotal = subtotalItems + subtotalServices;
   const iva = subtotal * 0.19;
   const total = subtotal + iva;
@@ -141,7 +148,7 @@ const PublicQuotation = () => {
               <div className="space-y-2">
                  <h2 className="text-5xl font-black tracking-tighter text-zinc-900 uppercase leading-none">{quotation.nombre_evento}</h2>
                  <div className="inline-block bg-zinc-900 text-white px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] shadow-lg">
-                   PROPUESTA #Q-{quotation.id.substring(0,6).toUpperCase()}
+                   PROPUESTA #Q-{quotation?.id?.substring(0,6).toUpperCase() || 'REF'}
                  </div>
               </div>
            </div>
@@ -266,7 +273,7 @@ const PublicQuotation = () => {
         <div className="p-16 flex flex-col md:flex-row justify-center items-center gap-10 bg-white border-t border-zinc-100">
            <button
             onClick={() => setShowApproveModal(true)}
-            className="w-full md:w-auto bg-zinc-900 text-white px-20 py-5 rounded-sm text-[11px] font-black uppercase tracking-[0.4em] hover:bg-primary transition-all shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center gap-4"
+            className="w-full md:w-auto bg-primary text-white px-20 py-5 rounded-sm text-[11px] font-black uppercase tracking-[0.4em] hover:bg-[#d99414] transition-all shadow-[0_20px_50px_rgba(251,174,23,0.2)] flex items-center justify-center gap-4"
            >
              <span className="material-symbols-outlined text-[20px] fill">verified</span>
              Confirmar Propuesta
