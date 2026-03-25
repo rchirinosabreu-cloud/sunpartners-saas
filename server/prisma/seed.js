@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const bcrypt = require('bcrypt');
 
 const csvData = `BASE DE ASPERSOR PRO TURBO,B,SHERYLANDIA,PATIO,0,6,6," $  167,500 "," $  1,005,000 ",
 TURBINA PRO TURBO TSUNAMI 500W,A,SHERYLANDIA,PATIO,2,0,2," $  5,750,000 "," $  11,500,000 ",
@@ -236,10 +237,11 @@ async function main() {
   await prisma.user.deleteMany({});
   console.log('Cleared existing database.');
 
+  const hashedPassword = await bcrypt.hash('admin_password_123', 10);
   const admin = await prisma.user.create({
     data: {
       email: 'admin@sunpartners.com',
-      password: 'admin_password_123',
+      password: hashedPassword,
       nombre: 'Administrador Sunpartners',
       role: 'ADMIN',
       department: 'DIRECCION'
