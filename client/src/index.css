@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* Brand Colors from Design Reference */
-  --color-primary: #12aee2;
-  --color-primary-hover: #109ccb;
+  /* Brand Colors from Design Reference - Migrated to Finora Clean Style */
+  --color-primary: #5486A1;
+  --color-primary-hover: #466e85;
   --color-background-light: #ffffff;
   --color-background-dark: #18181b;
   --color-surface: #fafafa;
@@ -35,25 +35,25 @@
   --font-body: "DM Sans", sans-serif;
   --font-sans: "DM Sans", sans-serif;
 
-  /* Border Radius - Strictly 2px */
-  --radius-DEFAULT: 2px;
+  /* Border Radius - Clean/Premium 8px */
+  --radius-DEFAULT: 8px;
   --radius-none: 0;
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 2px;
-  --radius-xl: 2px;
-  --radius-2xl: 2px;
-  --radius-3xl: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
   --radius-full: 9999px;
 
-  /* Shadows - None as per design */
-  --shadow-DEFAULT: none;
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-xl: none;
-  --shadow-2xl: none;
-  --shadow-inner: none;
+  /* Shadows - Soft Shadows for Premium Feel */
+  --shadow-DEFAULT: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
 }
 
 @layer base {
@@ -109,7 +109,7 @@
   --card-foreground: #18181b;
   --popover: #ffffff;
   --popover-foreground: #18181b;
-  --primary: #12aee2;
+  --primary: #5486A1;
   --primary-foreground: #ffffff;
   --secondary: #f4f4f5;
   --secondary-foreground: #18181b;
@@ -120,8 +120,8 @@
   --destructive: #ef4444;
   --border: #e4e4e7;
   --input: #e4e4e7;
-  --ring: #12aee2;
-  --radius: 2px;
+  --ring: #5486A1;
+  --radius: 8px;
 }
 
 .dark {

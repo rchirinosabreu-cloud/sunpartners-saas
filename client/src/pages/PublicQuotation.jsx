@@ -68,14 +68,14 @@ const PublicQuotation = () => {
     }
   };
 
-  if (loading || !quotation) return <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center font-body text-zinc-500">
-    <div className="size-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-    Sincronizando Propuesta Digital...
+  if (loading || !quotation) return <div className="min-h-screen bg-white flex flex-col items-center justify-center font-body text-zinc-400">
+    <div className="size-12 border-2 border-primary/10 border-t-primary rounded-full animate-spin mb-4"></div>
+    <span className="text-[10px] font-black uppercase tracking-[0.3em]">Sincronizando Propuesta Digital...</span>
   </div>;
 
   if (error) return (
     <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-8 font-body">
-      <div className="bg-white border-2 border-red-100 p-12 rounded-sm text-center shadow-xl">
+      <div className="bg-white border border-red-100 p-12 rounded-lg text-center shadow-2xl">
         <span className="material-symbols-outlined text-red-500 text-5xl mb-6">error</span>
         <h2 className="text-xl font-black uppercase text-zinc-900 mb-2">Acceso No Válido</h2>
         <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.2em]">{error}</p>
@@ -85,13 +85,13 @@ const PublicQuotation = () => {
 
   if (finished) {
     return (
-      <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center font-body p-8 text-center">
-         <div className="size-24 rounded-full bg-primary/20 flex items-center justify-center mb-8 border-2 border-primary/50 shadow-[0_0_40px_rgba(18,174,226,0.2)]">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center font-body p-8 text-center">
+         <div className="size-24 rounded-full bg-primary/10 flex items-center justify-center mb-8 border border-primary/20 shadow-xl">
             <span className="material-symbols-outlined text-primary text-[48px] font-black">check_circle</span>
          </div>
-         <h2 className="text-white text-4xl font-black uppercase tracking-tighter mb-4">Gestión Finalizada</h2>
+         <h2 className="text-zinc-900 text-4xl font-black uppercase tracking-tighter mb-4">Gestión Finalizada</h2>
          <p className="text-zinc-400 max-w-md mx-auto font-bold uppercase text-[11px] tracking-widest leading-relaxed">Su respuesta ha sido procesada por nuestro motor de negocio. Un ejecutivo de Sunpartners se pondrá en contacto con usted en breve.</p>
-         <div className="mt-20 text-[9px] font-black text-zinc-700 uppercase tracking-[0.6em]">Luxury BTL System • Excellence as Standard</div>
+         <div className="mt-20 text-[9px] font-black text-zinc-200 uppercase tracking-[0.6em]">Luxury BTL System • Excellence as Standard</div>
       </div>
     );
   }
@@ -124,30 +124,30 @@ const PublicQuotation = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F4F5] font-body py-12 px-4 md:px-8 lg:px-12">
+    <div className="min-h-screen bg-[#F8FAFC] font-body py-12 px-4 md:px-8 lg:px-12">
       <Modal isOpen={uiModal.isOpen} onClose={() => setUiModal({ ...uiModal, isOpen: false })} title={uiModal.title} type={uiModal.type}>
         {uiModal.content}
       </Modal>
 
-      <div className="max-w-6xl mx-auto bg-white border border-zinc-200 rounded-sm shadow-2xl overflow-hidden relative">
+      <div className="max-w-6xl mx-auto bg-white border border-zinc-200 rounded-lg shadow-2xl overflow-hidden relative">
         {/* Aesthetic Stripe */}
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-blue-600"></div>
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-primary shadow-[0_2px_10px_rgba(84,134,161,0.3)]"></div>
 
         {/* Public Header - Ultra Clean */}
         <div className="p-12 md:p-20 border-b border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
            <div>
               <div className="flex items-center gap-4 mb-12">
-                 <div className="size-12 bg-zinc-900 flex items-center justify-center rounded-sm shadow-xl">
-                    <span className="material-symbols-outlined text-white text-[28px] fill">architecture</span>
+                 <div className="size-12 bg-primary/10 flex items-center justify-center rounded-lg border border-primary/20">
+                    <span className="material-symbols-outlined text-primary text-[28px] fill">architecture</span>
                  </div>
                  <div>
                     <h1 className="text-2xl font-black uppercase tracking-[0.3em] text-zinc-900 leading-none mb-1">SUNPARTNERS</h1>
                     <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">Estándar de Excelencia</p>
                  </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-4">
                  <h2 className="text-5xl font-black tracking-tighter text-zinc-900 uppercase leading-none">{quotation.nombre_evento}</h2>
-                 <div className="inline-block bg-zinc-900 text-white px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] shadow-lg">
+                 <div className="inline-block bg-primary/5 text-primary border border-primary/10 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">
                    PROPUESTA #Q-{quotation?.id?.substring(0,6).toUpperCase() || 'REF'}
                  </div>
               </div>
@@ -186,7 +186,7 @@ const PublicQuotation = () => {
            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-10 border-l-4 border-primary pl-6">Desglose de Equipamiento y Logística</h3>
            <table className="w-full text-left">
               <thead>
-                <tr className="border-b-2 border-zinc-900">
+                <tr className="border-b-2 border-zinc-100">
                   <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900">Descripción Técnica</th>
                   <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-center">Cant.</th>
                   <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-center">Días</th>
@@ -212,27 +212,27 @@ const PublicQuotation = () => {
                 ))}
                 {(quotation.services || []).map((svc, idx) => (
                   <tr key={idx}>
-                    <td className="py-8 border-l-4 border-zinc-900 pl-4 bg-zinc-50/30">
+                    <td className="py-8 border-l-4 border-primary/20 pl-4 bg-primary/5">
                        <p className="font-black text-base text-zinc-900 uppercase tracking-tight">{svc.descripcion}</p>
                        <span className="text-[9px] font-black text-primary uppercase tracking-widest mt-1 block">{svc.tipo} Especializado</span>
                     </td>
-                    <td className="py-8 text-center font-black text-zinc-600 bg-zinc-50/30">{svc.cantidad}</td>
-                    <td className="py-8 text-center font-black text-zinc-600 bg-zinc-50/30">{svc.dias}</td>
-                    <td className="py-8 text-right font-bold text-zinc-500 bg-zinc-50/30">
+                    <td className="py-8 text-center font-black text-zinc-600 bg-primary/5">{svc.cantidad}</td>
+                    <td className="py-8 text-center font-black text-zinc-600 bg-primary/5">{svc.dias}</td>
+                    <td className="py-8 text-right font-bold text-zinc-500 bg-primary/5">
                        <p>$ {svc.precio_pactado.toLocaleString()}</p>
                        {svc.dias > 1 && <p className="text-[8px] text-zinc-400 font-black">+ $ {svc.precio_dia_adicional.toLocaleString()} / día extra</p>}
                     </td>
-                    <td className="py-8 text-right font-black text-lg text-zinc-900 tracking-tighter bg-zinc-50/30">$ {calculateLineTotalPublic(svc).toLocaleString()}</td>
+                    <td className="py-8 text-right font-black text-lg text-zinc-900 tracking-tighter bg-primary/5">$ {calculateLineTotalPublic(svc).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
            </table>
         </div>
 
-        {/* Totals & Legal Block */}
-        <div className="bg-zinc-900 p-12 md:p-20 text-white flex flex-col lg:flex-row justify-between gap-16">
+        {/* Totals & Legal Block - Refined Finora Style */}
+        <div className="bg-zinc-50 p-12 md:p-20 flex flex-col lg:flex-row justify-between gap-16 border-t border-zinc-100">
            <div className="max-w-2xl">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary mb-8 border-b border-zinc-800 pb-4">Términos y Condiciones Legales</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary mb-8 border-b border-zinc-200 pb-4">Términos y Condiciones Legales</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                 {[
                   "La reserva de equipos se confirma únicamente con el pago del 70% del valor total.",
@@ -248,23 +248,23 @@ const PublicQuotation = () => {
                 ].map((text, i) => (
                   <div key={i} className="flex gap-3 items-start">
                     <span className="text-[10px] font-black text-primary leading-none pt-0.5">{i+1}.</span>
-                    <p className="text-[10px] leading-relaxed text-zinc-500 font-bold uppercase tracking-tight">{text}</p>
+                    <p className="text-[10px] leading-relaxed text-zinc-400 font-bold uppercase tracking-tight">{text}</p>
                   </div>
                 ))}
               </div>
            </div>
-           <div className="min-w-[320px] space-y-6 lg:border-l lg:border-zinc-800 lg:pl-16">
-              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+           <div className="min-w-[320px] space-y-6 lg:border-l lg:border-zinc-200 lg:pl-16">
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
                 <span>Subtotal Neto</span>
-                <span className="text-zinc-200">$ {subtotal.toLocaleString()}</span>
+                <span className="text-zinc-900">$ {subtotal.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
                 <span>IVA Causado (19%)</span>
-                <span className="text-zinc-200">$ {iva.toLocaleString()}</span>
+                <span className="text-zinc-900">$ {iva.toLocaleString()}</span>
               </div>
-              <div className="pt-8 border-t border-zinc-800 flex justify-between items-end">
+              <div className="pt-8 border-t border-zinc-200 flex justify-between items-end">
                 <span className="text-[11px] font-black uppercase tracking-[0.4em] text-primary">Inversión Total</span>
-                <span className="text-5xl font-black tracking-tighter text-white">$ {total.toLocaleString()}</span>
+                <span className="text-5xl font-black tracking-tighter text-zinc-900">$ {total.toLocaleString()}</span>
               </div>
            </div>
         </div>
@@ -273,14 +273,14 @@ const PublicQuotation = () => {
         <div className="p-16 flex flex-col md:flex-row justify-center items-center gap-10 bg-white border-t border-zinc-100">
            <button
             onClick={() => setShowApproveModal(true)}
-            className="w-full md:w-auto bg-[#fbae17] text-zinc-900 px-20 py-5 rounded-sm text-[11px] font-black uppercase tracking-[0.4em] hover:bg-[#e5a015] transition-all shadow-[0_20px_50px_rgba(251,174,23,0.3)] flex items-center justify-center gap-4 border-b-4 border-black/10"
+            className="w-full md:w-auto bg-[#fbae17] text-white px-20 py-5 rounded-lg text-[11px] font-black uppercase tracking-[0.4em] hover:bg-[#e5a015] transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-4 border-b-4 border-black/5"
            >
              <span className="material-symbols-outlined text-[20px] fill">verified</span>
              Confirmar Propuesta
            </button>
            <button
             onClick={() => setShowRejectModal(true)}
-            className="w-full md:w-auto bg-white border-2 border-zinc-200 text-zinc-400 px-16 py-5 rounded-sm text-[11px] font-black uppercase tracking-[0.4em] hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center gap-4 group"
+            className="w-full md:w-auto bg-white border border-zinc-200 text-zinc-400 px-16 py-5 rounded-lg text-[11px] font-black uppercase tracking-[0.4em] hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center gap-4 group"
            >
              <span className="material-symbols-outlined text-[20px] group-hover:animate-pulse">rate_review</span>
              Solicitar Ajustes
@@ -299,22 +299,22 @@ const PublicQuotation = () => {
 
       {/* Approve Modal - Premium Style */}
       {showApproveModal && (
-        <div className="fixed inset-0 bg-zinc-900/90 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
-          <div className="bg-white border-4 border-zinc-900 w-full max-w-lg p-12 rounded-sm shadow-[0_40px_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 bg-primary/20 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
+          <div className="bg-white border border-zinc-100 w-full max-w-lg p-12 rounded-lg shadow-2xl animate-in zoom-in-95 duration-300">
             <h3 className="text-3xl font-black uppercase tracking-tighter mb-6">Aceptación de Términos</h3>
             <p className="text-xs text-zinc-500 font-bold mb-10 uppercase tracking-widest leading-relaxed">¿Desea proceder con la formalización de este proyecto? Al confirmar, acepta los términos y condiciones legales y el proceso de reserva de inventario se activará de forma inmediata.</p>
             <div className="flex flex-col gap-4">
               <button
                 disabled={processing}
                 onClick={handleApprove}
-                className="bg-[#fbae17] text-zinc-900 py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-50 shadow-xl border-b-4 border-black/10"
+                className="bg-[#fbae17] text-white py-4 rounded-lg text-xs font-black uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-50 shadow-lg border-b-4 border-black/5"
               >
                 {processing ? 'Formalizando...' : 'Aceptar y Formalizar'}
               </button>
               <button
                 disabled={processing}
                 onClick={() => setShowApproveModal(false)}
-                className="bg-zinc-100 text-zinc-400 py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:bg-zinc-200 transition-all"
+                className="bg-zinc-50 text-zinc-400 py-4 rounded-lg text-xs font-black uppercase tracking-[0.3em] hover:bg-zinc-100 transition-all border border-zinc-100"
               >
                 Volver a la Propuesta
               </button>
@@ -325,16 +325,16 @@ const PublicQuotation = () => {
 
       {/* Reject Modal - Premium Style */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-zinc-900/90 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
-          <div className="bg-white border-4 border-zinc-900 w-full max-w-2xl p-12 rounded-sm shadow-[0_40px_100px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
-            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 text-red-600">Solicitud de Ajustes</h3>
+        <div className="fixed inset-0 bg-primary/20 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
+          <div className="bg-white border border-zinc-100 w-full max-w-2xl p-12 rounded-lg shadow-2xl animate-in zoom-in-95 duration-300">
+            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 text-red-500">Solicitud de Ajustes</h3>
             <div className="space-y-8">
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-4">Motivo de la Revisión</label>
                 <select
                   value={rejection.type}
                   onChange={e => setRejection({...rejection, type: e.target.value})}
-                  className="w-full border-2 border-zinc-100 bg-zinc-50 rounded-sm px-6 py-4 text-xs font-black uppercase tracking-widest outline-none focus:border-zinc-900 transition-all"
+                  className="w-full border border-zinc-200 bg-zinc-50 rounded-lg px-6 py-4 text-xs font-black uppercase tracking-widest outline-none focus:border-primary transition-all"
                 >
                   <option value="PRECIO">Optimización de Presupuesto</option>
                   <option value="FECHAS">Ajuste de Cronograma / Fechas</option>
@@ -348,7 +348,7 @@ const PublicQuotation = () => {
                   rows="5"
                   value={rejection.reason}
                   onChange={e => setRejection({...rejection, reason: e.target.value})}
-                  className="w-full border-2 border-zinc-100 rounded-sm p-6 text-sm font-medium outline-none focus:border-zinc-900 transition-all placeholder:text-zinc-300"
+                  className="w-full border border-zinc-200 rounded-lg p-6 text-sm font-medium outline-none focus:border-primary transition-all placeholder:text-zinc-300"
                   placeholder="Por favor, detalle los cambios requeridos para que nuestro equipo pueda actualizar su propuesta técnica..."
                 ></textarea>
               </div>
@@ -356,14 +356,14 @@ const PublicQuotation = () => {
                 <button
                   disabled={processing}
                   onClick={handleReject}
-                  className="flex-1 bg-zinc-900 text-white py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:bg-red-600 disabled:opacity-50 transition-all shadow-xl"
+                  className="flex-1 bg-zinc-900 text-white py-4 rounded-lg text-xs font-black uppercase tracking-[0.3em] hover:bg-red-500 disabled:opacity-50 transition-all shadow-lg"
                 >
                   {processing ? 'Enviando...' : 'Enviar Solicitud'}
                 </button>
                 <button
                   disabled={processing}
                   onClick={() => setShowRejectModal(false)}
-                  className="flex-1 bg-zinc-100 text-zinc-400 py-4 rounded-sm text-xs font-black uppercase tracking-[0.3em] hover:bg-zinc-200 transition-all"
+                  className="flex-1 bg-zinc-50 text-zinc-400 py-4 rounded-lg text-xs font-black uppercase tracking-[0.3em] hover:bg-zinc-100 transition-all border border-zinc-100"
                 >
                   Cancelar
                 </button>
