@@ -163,19 +163,19 @@ const NewQuotation = () => {
   if (loading) return <div className="p-20 text-center font-display text-zinc-400">CARGANDO...</div>;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-body bg-[#FAFAFA] min-h-screen">
+    <div className="p-8 max-w-7xl mx-auto font-body bg-[#F8FAFC] min-h-screen">
       <Modal isOpen={modal.isOpen} onClose={() => setModal({ ...modal, isOpen: false })} title={modal.title} type={modal.type}>{modal.content}</Modal>
 
-      <div className="flex justify-between items-center mb-12">
-        <h2 className="text-3xl font-black uppercase tracking-tight text-zinc-900 underline decoration-primary decoration-4 underline-offset-8">CONSTRUCTOR DE COTIZACIONES</h2>
-        <div className="bg-zinc-900 text-white px-8 py-3 rounded-sm text-right shadow-2xl">
-           <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Inversión Total Estimada</p>
-           <p className="text-2xl font-black tracking-tighter text-primary">$ {financials.total.toLocaleString()}</p>
+      <div className="flex justify-between items-center mb-12 bg-white p-10 rounded-lg shadow-sm border border-zinc-100">
+        <h2 className="text-3xl font-black uppercase tracking-tight text-zinc-900">CONSTRUCTOR DE COTIZACIONES</h2>
+        <div className="bg-primary/5 border border-primary/20 text-primary px-10 py-4 rounded-lg text-right">
+           <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Inversión Total Estimada</p>
+           <p className="text-3xl font-black tracking-tighter">$ {financials.total.toLocaleString()}</p>
         </div>
       </div>
 
-      <div className="bg-white border border-zinc-200 rounded shadow-sm overflow-hidden">
-        <div className="flex border-b border-zinc-100 bg-zinc-50/50">
+      <div className="bg-white border border-zinc-200 rounded-lg shadow-xl overflow-hidden">
+        <div className="flex border-b border-zinc-100 bg-zinc-50/30">
           {[
             { n: 1, l: '01. CLIENTE', i: 'apartment' },
             { n: 2, l: '02. LOGÍSTICA', i: 'styler' },
@@ -186,9 +186,9 @@ const NewQuotation = () => {
               key={tab.n}
               type="button"
               onClick={() => setActiveTab(tab.n)}
-              className={`flex-1 py-6 flex flex-col items-center gap-2 transition-all relative ${activeTab === tab.n ? 'text-primary' : 'text-zinc-400'}`}
+              className={`flex-1 py-8 flex flex-col items-center gap-2 transition-all relative ${activeTab === tab.n ? 'text-primary bg-primary/5' : 'text-zinc-400 hover:bg-zinc-50'}`}
             >
-              <span className="material-symbols-outlined">{tab.i}</span>
+              <span className="material-symbols-outlined text-[24px]">{tab.i}</span>
               <span className="text-[10px] font-black uppercase tracking-widest">{tab.l}</span>
               {activeTab === tab.n && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>}
             </button>
@@ -256,21 +256,21 @@ const NewQuotation = () => {
                <div className="flex justify-between items-center mb-4">
                   <h3 className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Resumen de Equipamiento y Servicios</h3>
                   <div className="flex gap-2">
-                     <button type="button" onClick={() => setFormData(p => ({...p, items: [...p.items, {inventoryId: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-zinc-900 text-white px-4 py-2 rounded-sm text-[10px] font-black uppercase">+ Equipo</button>
-                     <button type="button" onClick={() => setFormData(p => ({...p, services: [...p.services, {tipo: 'Personal', descripcion: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-zinc-800 text-white px-4 py-2 rounded-sm text-[10px] font-black uppercase">+ Personal</button>
+                     <button type="button" onClick={() => setFormData(p => ({...p, items: [...p.items, {inventoryId: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-primary text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase hover:opacity-90 transition-all shadow-md">+ Equipo</button>
+                     <button type="button" onClick={() => setFormData(p => ({...p, services: [...p.services, {tipo: 'Personal', descripcion: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-white border border-zinc-200 text-zinc-900 px-6 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-zinc-50 transition-all shadow-sm">+ Personal</button>
                   </div>
                </div>
-               <div className="border-2 border-zinc-100 rounded overflow-hidden">
+               <div className="border border-zinc-200 rounded-lg overflow-hidden shadow-sm">
                   <table className="w-full text-left text-xs">
-                     <thead className="bg-zinc-900 text-zinc-500 uppercase font-black">
+                     <thead className="bg-zinc-50 text-zinc-900 uppercase font-black tracking-widest border-b border-zinc-200">
                         <tr>
-                           <th className="p-4">Ítem / Descripción</th>
-                           <th className="p-4 text-center">Cant</th>
-                           <th className="p-4 text-center">Días</th>
-                           <th className="p-4 text-right">Vr. 1er Día</th>
-                           <th className="p-4 text-right">Vr. Adic</th>
-                           <th className="p-4 text-right">Subtotal</th>
-                           <th className="p-4"></th>
+                           <th className="p-6">Ítem / Descripción Técnica</th>
+                           <th className="p-6 text-center">Cant</th>
+                           <th className="p-6 text-center">Días</th>
+                           <th className="p-6 text-right">Vr. 1er Día</th>
+                           <th className="p-6 text-right">Vr. Adic</th>
+                           <th className="p-6 text-right">Subtotal</th>
+                           <th className="p-6 w-10"></th>
                         </tr>
                      </thead>
                      <tbody className="font-bold">
@@ -302,8 +302,8 @@ const NewQuotation = () => {
                                  <td className="p-4"><input type="number" value={it.dias} onChange={e => update('dias', e.target.value)} className="w-16 text-center" /></td>
                                  <td className="p-4 text-right">$ <input type="number" value={it.precio_pactado} onChange={e => update('precio_pactado', e.target.value)} className="w-24 text-right" /></td>
                                  <td className="p-4 text-right">$ <input type="number" value={it.precio_dia_adicional} onChange={e => update('precio_dia_adicional', e.target.value)} className="w-24 text-right" /></td>
-                                 <td className="p-4 text-right text-zinc-900 font-black">$ {calculateLineTotal(it).toLocaleString()}</td>
-                                 <td className="p-4"><button type="button" onClick={() => setFormData(p => ({...p, items: p.items.filter((_, i) => i !== idx)}))}>×</button></td>
+                                 <td className="p-6 text-right text-zinc-900 font-black text-sm">$ {calculateLineTotal(it).toLocaleString()}</td>
+                                 <td className="p-6"><button type="button" onClick={() => setFormData(p => ({...p, items: p.items.filter((_, i) => i !== idx)}))} className="text-zinc-300 hover:text-red-500 transition-colors">×</button></td>
                               </tr>
                            );
                         })}
@@ -325,12 +325,12 @@ const NewQuotation = () => {
              </div>
           )}
 
-          <div className="mt-16 flex justify-between items-center border-t-2 border-zinc-50 pt-10">
-             <button type="button" onClick={() => setActiveTab(p => Math.max(1, p - 1))} className="px-10 py-3 rounded border-2 border-zinc-200 text-[11px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all">Anterior</button>
+          <div className="mt-16 flex justify-between items-center border-t border-zinc-100 pt-12">
+             <button type="button" onClick={() => setActiveTab(p => Math.max(1, p - 1))} className="px-12 py-4 rounded-lg border border-zinc-200 text-[11px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all shadow-sm">Regresar</button>
              {activeTab < 4 ? (
-                <button type="button" onClick={() => setActiveTab(p => Math.min(4, p + 1))} className="bg-zinc-900 text-white px-12 py-3 rounded text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl">Continuar</button>
+                <button type="button" onClick={() => setActiveTab(p => Math.min(4, p + 1))} className="bg-primary text-white px-14 py-4 rounded-lg text-[11px] font-black uppercase tracking-widest hover:opacity-90 shadow-lg shadow-primary/20 transition-all">Siguiente Estación</button>
              ) : (
-                <button type="submit" disabled={saving} className="bg-primary text-white px-16 py-3 rounded text-[11px] font-black uppercase tracking-widest shadow-2xl hover:opacity-90 transition-all">
+                <button type="submit" disabled={saving} className="bg-primary text-white px-20 py-4 rounded-lg text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:opacity-90 transition-all">
                    {saving ? 'Procesando...' : 'Finalizar Propuesta Maestro'}
                 </button>
              )}
