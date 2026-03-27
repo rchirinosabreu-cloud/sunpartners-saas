@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,154 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String      @id @default(uuid())
+  email                String      @unique
+  password             String
+  nombre               String
+  role                 Role        @default(EDITOR)
+  department           Department?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  logs                 EventLog[]
+}
+
+model Client {
+  id                   String      @id @default(uuid())
+  empresa              String      @default("Sin Empresa")
+  nit                  String?     @unique
+  contactoPrincipal    String?
+  cargo                String?
+  direccion            String?
+  ciudad               String?
+  telefono             String?
+  email                String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  quotations           Quotation[]
+}
+
+model Inventory_Bodega {
+  id                   String                @id @default(uuid())
+  nombre               String
+  claseA               Int                   @default(0)
+  claseB               Int                   @default(0)
+  claseC               Int                   @default(0)
+  bodega               Bodega
+  seccion              Seccion
+  vlrUnitario          Float
+  estado               ItemStatus            @default(ACTIVO)
+  observaciones        String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  commercial           Inventory_Commercial?
+}
+
+model Inventory_Commercial {
+  id               String           @id @default(uuid())
+  nombre_comercial String
+  claseA           Int              @default(0)
+  claseB           Int              @default(0)
+  claseC           Int              @default(0)
+  valor_alquiler   Float            @default(0)
+  estado           ItemStatus       @default(ACTIVO)
+  bodegaId         String           @unique
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+  bodega           Inventory_Bodega @relation(fields: [bodegaId], references: [id], onDelete: Cascade)
+  quotationItems   QuotationItem[]
+}
+
+model Quotation {
+  id                   String             @id @default(uuid())
+  nombre_evento        String
+  tipo_evento          String?
+  montaje_inicio       DateTime
+  montaje_fin          DateTime
+  evento_inicio        DateTime
+  evento_fin           DateTime
+  desmontaje_inicio    DateTime
+  desmontaje_fin       DateTime
+  ubicacion            String
+  estado               QuotationStatus    @default(BORRADOR)
+  vlrTotal             Float              @default(0)
+  bitacora             String?
+  secureHash           String?            @unique
+  rejectionType        RejectionType?
+  rejectionReason      String?
+  clientId             String
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  logs                 EventLog[]
+  planning             PlanningStep?
+  client               Client             @relation(fields: [clientId], references: [id])
+  items                QuotationItem[]
+  services             QuotationService[]
+}
+
+model QuotationItem {
+  id                   String               @id @default(uuid())
+  quotationId          String
+  inventoryId          String
+  cantidad             Int
+  precio_pactado       Float
+  clase_asignada       String               @default("A")
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  dias                 Int                  @default(1)
+  precio_dia_adicional Float                @default(0)
+  inventory            Inventory_Commercial @relation(fields: [inventoryId], references: [id])
+  quotation            Quotation            @relation(fields: [quotationId], references: [id])
+}
+
+model QuotationService {
+  id                   String    @id @default(uuid())
+  quotationId          String
+  tipo                 String
+  descripcion          String
+  cantidad             Int       @default(1)
+  precio_pactado       Float
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  dias                 Int       @default(1)
+  precio_dia_adicional Float     @default(0)
+  quotation            Quotation @relation(fields: [quotationId], references: [id])
+}
+
+model PlanningStep {
+  id          String    @id @default(uuid())
+  quotationId String    @unique
+  cronograma  String?
+  personal    Json?
+  transporte  Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+}
+
+model EventLog {
+  id          String    @id @default(uuid())
+  quotationId String
+  userId      String?
+  message     String
+  createdAt   DateTime  @default(now())
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+  user        User?     @relation(fields: [userId], references: [id])
 }
 
 enum Role {
@@ -66,170 +211,4 @@ enum RejectionType {
   FECHAS
   CAMBIO_PLAN
   OTRO
-}
-
-model User {
-  id                   String      @id @default(uuid())
-  email                String      @unique
-  password             String
-  nombre               String
-  role                 Role        @default(EDITOR)
-  department           Department?
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-  deletedAt            DateTime?
-  deletedJustification String?
-  logs                 EventLog[]
-}
-
-model Client {
-  id                   String      @id @default(uuid())
-  empresa              String      @default("Sin Empresa")
-  nit                  String?     @unique
-  contactoPrincipal    String?
-  cargo                String?
-  direccion            String?
-  ciudad               String?
-  telefono             String?
-  email                String?
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-  deletedAt            DateTime?
-  deletedJustification String?
-  quotations           Quotation[]
-}
-
-model Inventory_Bodega {
-  id                   String       @id @default(uuid())
-  nombre               String
-  claseA               Int          @default(0)
-  claseB               Int          @default(0)
-  claseC               Int          @default(0)
-  bodega               Bodega
-  seccion              Seccion
-  vlrUnitario          Float        // Valor del activo (Costo de compra)
-  estado               ItemStatus   @default(ACTIVO)
-  observaciones        String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  deletedAt            DateTime?
-  deletedJustification String?
-
-  commercial           Inventory_Commercial?
-}
-
-model Inventory_Commercial {
-  id                   String       @id @default(uuid())
-  nombre_comercial     String       // Nombre "embellecido" para el cliente
-  claseA               Int          @default(0) // Sincronizado
-  claseB               Int          @default(0) // Sincronizado
-  claseC               Int          @default(0) // Sincronizado
-  valor_alquiler       Float        @default(0) // Precio sugerido de renta
-  estado               ItemStatus   @default(ACTIVO) // Sincronizado
-
-  bodegaId             String       @unique
-  bodega               Inventory_Bodega @relation(fields: [bodegaId], references: [id], onDelete: Cascade)
-
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  deletedAt            DateTime?    // Sincronizado
-
-  quotationItems       QuotationItem[]
-}
-
-model Quotation {
-  id                   String          @id @default(uuid())
-  nombre_evento        String
-  tipo_evento          String?
-
-  montaje_inicio       DateTime
-  montaje_fin          DateTime
-  evento_inicio        DateTime
-  evento_fin           DateTime
-  desmontaje_inicio    DateTime
-  desmontaje_fin       DateTime
-
-  ubicacion            String
-  estado               QuotationStatus @default(BORRADOR)
-  vlrTotal             Float           @default(0)
-
-  bitacora             String?         @db.Text
-  secureHash           String?         @unique
-
-  rejectionType        RejectionType?
-  rejectionReason      String?
-
-  clientId             String
-  client               Client          @relation(fields: [clientId], references: [id])
-
-  items                QuotationItem[]
-  services             QuotationService[]
-  planning             PlanningStep?
-  logs                 EventLog[]
-
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  deletedAt            DateTime?
-  deletedJustification String?
-}
-
-model QuotationItem {
-  id               String               @id @default(uuid())
-  quotationId      String
-  quotation        Quotation            @relation(fields: [quotationId], references: [id])
-  inventoryId      String
-  inventory        Inventory_Commercial @relation(fields: [inventoryId], references: [id])
-
-  cantidad              Int
-  dias                  Int   @default(1)
-  precio_pactado        Float // Vr. Primer Día
-  precio_dia_adicional  Float @default(0)
-  clase_asignada        String @default("A") // "A" or "B"
-
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  deletedAt        DateTime?
-  deletedJustification String?
-}
-
-model QuotationService {
-  id               String        @id @default(uuid())
-  quotationId      String
-  quotation        Quotation     @relation(fields: [quotationId], references: [id])
-
-  tipo                  String        // "Personal" or "Transporte"
-  descripcion           String
-  cantidad              Int           @default(1)
-  dias                  Int           @default(1)
-  precio_pactado        Float         // Vr. Primer Día
-  precio_dia_adicional  Float         @default(0)
-
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  deletedAt        DateTime?
-  deletedJustification String?
-}
-
-model PlanningStep {
-  id           String    @id @default(uuid())
-  quotationId  String    @unique
-  quotation    Quotation @relation(fields: [quotationId], references: [id])
-
-  cronograma   String?   @db.Text // Texto libre
-  personal     Json?     // Structured table: [{nombre: string, rol: string, contacto: string}]
-  transporte   Json?     // Structured table: [{vehiculo: string, placa: string, responsable: string}]
-
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-}
-
-model EventLog {
-  id           String    @id @default(uuid())
-  quotationId  String
-  quotation    Quotation @relation(fields: [quotationId], references: [id])
-  userId       String?
-  user         User?      @relation(fields: [userId], references: [id])
-
-  message      String
-  createdAt    DateTime  @default(now())
 }
