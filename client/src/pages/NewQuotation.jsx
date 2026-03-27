@@ -6,17 +6,61 @@ import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import 'flatpickr/dist/themes/light.css';
 
+const ComboBox = ({ label, value, options, onChange }) => {
+  const [isManual, setIsManual] = useState(!options.includes(value) && value !== '' && value !== null);
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">{label}</label>
+      <div className="flex gap-2">
+        {!isManual ? (
+          <select
+            value={value}
+            onChange={e => {
+              if (e.target.value === 'CUSTOM') {
+                setIsManual(true);
+                onChange('');
+              } else {
+                onChange(e.target.value);
+              }
+            }}
+            className="flex-1 border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+          >
+            {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            <option value="CUSTOM">[ Personalizado... ]</option>
+          </select>
+        ) : (
+          <div className="flex-1 flex gap-2">
+            <input
+              type="text"
+              autoFocus
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              className="flex-1 border-2 border-primary/30 rounded-lg p-3 font-bold bg-white outline-none focus:border-primary transition-all text-xs"
+              placeholder="Especificar..."
+            />
+            <button
+              type="button"
+              onClick={() => { setIsManual(false); onChange(options[0]); }}
+              className="bg-zinc-100 text-zinc-400 p-3 rounded-lg hover:bg-zinc-200 transition-all"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Isolated Component to prevent any React state sharing
 const BlindajeDatePicker = ({ id, label, value, onChange }) => {
-  // Use a unique config for each instance
   const config = {
     enableTime: true,
     dateFormat: "d/m/Y h:i K",
     time_24hr: false,
     allowInput: true,
     locale: { firstDayOfWeek: 1 },
-    // Ensure the calendar is appended to the body to avoid layout issues,
-    // but we'll use a unique ID to help Playwright
     static: false
   };
 
@@ -55,9 +99,21 @@ const NewQuotation = () => {
   // 1. Core Metadata State
   const [formData, setFormData] = useState({
     clientId: '',
-    nombre_evento: '',
-    tipo_evento: 'Corporativo',
-    ubicacion: '',
+    // Technical Sheet - Client
+    cliente_empresa: '',
+    cliente_responsable: '',
+    cliente_direccion: '',
+    cliente_email: '',
+    cliente_telefono: '',
+    cliente_ciudad: '',
+    // Technical Sheet - Event
+    evento_nombre: '',
+    evento_venue: '',
+    evento_tipo: 'Privado',
+    evento_servicio: 'Directo',
+    evento_duracion: '',
+    pago_metodo: 'Contado',
+    // Internal refs
     bitacora: '',
     items: [],
     services: []
@@ -86,9 +142,18 @@ const NewQuotation = () => {
           const q = qRes.data;
           setFormData({
             clientId: q.clientId,
-            nombre_evento: q.nombre_evento,
-            tipo_evento: q.tipo_evento,
-            ubicacion: q.ubicacion,
+            cliente_empresa: q.cliente_empresa || '',
+            cliente_responsable: q.cliente_responsable || '',
+            cliente_direccion: q.cliente_direccion || '',
+            cliente_email: q.cliente_email || '',
+            cliente_telefono: q.cliente_telefono || '',
+            cliente_ciudad: q.cliente_ciudad || '',
+            evento_nombre: q.evento_nombre || '',
+            evento_venue: q.evento_venue || '',
+            evento_tipo: q.evento_tipo || 'Privado',
+            evento_servicio: q.evento_servicio || 'Directo',
+            evento_duracion: q.evento_duracion || '',
+            pago_metodo: q.pago_metodo || 'Contado',
             bitacora: q.bitacora || '',
             items: (q.items || []).map(it => ({
               inventoryId: it.inventoryId,
@@ -141,6 +206,9 @@ const NewQuotation = () => {
     setSaving(true);
     const payload = {
         ...formData,
+        nombre_evento: formData.evento_nombre || 'Evento sin nombre',
+        ubicacion: formData.evento_venue || 'Por definir',
+        tipo_evento: formData.evento_tipo || 'Privado',
         montaje_inicio: m_i, montaje_fin: m_f,
         evento_inicio: e_i, evento_fin: e_f,
         desmontaje_inicio: d_i, desmontaje_fin: d_f
@@ -197,28 +265,118 @@ const NewQuotation = () => {
 
         <form onSubmit={handleSubmit} className="p-10">
           {activeTab === 1 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-               <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Empresa Cliente</label>
-                  <select value={formData.clientId} onChange={e => setFormData({...formData, clientId: e.target.value})} className="w-full border-2 border-zinc-100 rounded p-3 font-bold bg-zinc-50">
-                     <option value="">Seleccionar...</option>
-                     {clients.map(c => <option key={c.id} value={c.id}>{c.empresa}</option>)}
-                  </select>
+            <div className="space-y-12">
+               {/* Card A: Cliente */}
+               <div className="bg-white border border-zinc-100 rounded-[12px] p-8 shadow-sm">
+                  <div className="flex items-center gap-3 mb-8 border-b border-zinc-50 pb-4">
+                     <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <span className="material-symbols-outlined text-primary text-[20px] fill">apartment</span>
+                     </div>
+                     <h3 className="font-black uppercase tracking-widest text-sm text-zinc-900">Tarjeta A: Datos del Cliente</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                     <div className="md:col-span-2 lg:col-span-1">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Selector de Cliente Maestro</label>
+                        <select
+                          value={formData.clientId}
+                          onChange={e => {
+                            const c = clients.find(cl => cl.id === e.target.value);
+                            setFormData({
+                              ...formData,
+                              clientId: e.target.value,
+                              cliente_empresa: c?.empresa || '',
+                              cliente_responsable: c?.contactoPrincipal || '',
+                              cliente_direccion: c?.direccion || '',
+                              cliente_email: c?.email || '',
+                              cliente_telefono: c?.telefono || '',
+                              cliente_ciudad: c?.ciudad || ''
+                            });
+                          }}
+                          className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                        >
+                           <option value="">Seleccionar Cliente Guardado...</option>
+                           {clients.map(c => <option key={c.id} value={c.id}>{c.empresa}</option>)}
+                        </select>
+                     </div>
+                     <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Empresa / Razón Social</label>
+                        <input type="text" value={formData.cliente_empresa} onChange={e => setFormData({...formData, cliente_empresa: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                     </div>
+                     <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Responsable de Cuenta</label>
+                        <input type="text" value={formData.cliente_responsable} onChange={e => setFormData({...formData, cliente_responsable: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                     </div>
+                     <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Dirección Fiscal/Evento</label>
+                        <input type="text" value={formData.cliente_direccion} onChange={e => setFormData({...formData, cliente_direccion: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                     </div>
+                     <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Email Corporativo</label>
+                        <input type="email" value={formData.cliente_email} onChange={e => setFormData({...formData, cliente_email: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Teléfono</label>
+                           <input type="text" value={formData.cliente_telefono} onChange={e => setFormData({...formData, cliente_telefono: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                        </div>
+                        <div>
+                           <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Ciudad</label>
+                           <input type="text" value={formData.cliente_ciudad} onChange={e => setFormData({...formData, cliente_ciudad: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                        </div>
+                     </div>
+                  </div>
                </div>
-               <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Nombre del Evento</label>
-                  <input type="text" value={formData.nombre_evento} onChange={e => setFormData({...formData, nombre_evento: e.target.value})} className="w-full border-2 border-zinc-100 rounded p-3 font-bold bg-zinc-50" />
-               </div>
-               <div className="md:col-span-2">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Ubicación / Venue</label>
-                  <input type="text" value={formData.ubicacion} onChange={e => setFormData({...formData, ubicacion: e.target.value})} className="w-full border-2 border-zinc-100 rounded p-3 font-bold bg-zinc-50" />
+
+               {/* Card B: Evento */}
+               <div className="bg-white border border-zinc-100 rounded-[12px] p-8 shadow-sm">
+                  <div className="flex items-center gap-3 mb-8 border-b border-zinc-50 pb-4">
+                     <div className="size-8 bg-brand-alert/10 rounded-lg flex items-center justify-center">
+                        <span className="material-symbols-outlined text-brand-alert text-[20px] fill">celebration</span>
+                     </div>
+                     <h3 className="font-black uppercase tracking-widest text-sm text-zinc-900">Tarjeta B: Datos del Evento</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                     <div className="lg:col-span-2">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Nombre Oficial del Proyecto</label>
+                        <input type="text" value={formData.evento_nombre} onChange={e => setFormData({...formData, evento_nombre: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-4 font-black text-lg bg-zinc-50 outline-none focus:border-primary transition-all" placeholder="Ej: LANZAMIENTO SUNBTL 2026" />
+                     </div>
+                     <div className="lg:col-span-2">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Ubicación Exacta (Venue)</label>
+                        <input type="text" value={formData.evento_venue} onChange={e => setFormData({...formData, evento_venue: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-4 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-sm" placeholder="Ej: Corferias - Pabellón 4" />
+                     </div>
+
+                     <ComboBox
+                        label="Tipo de Evento"
+                        value={formData.evento_tipo}
+                        options={['Privado', 'Público', 'Corporativo', 'Ferial']}
+                        onChange={val => setFormData({...formData, evento_tipo: val})}
+                     />
+
+                     <ComboBox
+                        label="Tipo de Servicio"
+                        value={formData.evento_servicio}
+                        options={['Directo', 'Producción', 'Subcontrato', 'Alquiler Seco']}
+                        onChange={val => setFormData({...formData, evento_servicio: val})}
+                     />
+
+                     <ComboBox
+                        label="Forma de Pago"
+                        value={formData.pago_metodo}
+                        options={['Contado', '30 Días', '60 Días', 'Anticipo 70%']}
+                        onChange={val => setFormData({...formData, pago_metodo: val})}
+                     />
+
+                     <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Operación (Días/Horas)</label>
+                        <input type="text" value={formData.evento_duracion} onChange={e => setFormData({...formData, evento_duracion: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" placeholder="Ej: 3 días / 12h diarias" />
+                     </div>
+                  </div>
                </div>
             </div>
           )}
 
           {activeTab === 2 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-               {/* MONTAJE */}
                <div className="p-8 border-2 border-zinc-100 rounded bg-white shadow-sm">
                   <h4 className="text-[11px] font-black uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                     <span className="material-symbols-outlined text-zinc-400">build</span> FASE MONTAJE
@@ -228,7 +386,6 @@ const NewQuotation = () => {
                      <BlindajeDatePicker id="m-f" label="Fin Montaje" value={m_f} onChange={setMF} />
                   </div>
                </div>
-               {/* EVENTO */}
                <div className="p-8 border-2 border-zinc-100 rounded bg-white shadow-sm">
                   <h4 className="text-[11px] font-black uppercase tracking-[0.2em] mb-8 flex items-center gap-2 text-primary">
                     <span className="material-symbols-outlined">celebration</span> FASE EVENTO
@@ -238,7 +395,6 @@ const NewQuotation = () => {
                      <BlindajeDatePicker id="e-f" label="Fin Evento" value={e_f} onChange={setEF} />
                   </div>
                </div>
-               {/* DESMONTAJE */}
                <div className="p-8 border-2 border-zinc-100 rounded bg-white shadow-sm">
                   <h4 className="text-[11px] font-black uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                     <span className="material-symbols-outlined text-zinc-400">restart_alt</span> FASE DESMONTAJE
@@ -257,7 +413,7 @@ const NewQuotation = () => {
                   <h3 className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Resumen de Equipamiento y Servicios</h3>
                   <div className="flex gap-2">
                      <button type="button" onClick={() => setFormData(p => ({...p, items: [...p.items, {inventoryId: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-primary text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase hover:opacity-90 transition-all shadow-md">+ Equipo</button>
-                     <button type="button" onClick={() => setFormData(p => ({...p, services: [...p.services, {tipo: 'Personal', descripcion: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-white border border-zinc-200 text-zinc-900 px-6 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-zinc-50 transition-all shadow-sm">+ Personal</button>
+                     <button type="button" onClick={() => setFormData(p => ({...p, services: [...p.services, {tipo: 'Transporte', descripcion: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-white border border-zinc-200 text-zinc-900 px-6 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-zinc-50 transition-all shadow-sm">+ Personal</button>
                   </div>
                </div>
                <div className="border border-zinc-200 rounded-lg overflow-hidden shadow-sm">
@@ -273,8 +429,58 @@ const NewQuotation = () => {
                            <th className="p-6 w-10"></th>
                         </tr>
                      </thead>
-                     <tbody className="font-bold">
+                     <tbody className="font-bold border-t-4 border-zinc-50">
+                        {/* SERVICES SECTION */}
+                        {formData.services.map((sv, idx) => {
+                           const updateSv = (f, v) => {
+                              const n = [...formData.services]; n[idx][f] = v;
+                              setFormData({...formData, services: n});
+                           };
+                           const calculateSvTotal = (item) => {
+                             const cant = parseInt(item.cantidad || 0);
+                             const dias = parseInt(item.dias || 1);
+                             const v1 = parseFloat(item.precio_pactado || 0);
+                             const vExtra = parseFloat(item.precio_dia_adicional || 0);
+                             return (cant * v1) + (cant * (Math.max(0, dias - 1)) * vExtra);
+                           };
+                           return (
+                              <tr key={`sv-${idx}`} className="border-b border-zinc-50 bg-primary/[0.02]">
+                                 <td className="p-4">
+                                    <div className="flex gap-2">
+                                       <select
+                                          value={sv.tipo}
+                                          onChange={e => updateSv('tipo', e.target.value)}
+                                          className="w-40 p-2 bg-white border border-zinc-200 rounded text-[10px] font-black uppercase outline-none focus:border-primary"
+                                       >
+                                          <option value="Transporte">Transporte</option>
+                                          <option value="Cargue / Descargue">Cargue / Descargue</option>
+                                          <option value="Personal">Personal</option>
+                                       </select>
+                                       <input
+                                          type="text"
+                                          value={sv.descripcion}
+                                          onChange={e => updateSv('descripcion', e.target.value)}
+                                          placeholder="Descripción del servicio..."
+                                          className="flex-1 p-2 bg-white border border-zinc-200 rounded italic text-zinc-500 font-medium outline-none focus:border-primary text-xs"
+                                       />
+                                    </div>
+                                 </td>
+                                 <td className="p-4"><input type="number" value={sv.cantidad} onChange={e => updateSv('cantidad', e.target.value)} className="w-16 text-center bg-transparent outline-none" /></td>
+                                 <td className="p-4"><input type="number" value={sv.dias} onChange={e => updateSv('dias', e.target.value)} className="w-16 text-center bg-transparent outline-none" /></td>
+                                 <td className="p-4 text-right">$ <input type="number" value={sv.precio_pactado} onChange={e => updateSv('precio_pactado', e.target.value)} className="w-24 text-right bg-transparent outline-none" /></td>
+                                 <td className="p-4 text-right">$ <input type="number" value={sv.precio_dia_adicional} onChange={e => updateSv('precio_dia_adicional', e.target.value)} className="w-24 text-right bg-transparent outline-none" /></td>
+                                 <td className="p-6 text-right text-primary font-black text-sm">$ {calculateSvTotal(sv).toLocaleString()}</td>
+                                 <td className="p-6"><button type="button" onClick={() => setFormData(p => ({...p, services: p.services.filter((_, i) => i !== idx)}))} className="text-zinc-300 hover:text-red-500 transition-colors">×</button></td>
+                              </tr>
+                           );
+                        })}
+
+                        {/* ITEMS SECTION */}
                         {formData.items.map((it, idx) => {
+                           const invItem = inventory.find(i => i.id === it.inventoryId);
+                           const stockTotal = (invItem?.claseA || 0) + (invItem?.claseB || 0) + (invItem?.claseC || 0);
+                           const hasStockWarning = it.cantidad > stockTotal;
+
                            const update = (f, v) => {
                               const n = [...formData.items]; n[idx][f] = v;
                               if (f === 'inventoryId') {
@@ -293,15 +499,25 @@ const NewQuotation = () => {
                            return (
                               <tr key={idx} className="border-b border-zinc-50 hover:bg-zinc-50/50">
                                  <td className="p-4">
-                                    <select value={it.inventoryId} onChange={e => update('inventoryId', e.target.value)} className="w-full p-2 bg-zinc-50 border border-zinc-100 rounded">
-                                       <option value="">Seleccionar Equipo...</option>
-                                       {inventory.map(i => <option key={i.id} value={i.id}>{i.nombre_comercial}</option>)}
-                                    </select>
+                                    <div className="flex items-center gap-2">
+                                       <select value={it.inventoryId} onChange={e => update('inventoryId', e.target.value)} className="flex-1 p-2 bg-zinc-50 border border-zinc-100 rounded outline-none focus:border-primary text-xs">
+                                          <option value="">Seleccionar Equipo...</option>
+                                          {inventory.map(i => <option key={i.id} value={i.id}>{i.nombre_comercial}</option>)}
+                                       </select>
+                                       {hasStockWarning && (
+                                          <div className="group relative">
+                                             <span className="material-symbols-outlined text-[#FBAE17] font-black cursor-help">warning</span>
+                                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-zinc-900 text-white text-[10px] rounded shadow-xl z-50 text-center">
+                                                Atención: Cantidad superior al stock disponible ({stockTotal} und)
+                                             </div>
+                                          </div>
+                                       )}
+                                    </div>
                                  </td>
-                                 <td className="p-4"><input type="number" value={it.cantidad} onChange={e => update('cantidad', e.target.value)} className="w-16 text-center" /></td>
-                                 <td className="p-4"><input type="number" value={it.dias} onChange={e => update('dias', e.target.value)} className="w-16 text-center" /></td>
-                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_pactado} onChange={e => update('precio_pactado', e.target.value)} className="w-24 text-right" /></td>
-                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_dia_adicional} onChange={e => update('precio_dia_adicional', e.target.value)} className="w-24 text-right" /></td>
+                                 <td className="p-4"><input type="number" value={it.cantidad} onChange={e => update('cantidad', e.target.value)} className="w-16 text-center outline-none" /></td>
+                                 <td className="p-4"><input type="number" value={it.dias} onChange={e => update('dias', e.target.value)} className="w-16 text-center outline-none" /></td>
+                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_pactado} onChange={e => update('precio_pactado', e.target.value)} className="w-24 text-right outline-none" /></td>
+                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_dia_adicional} onChange={e => update('precio_dia_adicional', e.target.value)} className="w-24 text-right outline-none" /></td>
                                  <td className="p-6 text-right text-zinc-900 font-black text-sm">$ {calculateLineTotal(it).toLocaleString()}</td>
                                  <td className="p-6"><button type="button" onClick={() => setFormData(p => ({...p, items: p.items.filter((_, i) => i !== idx)}))} className="text-zinc-300 hover:text-red-500 transition-colors">×</button></td>
                               </tr>
