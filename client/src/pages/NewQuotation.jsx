@@ -53,7 +53,6 @@ const ComboBox = ({ label, value, options, onChange }) => {
   );
 };
 
-// Isolated Component to prevent any React state sharing
 const BlindajeDatePicker = ({ id, label, value, onChange }) => {
   const config = {
     enableTime: true,
@@ -84,6 +83,203 @@ const BlindajeDatePicker = ({ id, label, value, onChange }) => {
   );
 };
 
+const NewClientModal = ({ isOpen, onClose, onClientCreated }) => {
+  const [clientData, setClientData] = useState({
+    razon_social: '',
+    nit_id: '',
+    responsable: '',
+    direccion_fiscal: '',
+    email: '',
+    telefono: '',
+    ciudad: '',
+    observaciones: ''
+  });
+  const [isDuplicate, setIsDuplicate] = useState({ nit: false, email: false });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (clientData.nit_id || clientData.email) {
+        try {
+          const res = await axios.get('/api/clients/check-duplicates', {
+            params: { nit_id: clientData.nit_id, email: clientData.email },
+            withCredentials: true
+          });
+          setIsDuplicate({ nit: res.data.nitExists, email: res.data.emailExists });
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        setIsDuplicate({ nit: false, email: false });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [clientData.nit_id, clientData.email]);
+
+  const handleNitChange = (val) => {
+    const clean = val.replace(/\D/g, '').substring(0, 10);
+    let masked = clean;
+    if (clean.length > 9) masked = `${clean.substring(0, 3)}.${clean.substring(3, 6)}.${clean.substring(6, 9)}-${clean.substring(9, 10)}`;
+    else if (clean.length > 6) masked = `${clean.substring(0, 3)}.${clean.substring(3, 6)}.${clean.substring(6)}`;
+    else if (clean.length > 3) masked = `${clean.substring(0, 3)}.${clean.substring(3)}`;
+    setClientData({ ...clientData, nit_id: masked });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isDuplicate.nit || isDuplicate.email) return;
+    setSaving(true);
+    try {
+      const res = await axios.post('/api/clients', clientData, { withCredentials: true });
+      onClientCreated(res.data);
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-2xl rounded-[12px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border-2 border-primary">
+        <div className="p-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary text-3xl">person_add</span>
+              <h3 className="font-display text-xl font-black uppercase tracking-tight text-zinc-900">Registrar Nuevo Cliente</h3>
+            </div>
+            <button onClick={onClose} className="text-zinc-400 hover:text-zinc-900 transition-colors">
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Empresa / Razón Social</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="Ej: Sunpartners SAS"
+                  value={clientData.razon_social}
+                  onChange={e => setClientData({ ...clientData, razon_social: e.target.value })}
+                  className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">NIT / Identificación</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="Ej: 900.123.456-1"
+                  value={clientData.nit_id}
+                  onChange={e => handleNitChange(e.target.value)}
+                  className={`w-full border-2 ${isDuplicate.nit ? 'border-brand-alert' : 'border-zinc-100'} rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs`}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Responsable de Cuenta</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="Nombre del contacto principal"
+                  value={clientData.responsable}
+                  onChange={e => setClientData({ ...clientData, responsable: e.target.value })}
+                  className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Dirección Fiscal</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="Dirección para facturación"
+                  value={clientData.direccion_fiscal}
+                  onChange={e => setClientData({ ...clientData, direccion_fiscal: e.target.value })}
+                  className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Email Corporativo</label>
+                <input
+                  required
+                  type="email"
+                  placeholder="contacto@empresa.com"
+                  value={clientData.email}
+                  onChange={e => setClientData({ ...clientData, email: e.target.value })}
+                  className={`w-full border-2 ${isDuplicate.email ? 'border-brand-alert' : 'border-zinc-100'} rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs`}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Teléfono</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="+57 ..."
+                    value={clientData.telefono}
+                    onChange={e => setClientData({ ...clientData, telefono: e.target.value })}
+                    className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Ciudad</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="Ciudad de operación"
+                    value={clientData.ciudad}
+                    onChange={e => setClientData({ ...clientData, ciudad: e.target.value })}
+                    className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Observaciones</label>
+              <textarea
+                placeholder="Notas adicionales sobre el cliente..."
+                value={clientData.observaciones}
+                onChange={e => setClientData({ ...clientData, observaciones: e.target.value })}
+                className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs h-24 resize-none"
+              ></textarea>
+            </div>
+
+            {(isDuplicate.nit || isDuplicate.email) && (
+              <div className="bg-[#FBAE17]/10 border-2 border-brand-alert p-4 rounded-lg flex items-center gap-3">
+                <span className="material-symbols-outlined text-brand-alert">warning</span>
+                <p className="text-[11px] font-bold text-zinc-900">
+                  Este NIT o Email ya se encuentra registrado en el sistema. Por favor, verifícalo en el directorio.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-4 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-8 py-3 rounded-lg border-2 border-zinc-100 text-[11px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={saving || isDuplicate.nit || isDuplicate.email}
+                className="bg-primary text-white px-10 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+              >
+                {saving ? 'Guardando...' : 'Guardar Cliente'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const NewQuotation = () => {
   const { id } = useParams();
   const isEditing = !!id;
@@ -95,17 +291,17 @@ const NewQuotation = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [modal, setModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
 
   // 1. Core Metadata State
   const [formData, setFormData] = useState({
     clientId: '',
-    // Technical Sheet - Client
-    cliente_empresa: '',
-    cliente_responsable: '',
-    cliente_direccion: '',
-    cliente_email: '',
-    cliente_telefono: '',
-    cliente_ciudad: '',
+    razon_social: '',
+    responsable: '',
+    direccion_fiscal: '',
+    email: '',
+    telefono: '',
+    ciudad: '',
     // Technical Sheet - Event
     evento_nombre: '',
     evento_venue: '',
@@ -127,6 +323,13 @@ const NewQuotation = () => {
   const [d_i, setDI] = useState(null);
   const [d_f, setDF] = useState(null);
 
+  const fetchClients = async () => {
+    try {
+      const res = await axios.get('/api/clients', { withCredentials: true });
+      setClients(Array.isArray(res.data) ? res.data : []);
+    } catch (e) { console.error(e); }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -142,15 +345,15 @@ const NewQuotation = () => {
           const q = qRes.data;
           setFormData({
             clientId: q.clientId,
-            cliente_empresa: q.cliente_empresa || '',
-            cliente_responsable: q.cliente_responsable || '',
-            cliente_direccion: q.cliente_direccion || '',
-            cliente_email: q.cliente_email || '',
-            cliente_telefono: q.cliente_telefono || '',
-            cliente_ciudad: q.cliente_ciudad || '',
-            evento_nombre: q.evento_nombre || '',
-            evento_venue: q.evento_venue || '',
-            evento_tipo: q.evento_tipo || 'Privado',
+            razon_social: q.client.razon_social || '',
+            responsable: q.client.responsable || '',
+            direccion_fiscal: q.client.direccion_fiscal || '',
+            email: q.client.email || '',
+            telefono: q.client.telefono || '',
+            ciudad: q.client.ciudad || '',
+            evento_nombre: q.nombre_evento || '',
+            evento_venue: q.ubicacion || '',
+            evento_tipo: q.tipo_evento || 'Privado',
             evento_servicio: q.evento_servicio || 'Directo',
             evento_duracion: q.evento_duracion || '',
             pago_metodo: q.pago_metodo || 'Contado',
@@ -203,6 +406,10 @@ const NewQuotation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.clientId) {
+        setModal({ isOpen: true, title: 'Error', content: 'Debe seleccionar o crear un cliente.', type: 'error' });
+        return;
+    }
     setSaving(true);
     const payload = {
         ...formData,
@@ -228,11 +435,26 @@ const NewQuotation = () => {
     }
   };
 
+  const handleClientCreated = async (newClient) => {
+    await fetchClients();
+    setFormData({
+      ...formData,
+      clientId: newClient.id,
+      razon_social: newClient.razon_social,
+      responsable: newClient.responsable,
+      direccion_fiscal: newClient.direccion_fiscal,
+      email: newClient.email,
+      telefono: newClient.telefono,
+      ciudad: newClient.ciudad
+    });
+  };
+
   if (loading) return <div className="p-20 text-center font-display text-zinc-400">CARGANDO...</div>;
 
   return (
     <div className="p-8 max-w-7xl mx-auto font-body bg-[#F8FAFC] min-h-screen">
       <Modal isOpen={modal.isOpen} onClose={() => setModal({ ...modal, isOpen: false })} title={modal.title} type={modal.type}>{modal.content}</Modal>
+      <NewClientModal isOpen={isClientModalOpen} onClose={() => setIsClientModalOpen(false)} onClientCreated={handleClientCreated} />
 
       <div className="flex justify-between items-center mb-12 bg-white p-10 rounded-lg shadow-sm border border-zinc-100">
         <h2 className="text-3xl font-black uppercase tracking-tight text-zinc-900">CONSTRUCTOR DE COTIZACIONES</h2>
@@ -268,11 +490,21 @@ const NewQuotation = () => {
             <div className="space-y-12">
                {/* Card A: Cliente */}
                <div className="bg-white border border-zinc-100 rounded-[12px] p-8 shadow-sm">
-                  <div className="flex items-center gap-3 mb-8 border-b border-zinc-50 pb-4">
-                     <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <span className="material-symbols-outlined text-primary text-[20px] fill">apartment</span>
+                  <div className="flex items-center justify-between mb-8 border-b border-zinc-50 pb-4">
+                     <div className="flex items-center gap-3">
+                        <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                           <span className="material-symbols-outlined text-primary text-[20px] fill">apartment</span>
+                        </div>
+                        <h3 className="font-black uppercase tracking-widest text-sm text-zinc-900">Tarjeta A: Datos del Cliente</h3>
                      </div>
-                     <h3 className="font-black uppercase tracking-widest text-sm text-zinc-900">Tarjeta A: Datos del Cliente</h3>
+                     <button
+                        type="button"
+                        onClick={() => setIsClientModalOpen(true)}
+                        className="bg-primary text-white px-6 py-2 rounded-[12px] text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+                     >
+                        <span className="material-symbols-outlined text-[16px]">person_add</span>
+                        Nuevo Cliente
+                     </button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                      <div className="md:col-span-2 lg:col-span-1">
@@ -284,44 +516,74 @@ const NewQuotation = () => {
                             setFormData({
                               ...formData,
                               clientId: e.target.value,
-                              cliente_empresa: c?.empresa || '',
-                              cliente_responsable: c?.contactoPrincipal || '',
-                              cliente_direccion: c?.direccion || '',
-                              cliente_email: c?.email || '',
-                              cliente_telefono: c?.telefono || '',
-                              cliente_ciudad: c?.ciudad || ''
+                              razon_social: c?.razon_social || '',
+                              responsable: c?.responsable || '',
+                              direccion_fiscal: c?.direccion_fiscal || '',
+                              email: c?.email || '',
+                              telefono: c?.telefono || '',
+                              ciudad: c?.ciudad || ''
                             });
                           }}
                           className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
                         >
                            <option value="">Seleccionar Cliente Guardado...</option>
-                           {clients.map(c => <option key={c.id} value={c.id}>{c.empresa}</option>)}
+                           {clients.map(c => <option key={c.id} value={c.id}>{c.razon_social}</option>)}
                         </select>
                      </div>
                      <div>
                         <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Empresa / Razón Social</label>
-                        <input type="text" value={formData.cliente_empresa} onChange={e => setFormData({...formData, cliente_empresa: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                        <input
+                           type="text"
+                           value={formData.razon_social}
+                           onChange={e => setFormData({...formData, razon_social: e.target.value})}
+                           className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                        />
                      </div>
                      <div>
                         <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Responsable de Cuenta</label>
-                        <input type="text" value={formData.cliente_responsable} onChange={e => setFormData({...formData, cliente_responsable: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                        <input
+                           type="text"
+                           value={formData.responsable}
+                           onChange={e => setFormData({...formData, responsable: e.target.value})}
+                           className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                        />
                      </div>
                      <div>
                         <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Dirección Fiscal/Evento</label>
-                        <input type="text" value={formData.cliente_direccion} onChange={e => setFormData({...formData, cliente_direccion: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                        <input
+                           type="text"
+                           value={formData.direccion_fiscal}
+                           onChange={e => setFormData({...formData, direccion_fiscal: e.target.value})}
+                           className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                        />
                      </div>
                      <div>
                         <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Email Corporativo</label>
-                        <input type="email" value={formData.cliente_email} onChange={e => setFormData({...formData, cliente_email: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                        <input
+                           type="email"
+                           value={formData.email}
+                           onChange={e => setFormData({...formData, email: e.target.value})}
+                           className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                        />
                      </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div>
                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Teléfono</label>
-                           <input type="text" value={formData.cliente_telefono} onChange={e => setFormData({...formData, cliente_telefono: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                           <input
+                              type="text"
+                              value={formData.telefono}
+                              onChange={e => setFormData({...formData, telefono: e.target.value})}
+                              className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                           />
                         </div>
                         <div>
                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Ciudad</label>
-                           <input type="text" value={formData.cliente_ciudad} onChange={e => setFormData({...formData, cliente_ciudad: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                           <input
+                              type="text"
+                              value={formData.ciudad}
+                              onChange={e => setFormData({...formData, ciudad: e.target.value})}
+                              className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                           />
                         </div>
                      </div>
                   </div>

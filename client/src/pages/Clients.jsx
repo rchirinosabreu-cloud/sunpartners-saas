@@ -23,8 +23,8 @@ const Clients = () => {
   }, []);
 
   const filteredClients = clients.filter(c =>
-    (c.empresa || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.nit || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.razon_social || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.nit_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (c.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -55,7 +55,7 @@ const Clients = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="h-10 px-6 bg-zinc-900 text-white text-xs font-black uppercase tracking-widest rounded-sm hover:bg-zinc-800 transition-all flex items-center shadow-lg">
+          <button className="h-10 px-6 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm hover:opacity-90 transition-all flex items-center shadow-lg">
             <span className="material-symbols-outlined text-[18px] mr-2">person_add</span>
             Nuevo Cliente
           </button>
@@ -83,7 +83,7 @@ const Clients = () => {
               ) : filteredClients.map((client, idx) => (
                 <tr key={client.id} className="hover:bg-zinc-50/80 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-primary">
                   <td className="px-6 py-5">
-                    <div className="font-black text-zinc-900 uppercase tracking-tight text-[13px]">{client.empresa}</div>
+                    <div className="font-black text-zinc-900 uppercase tracking-tight text-[13px]">{client.razon_social}</div>
                     <div className="text-[10px] font-bold text-zinc-400 mt-1 flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">mail</span>
                       {client.email || 'SIN EMAIL'}
@@ -91,12 +91,12 @@ const Clients = () => {
                   </td>
                   <td className="px-6 py-5">
                     <span className="bg-zinc-100 px-2 py-1 rounded-sm text-[11px] font-black text-zinc-600 tracking-tighter">
-                      {client.nit || 'PENDIENTE'}
+                      {client.nit_id || 'PENDIENTE'}
                     </span>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="font-bold text-zinc-700 text-[12px] uppercase">{client.contactoPrincipal || 'No asignado'}</div>
-                    <div className="text-[10px] font-medium text-zinc-400 mt-0.5">{client.cargo || '-'}</div>
+                    <div className="font-bold text-zinc-700 text-[12px] uppercase">{client.responsable || 'No asignado'}</div>
+                    <div className="text-[10px] font-medium text-zinc-400 mt-0.5">{client.ciudad || '-'}</div>
                   </td>
                   <td className="px-6 py-5 text-center">
                     <span className="inline-flex items-center px-3 py-1 rounded-sm text-[9px] font-black uppercase tracking-widest bg-green-50 text-green-700 border border-green-100 shadow-sm">

@@ -91,7 +91,7 @@ const PublicQuotation = () => {
          </div>
          <h2 className="text-zinc-900 text-4xl font-black uppercase tracking-tighter mb-4">Gestión Finalizada</h2>
          <p className="text-zinc-400 max-w-md mx-auto font-bold uppercase text-[11px] tracking-widest leading-relaxed">Su respuesta ha sido procesada por nuestro motor de negocio. Un ejecutivo de Sunpartners se pondrá en contacto con usted en breve.</p>
-         <div className="mt-20 text-[9px] font-black text-zinc-200 uppercase tracking-[0.6em]">Luxury BTL System • Excellence as Standard</div>
+         <div className="mt-20 text-[9px] font-black text-zinc-200 uppercase tracking-[0.6em]">Sunpartners Premium System • Excellence as Standard</div>
       </div>
     );
   }
@@ -155,9 +155,9 @@ const PublicQuotation = () => {
            <div className="flex flex-col items-start md:items-end gap-10">
               <div className="text-left md:text-right space-y-4">
                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block border-b border-zinc-100 pb-2">Destinatario Corporativo</span>
-                 <p className="text-xl font-black text-zinc-900 uppercase tracking-tight">{quotation.client.empresa}</p>
+                 <p className="text-xl font-black text-zinc-900 uppercase tracking-tight">{quotation.client.razon_social}</p>
                  <div className="text-[11px] font-bold text-zinc-500 space-y-1">
-                    <p>NIT: {quotation.client.nit || 'PENDIENTE'}</p>
+                    <p>NIT: {quotation.client.nit_id || 'PENDIENTE'}</p>
                     <p>CIUDAD: {quotation.client.ciudad || 'BOGOTÁ, COL'}</p>
                  </div>
               </div>
@@ -229,7 +229,7 @@ const PublicQuotation = () => {
            </table>
         </div>
 
-        {/* Totals & Legal Block - Refined Finora Style */}
+        {/* Totals & Legal Block - Sunpartners Premium Style */}
         <div className="bg-zinc-50 p-12 md:p-20 flex flex-col lg:flex-row justify-between gap-16 border-t border-zinc-100">
            <div className="max-w-2xl">
               <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary mb-8 border-b border-zinc-200 pb-4">Términos y Condiciones Legales</h4>
@@ -269,7 +269,7 @@ const PublicQuotation = () => {
            </div>
         </div>
 
-        {/* Luxury Actions */}
+        {/* Actions */}
         <div className="p-16 flex flex-col md:flex-row justify-center items-center gap-10 bg-white border-t border-zinc-100">
            <button
             onClick={() => setShowApproveModal(true)}
@@ -289,7 +289,7 @@ const PublicQuotation = () => {
       </div>
 
       <div className="mt-16 text-center space-y-4">
-         <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.8em]">Sunpartners Luxury Logistics • BTL Excellence</p>
+         <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.8em]">Sunpartners Premium Logistics • BTL Excellence</p>
          <div className="flex justify-center gap-4 opacity-20 grayscale">
             <div className="size-2 rounded-full bg-zinc-900"></div>
             <div className="size-2 rounded-full bg-zinc-900"></div>

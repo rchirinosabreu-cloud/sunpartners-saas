@@ -83,24 +83,24 @@ const QuotationList = () => {
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className="font-semibold text-zinc-900">{q.nombre_evento}</span>
-                      <span className="text-xs text-zinc-500">{q.client.nombre}</span>
+                      <span className="text-xs text-zinc-500">{q.client.razon_social}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className="text-zinc-700">
-                        {new Date(q.fecha_inicio).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} - {new Date(q.fecha_fin).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                        {q.evento_inicio ? new Date(q.evento_inicio).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'PEND'} - {q.evento_fin ? new Date(q.evento_fin).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'PEND'}
                       </span>
-                      <span className="text-[10px] text-zinc-400 uppercase font-medium">{new Date(q.fecha_inicio).getFullYear()}</span>
+                      <span className="text-[10px] text-zinc-400 uppercase font-medium">{q.evento_inicio ? new Date(q.evento_inicio).getFullYear() : '-'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">{getStatusBadge(q.estado)}</td>
                   <td className="px-6 py-4">
-                    <span className="text-zinc-600 font-medium">{q.items.length} items</span>
+                    <span className="text-zinc-600 font-medium">{(q.items?.length || 0) + (q.services?.length || 0)} líneas</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span className="font-bold text-zinc-900">
-                      $ {(q.items.reduce((acc, item) => acc + (item.cantidad * item.precio_pactado), 0)).toLocaleString()}
+                      $ {((q.items?.reduce((acc, it) => acc + (it.cantidad * it.precio_pactado), 0) || 0) + (q.services?.reduce((acc, sv) => acc + (sv.cantidad * sv.precio_pactado), 0) || 0)).toLocaleString()}
                     </span>
                   </td>
                   <td className="px-6 py-4">

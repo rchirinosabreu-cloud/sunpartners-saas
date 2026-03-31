@@ -11,7 +11,7 @@ export const generateQuotationPDF = (quotation) => {
   const iva = subtotal * 0.19;
   const total = subtotal + iva;
 
-  // Header - Luxury Style
+  // Header - Premium Style
   doc.setFillColor(24, 24, 27); // Zinc-900
   doc.rect(0, 0, 210, 40, 'F');
 
@@ -38,9 +38,9 @@ export const generateQuotationPDF = (quotation) => {
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(`EMPRESA: ${quotation.client.empresa}`, 15, 62);
-  doc.text(`NIT: ${quotation.client.nit || 'PENDIENTE'}`, 15, 67);
-  doc.text(`CONTACTO: ${quotation.client.contactoPrincipal || 'N/A'}`, 15, 72);
+  doc.text(`EMPRESA: ${quotation.client.razon_social}`, 15, 62);
+  doc.text(`NIT: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, 67);
+  doc.text(`CONTACTO: ${quotation.client.responsable || 'N/A'}`, 15, 72);
   doc.text(`UBICACIÓN: ${quotation.ubicacion}`, 15, 77);
 
   doc.setFont('helvetica', 'bold');
@@ -131,5 +131,5 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(161, 161, 170);
   doc.text('Sunpartners S.A.S • Nit: 901.456.789-2 • Bogotá, Colombia', 105, 285, { align: 'center' });
 
-  doc.save(`Cotizacion_Sunpartners_${quotation.client.empresa.replace(/\s+/g, '_')}.pdf`);
+  doc.save(`Cotizacion_Sunpartners_${quotation.client.razon_social.replace(/\s+/g, '_')}.pdf`);
 };
