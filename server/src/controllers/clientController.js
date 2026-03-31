@@ -1,5 +1,16 @@
 const prisma = require('../db');
 
+const handlePrismaError = (error, res) => {
+  console.error('Prisma Error:', error);
+  if (error.code === 'P2002') {
+    return res.status(400).json({ error: 'Ya existe un registro con este NIT o Email.' });
+  }
+  if (error.code === 'P1001' || error.code === 'P1002' || error.code === 'P1003') {
+    return res.status(503).json({ error: 'Base de datos temporalmente inaccesible. Por favor, intente de nuevo en un momento.' });
+  }
+  res.status(500).json({ error: 'Error interno del servidor. Por favor, reporte este incidente si persiste.' });
+};
+
 exports.getAll = async (req, res) => {
   try {
     const clients = await prisma.client.findMany({
@@ -7,7 +18,7 @@ exports.getAll = async (req, res) => {
     });
     res.json(clients);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handlePrismaError(error, res);
   }
 };
 
@@ -22,7 +33,7 @@ exports.checkDuplicates = async (req, res) => {
       emailExists: !!existingEmail
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handlePrismaError(error, res);
   }
 };
 
@@ -42,6 +53,6 @@ exports.create = async (req, res) => {
     });
     res.status(201).json(client);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handlePrismaError(error, res);
   }
 };
