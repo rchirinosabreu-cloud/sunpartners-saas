@@ -27,8 +27,8 @@ Autenticación: JWT manejado exclusivamente a través de HttpOnly Cookies para e
 
 Hashing: Las contraseñas de usuario deben hasearse siempre con Bcrypt antes de guardarse en la base de datos.
 
-## 4. Sistema de Diseño (Luxury BTL / Finora Style)
-Estética: Estrictamente Clean & Premium (Inspirado en Finora). Priorizar el espacio en blanco y sombras sutiles.
+## 4. Sistema de Diseño (Sunpartners Premium Style)
+Estética: Estrictamente Clean & Premium. Priorizar el espacio en blanco y sombras sutiles.
 
 Tipografía: Plus Jakarta Sans para toda la interfaz (Cuerpo y Encabezados).
 

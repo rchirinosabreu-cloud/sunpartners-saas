@@ -131,7 +131,7 @@ const QuotationDetail = () => {
                   {quotation.estado}
                 </span>
               </div>
-              <p className="text-xs text-zinc-500 font-body uppercase tracking-wider font-bold">{quotation.client.empresa} • NIT: {quotation.client.nit}</p>
+              <p className="text-xs text-zinc-500 font-body uppercase tracking-wider font-bold">{quotation.client.razon_social} • NIT: {quotation.client.nit_id}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -289,8 +289,8 @@ const QuotationDetail = () => {
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-black text-zinc-400 block">Contacto Cliente</span>
-                    <span className="text-sm font-bold text-zinc-900">{quotation.client.contactoPrincipal}</span>
-                    <span className="text-xs text-zinc-500 block">{quotation.client.cargo}</span>
+                    <span className="text-sm font-bold text-zinc-900">{quotation.client.responsable}</span>
+                    <span className="text-xs text-zinc-500 block">{quotation.client.ciudad}</span>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-black text-zinc-400 block">Fecha Principal</span>
