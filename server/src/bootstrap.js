@@ -36,6 +36,20 @@ const bootstrapAdmin = async () => {
       },
     });
     console.log(`[Sunpartners] Admin creado con nuevo esquema: ${adminEmail}`);
+
+    // Clean up "SIN EMPRESA" clients to avoid validation noise
+    const cleanResult = await prisma.client.deleteMany({
+      where: {
+        OR: [
+          { razon_social: { equals: 'SIN EMPRESA', mode: 'insensitive' } },
+          { razon_social: { equals: 'Sin Empresa', mode: 'insensitive' } }
+        ]
+      }
+    });
+    if (cleanResult.count > 0) {
+      console.log(`[Sunpartners] Se eliminaron ${cleanResult.count} registros legacy del directorio.`);
+    }
+
   } catch (err) {
     console.error(`[Sunpartners] Error en bootstrap: ${err.message}`);
   }
