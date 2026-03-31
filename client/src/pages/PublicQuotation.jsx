@@ -18,10 +18,10 @@ const PublicQuotation = () => {
   useEffect(() => {
     const fetchQuotation = async () => {
       try {
-        const res = await axios.get(`/api/quotations/public/${hash}`);
+        const res = await axios.get(`/api/quotations/public/${hash}`, { timeout: 10000 });
         setQuotation(res.data);
       } catch (err) {
-        setError(err.response?.data?.error || 'No se pudo cargar la propuesta digital.');
+        setError(err.response?.data?.error || 'No se pudo cargar la propuesta digital. Verifica tu conexión.');
       } finally {
         setLoading(false);
       }
@@ -32,7 +32,7 @@ const PublicQuotation = () => {
   const handleApprove = async () => {
     setProcessing(true);
     try {
-      await axios.post(`/api/quotations/public/${hash}/approve`);
+      await axios.post(`/api/quotations/public/${hash}/approve`, {}, { timeout: 15000 });
       setFinished(true);
       setShowApproveModal(false);
     } catch (err) {
@@ -58,7 +58,7 @@ const PublicQuotation = () => {
       await axios.post(`/api/quotations/public/${hash}/reject`, {
         rejectionType: rejection.type,
         rejectionReason: rejection.reason
-      });
+      }, { timeout: 10000 });
       setFinished(true);
       setShowRejectModal(false);
     } catch (err) {
@@ -76,8 +76,8 @@ const PublicQuotation = () => {
   if (error) return (
     <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-8 font-body">
       <div className="bg-white border border-red-100 p-12 rounded-lg text-center shadow-2xl">
-        <span className="material-symbols-outlined text-red-500 text-5xl mb-6">error</span>
-        <h2 className="text-xl font-black uppercase text-zinc-900 mb-2">Acceso No Válido</h2>
+        <span className="material-symbols-outlined text-red-500 text-5xl mb-6">cloud_off</span>
+        <h2 className="text-xl font-black uppercase text-zinc-900 mb-2">Error de Conexión</h2>
         <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.2em]">{error}</p>
       </div>
     </div>

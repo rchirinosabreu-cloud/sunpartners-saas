@@ -96,6 +96,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated }) => {
   });
   const [isDuplicate, setIsDuplicate] = useState({ nit: false, email: false });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -103,11 +104,16 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated }) => {
         try {
           const res = await axios.get('/api/clients/check-duplicates', {
             params: { nit_id: clientData.nit_id, email: clientData.email },
-            withCredentials: true
+            withCredentials: true,
+            timeout: 5000
           });
           setIsDuplicate({ nit: res.data.nitExists, email: res.data.emailExists });
+          setError(null);
         } catch (e) {
           console.error(e);
+          if (e.code === 'ECONNABORTED' || !e.response) {
+            setError('Conexión inestable con el servidor. Verifica tu internet.');
+          }
         }
       } else {
         setIsDuplicate({ nit: false, email: false });
@@ -129,12 +135,19 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated }) => {
     e.preventDefault();
     if (isDuplicate.nit || isDuplicate.email) return;
     setSaving(true);
+    setError(null);
     try {
-      const res = await axios.post('/api/clients', clientData, { withCredentials: true });
+      const res = await axios.post('/api/clients', clientData, {
+        withCredentials: true,
+        timeout: 8000
+      });
       onClientCreated(res.data);
       onClose();
     } catch (err) {
       console.error(err);
+      const msg = err.response?.data?.error ||
+                 (err.code === 'ECONNABORTED' ? 'Tiempo de espera agotado.' : 'Error de conexión con el servidor.');
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -248,11 +261,13 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated }) => {
               ></textarea>
             </div>
 
-            {(isDuplicate.nit || isDuplicate.email) && (
-              <div className="bg-[#FBAE17]/10 border-2 border-brand-alert p-4 rounded-lg flex items-center gap-3">
-                <span className="material-symbols-outlined text-brand-alert">warning</span>
-                <p className="text-[11px] font-bold text-zinc-900">
-                  Este NIT o Email ya se encuentra registrado en el sistema. Por favor, verifícalo en el directorio.
+            {(isDuplicate.nit || isDuplicate.email || error) && (
+              <div className={`p-4 rounded-lg flex items-center gap-3 animate-in slide-in-from-top-2 duration-300 ${error ? 'bg-red-50 border-2 border-red-100' : 'bg-[#FBAE17]/10 border-2 border-brand-alert'}`}>
+                <span className={`material-symbols-outlined ${error ? 'text-red-500' : 'text-brand-alert'}`}>
+                  {error ? 'cloud_off' : 'warning'}
+                </span>
+                <p className={`text-[11px] font-bold ${error ? 'text-red-700' : 'text-zinc-900'}`}>
+                  {error || 'Este NIT o Email ya se encuentra registrado en el sistema. Por favor, verifícalo en el directorio.'}
                 </p>
               </div>
             )}
