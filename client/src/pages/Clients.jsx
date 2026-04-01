@@ -1,24 +1,28 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../components/ui/Modal';
+import NewClientModal from '../components/modals/NewClientModal';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [uiModal, setUiModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+
+  const fetchClients = async () => {
+    try {
+      const response = await axios.get('/api/clients', { withCredentials: true });
+      setClients(response.data);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const response = await axios.get('/api/clients', { withCredentials: true });
-        setClients(response.data);
-      } catch (error) {
-        console.error('Error fetching clients:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchClients();
   }, []);
 
@@ -39,6 +43,13 @@ const Clients = () => {
         {uiModal.content}
       </Modal>
 
+      <NewClientModal
+        isOpen={isClientModalOpen}
+        onClose={() => { setIsClientModalOpen(false); setEditingClient(null); }}
+        onClientCreated={() => { fetchClients(); setEditingClient(null); }}
+        initialData={editingClient}
+      />
+
       {/* Header */}
       <header className="h-16 border-b border-zinc-200 flex items-center justify-between px-8 shrink-0 bg-white shadow-sm">
         <div className="flex items-center flex-1">
@@ -55,7 +66,10 @@ const Clients = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="h-10 px-6 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm hover:opacity-90 transition-all flex items-center shadow-lg">
+          <button
+            onClick={() => { setEditingClient(null); setIsClientModalOpen(true); }}
+            className="h-10 px-6 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm hover:opacity-90 transition-all flex items-center shadow-lg"
+          >
             <span className="material-symbols-outlined text-[18px] mr-2">person_add</span>
             Nuevo Cliente
           </button>
@@ -104,7 +118,14 @@ const Clients = () => {
                     </span>
                   </td>
                   <td className="px-6 py-5 text-right">
-                    <button className="text-zinc-300 hover:text-zinc-900 transition-colors">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingClient(client);
+                        setIsClientModalOpen(true);
+                      }}
+                      className="text-zinc-300 hover:text-primary transition-colors"
+                    >
                       <span className="material-symbols-outlined text-[20px]">settings_suggest</span>
                     </button>
                   </td>

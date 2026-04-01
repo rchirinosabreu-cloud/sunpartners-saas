@@ -22,6 +22,47 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nit_id, email } = req.body;
+
+    // Check for duplicates excluding current client
+    if (nit_id || email) {
+      const existingNit = nit_id ? await prisma.client.findFirst({ where: { nit_id, id: { not: id } } }) : null;
+      const existingEmail = email ? await prisma.client.findFirst({ where: { email, id: { not: id } } }) : null;
+
+      if (existingNit || existingEmail) {
+        return res.status(400).json({ error: 'NIT o Email ya registrados por otro cliente.' });
+      }
+    }
+
+    const client = await prisma.client.update({
+      where: { id },
+      data: req.body
+    });
+    res.json(client);
+  } catch (error) {
+    handlePrismaError(error, res);
+  }
+};
+
+exports.cleanupZombies = async (req, res) => {
+  try {
+    const result = await prisma.client.deleteMany({
+      where: {
+        OR: [
+          { razon_social: { equals: 'SIN EMPRESA', mode: 'insensitive' } },
+          { razon_social: { equals: 'Sin Empresa', mode: 'insensitive' } }
+        ]
+      }
+    });
+    res.json({ message: `Limpieza completa. ${result.count} registros eliminados.` });
+  } catch (error) {
+    handlePrismaError(error, res);
+  }
+};
+
 exports.checkDuplicates = async (req, res) => {
   const { nit_id, email } = req.query;
   try {
