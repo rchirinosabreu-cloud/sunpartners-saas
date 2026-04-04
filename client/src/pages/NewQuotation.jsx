@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import Modal from '../components/ui/Modal';
@@ -57,6 +58,10 @@ const ComboBox = ({ label, value, options, onChange }) => {
 const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar equipo..." }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const containerRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+
   const selectedItem = useMemo(() => options.find(opt => opt.id === value), [value, options]);
 
   const filteredOptions = useMemo(() => {
@@ -65,16 +70,42 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
     );
   }, [options, search]);
 
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener('scroll', updateCoords, true);
+      window.addEventListener('resize', updateCoords);
+    }
+    return () => {
+      window.removeEventListener('scroll', updateCoords, true);
+      window.removeEventListener('resize', updateCoords);
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (!e.target.closest('.searchable-select')) setIsOpen(false);
+      if (containerRef.current && !containerRef.current.contains(e.target) &&
+          dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
-    <div className="relative searchable-select flex-1">
+    <div className="relative searchable-select flex-1" ref={containerRef}>
       <div
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full border-2 rounded-lg p-2.5 flex items-center justify-between cursor-pointer transition-all bg-zinc-50 ${isOpen ? 'border-primary shadow-sm bg-white' : 'border-zinc-100 hover:border-zinc-200'}`}
@@ -92,8 +123,17 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
         </span>
       </div>
 
-      {isOpen && (
-        <div className="absolute top-full left-0 w-full mt-2 bg-white border-2 border-primary/20 rounded-[12px] shadow-2xl z-[150] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      {isOpen && createPortal(
+        <div
+          ref={dropdownRef}
+          style={{
+            position: 'absolute',
+            top: `${coords.top + 8}px`,
+            left: `${coords.left}px`,
+            width: `${coords.width}px`,
+          }}
+          className="bg-white border-2 border-primary/20 rounded-[12px] shadow-2xl z-[200] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        >
           <div className="p-3 border-b border-zinc-100 bg-zinc-50/50">
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-[16px]">search</span>
@@ -108,7 +148,7 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
               />
             </div>
           </div>
-          <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
+          <div className="max-h-[300px] overflow-y-auto p-1 custom-scrollbar">
             {filteredOptions.length === 0 ? (
               <div className="p-6 text-center text-zinc-400 text-[10px] font-black uppercase tracking-widest">No hay resultados</div>
             ) : (
@@ -132,7 +172,8 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
               ))
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
