@@ -38,7 +38,11 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
       if (clientData.nit_id || clientData.email) {
         try {
           const res = await axios.get('/api/clients/check-duplicates', {
-            params: { nit_id: clientData.nit_id, email: clientData.email },
+            params: {
+              nit_id: clientData.nit_id,
+              email: clientData.email,
+              excludeId: initialData?.id
+            },
             withCredentials: true,
             timeout: 5000
           });

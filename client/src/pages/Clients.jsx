@@ -10,6 +10,7 @@ const Clients = () => {
   const [uiModal, setUiModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [clientToDelete, setClientToDelete] = useState(null);
 
   const fetchClients = async () => {
     try {
@@ -32,6 +33,29 @@ const Clients = () => {
     (c.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`/api/clients/${id}`, { withCredentials: true });
+      setUiModal({
+        isOpen: true,
+        title: 'Cliente Eliminado',
+        content: 'El registro ha sido removido correctamente del directorio.',
+        type: 'success'
+      });
+      fetchClients();
+    } catch (error) {
+      console.error('Error deleting client:', error);
+      setUiModal({
+        isOpen: true,
+        title: 'Error al Eliminar',
+        content: 'No se pudo completar la acción. Inténtalo de nuevo.',
+        type: 'error'
+      });
+    } finally {
+      setClientToDelete(null);
+    }
+  };
+
   return (
     <main className="flex-1 flex flex-col h-full bg-[#FAFAFA] overflow-hidden font-body">
       <Modal
@@ -41,6 +65,20 @@ const Clients = () => {
         type={uiModal.type}
       >
         {uiModal.content}
+      </Modal>
+
+      <Modal
+        isOpen={!!clientToDelete}
+        onClose={() => setClientToDelete(null)}
+        title="Confirmar Eliminación"
+        type="warning"
+        action={{
+          label: 'Confirmar Eliminación',
+          onClick: () => handleDelete(clientToDelete.id),
+          color: 'danger'
+        }}
+      >
+        ¿Estás seguro de eliminar a <span className="font-black text-zinc-900">{clientToDelete?.razon_social}</span>? Esta acción no se puede deshacer y el registro será archivado.
       </Modal>
 
       <NewClientModal
@@ -118,16 +156,29 @@ const Clients = () => {
                     </span>
                   </td>
                   <td className="px-6 py-5 text-right">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingClient(client);
-                        setIsClientModalOpen(true);
-                      }}
-                      className="text-zinc-300 hover:text-primary transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">settings_suggest</span>
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingClient(client);
+                          setIsClientModalOpen(true);
+                        }}
+                        className="w-8 h-8 flex items-center justify-center rounded-sm text-zinc-300 hover:text-primary hover:bg-blue-50 transition-all"
+                        title="Editar cliente"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">settings_suggest</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setClientToDelete(client);
+                        }}
+                        className="w-8 h-8 flex items-center justify-center rounded-sm text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                        title="Eliminar cliente"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">delete</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

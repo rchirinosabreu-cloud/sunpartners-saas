@@ -8,5 +8,6 @@ router.get('/check-duplicates', authMiddleware, (req, res) => clientController.c
 router.post('/', authMiddleware, (req, res) => clientController.create(req, res));
 router.put('/:id', authMiddleware, (req, res) => clientController.update(req, res));
 router.post('/cleanup', authMiddleware, (req, res) => clientController.cleanupZombies(req, res));
+router.delete('/:id', authMiddleware, (req, res) => clientController.remove(req, res));
 
 module.exports = router;

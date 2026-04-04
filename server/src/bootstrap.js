@@ -38,12 +38,17 @@ const bootstrapAdmin = async () => {
     console.log(`[Sunpartners] Admin creado con nuevo esquema: ${adminEmail}`);
 
     // Clean up "SIN EMPRESA" clients to avoid validation noise
-    const cleanResult = await prisma.client.deleteMany({
+    const cleanResult = await prisma.client.updateMany({
       where: {
         OR: [
           { razon_social: { equals: 'SIN EMPRESA', mode: 'insensitive' } },
           { razon_social: { equals: 'Sin Empresa', mode: 'insensitive' } }
-        ]
+        ],
+        deletedAt: null
+      },
+      data: {
+        deletedAt: new Date(),
+        deletedJustification: 'Limpieza de registros de migración fallida'
       }
     });
     if (cleanResult.count > 0) {
