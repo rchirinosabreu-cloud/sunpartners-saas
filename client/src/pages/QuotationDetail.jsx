@@ -130,6 +130,12 @@ const QuotationDetail = () => {
                 }`}>
                   {quotation.estado}
                 </span>
+                  {quotation.archivedAt && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">inventory_2</span>
+                      Archivada
+                    </span>
+                  )}
               </div>
               <p className="text-xs text-zinc-500 font-body uppercase tracking-wider font-bold">{quotation.client.razon_social} • NIT: {quotation.client.nit_id}</p>
             </div>
@@ -145,8 +151,10 @@ const QuotationDetail = () => {
 
              {quotation.estado === 'BORRADOR' && (
                <button
+                disabled={!!quotation.archivedAt}
+                title={quotation.archivedAt ? "Desarchive esta cotización para realizar cambios" : ""}
                 onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg"
+                className={`flex items-center gap-2 bg-primary text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg ${quotation.archivedAt ? 'opacity-50 cursor-not-allowed' : ''}`}
                >
                  <span className="material-symbols-outlined text-[18px]">edit_note</span>
                  Editar Cotización
@@ -155,8 +163,10 @@ const QuotationDetail = () => {
 
              {quotation.estado === 'REVISION_SOLICITADA' && (
                <button
+                disabled={!!quotation.archivedAt}
+                title={quotation.archivedAt ? "Desarchive esta cotización para realizar cambios" : ""}
                 onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className="flex items-center gap-2 bg-brand-alert text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg"
+                className={`flex items-center gap-2 bg-brand-alert text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg ${quotation.archivedAt ? 'opacity-50 cursor-not-allowed' : ''}`}
                >
                  <span className="material-symbols-outlined text-[18px]">edit_note</span>
                  Editar y Corregir

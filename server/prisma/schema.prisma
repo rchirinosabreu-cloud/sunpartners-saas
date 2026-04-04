@@ -90,6 +90,7 @@ model Quotation {
   rejectionType        RejectionType?
   rejectionReason      String?
   clientId             String
+  archivedAt           DateTime?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   deletedAt            DateTime?
