@@ -143,6 +143,16 @@ const QuotationDetail = () => {
                PDF Interno
              </button>
 
+             {quotation.estado === 'BORRADOR' && (
+               <button
+                onClick={() => navigate(`/cotizaciones/editar/${id}`)}
+                className="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg"
+               >
+                 <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                 Editar Cotización
+               </button>
+             )}
+
              {quotation.estado === 'REVISION_SOLICITADA' && (
                <button
                 onClick={() => navigate(`/cotizaciones/editar/${id}`)}
