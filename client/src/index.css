@@ -56,6 +56,21 @@
   --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
 }
 
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-zinc-200 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-zinc-300;
+  }
+}
+
 @layer base {
   * {
     font-style: normal !important;
