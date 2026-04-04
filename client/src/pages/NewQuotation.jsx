@@ -54,6 +54,90 @@ const ComboBox = ({ label, value, options, onChange }) => {
   );
 };
 
+const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar equipo..." }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const selectedItem = useMemo(() => options.find(opt => opt.id === value), [value, options]);
+
+  const filteredOptions = useMemo(() => {
+    return options.filter(opt =>
+      opt.nombre_comercial.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [options, search]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.searchable-select')) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative searchable-select flex-1">
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full border-2 rounded-lg p-2.5 flex items-center justify-between cursor-pointer transition-all bg-zinc-50 ${isOpen ? 'border-primary shadow-sm bg-white' : 'border-zinc-100 hover:border-zinc-200'}`}
+      >
+        <div className="flex items-center gap-2 overflow-hidden">
+          <span className={`material-symbols-outlined text-[18px] ${selectedItem ? 'text-primary' : 'text-zinc-400'}`}>
+            {selectedItem ? 'inventory_2' : 'search'}
+          </span>
+          <span className={`text-xs font-bold truncate ${selectedItem ? 'text-zinc-900 uppercase' : 'text-zinc-400'}`}>
+            {selectedItem ? selectedItem.nombre_comercial : placeholder}
+          </span>
+        </div>
+        <span className={`material-symbols-outlined text-zinc-400 text-[18px] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+          expand_more
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 w-full mt-2 bg-white border-2 border-primary/20 rounded-[12px] shadow-2xl z-[150] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-3 border-b border-zinc-100 bg-zinc-50/50">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-[16px]">search</span>
+              <input
+                autoFocus
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por nombre..."
+                className="w-full pl-9 pr-4 py-2 text-xs font-bold border-2 border-zinc-200 rounded-lg focus:outline-none focus:border-primary transition-all"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </div>
+          <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
+            {filteredOptions.length === 0 ? (
+              <div className="p-6 text-center text-zinc-400 text-[10px] font-black uppercase tracking-widest">No hay resultados</div>
+            ) : (
+              filteredOptions.map(opt => (
+                <div
+                  key={opt.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange(opt.id);
+                    setIsOpen(false);
+                    setSearch("");
+                  }}
+                  className={`p-3 rounded-lg cursor-pointer transition-all flex flex-col gap-0.5 hover:bg-zinc-50 ${value === opt.id ? 'bg-primary/5 border border-primary/10' : 'border border-transparent'}`}
+                >
+                  <span className="text-[11px] font-black text-zinc-900 uppercase tracking-tight">{opt.nombre_comercial}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase">Stock: {opt.claseA + opt.claseB} und</span>
+                    <span className="text-[9px] font-black text-primary">$ {opt.valor_alquiler.toLocaleString()}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const BlindajeDatePicker = ({ id, label, value, onChange }) => {
   const config = {
     enableTime: true,
@@ -570,8 +654,8 @@ const NewQuotation = () => {
                         {/* ITEMS SECTION */}
                         {formData.items.map((it, idx) => {
                            const invItem = inventory.find(i => i.id === it.inventoryId);
-                           const stockTotal = (invItem?.claseA || 0) + (invItem?.claseB || 0) + (invItem?.claseC || 0);
-                           const hasStockWarning = it.cantidad > stockTotal;
+                           const stockDisponible = (invItem?.claseA || 0) + (invItem?.claseB || 0);
+                           const hasStockWarning = it.inventoryId && it.cantidad > stockDisponible;
 
                            const update = (f, v) => {
                               const n = [...formData.items]; n[idx][f] = v;
@@ -592,15 +676,16 @@ const NewQuotation = () => {
                               <tr key={idx} className="border-b border-zinc-50 hover:bg-zinc-50/50">
                                  <td className="p-4">
                                     <div className="flex items-center gap-2">
-                                       <select value={it.inventoryId} onChange={e => update('inventoryId', e.target.value)} className="flex-1 p-2 bg-zinc-50 border border-zinc-100 rounded outline-none focus:border-primary text-xs">
-                                          <option value="">Seleccionar Equipo...</option>
-                                          {inventory.map(i => <option key={i.id} value={i.id}>{i.nombre_comercial}</option>)}
-                                       </select>
+                                       <SearchableSelect
+                                          value={it.inventoryId}
+                                          options={inventory}
+                                          onChange={val => update('inventoryId', val)}
+                                       />
                                        {hasStockWarning && (
                                           <div className="group relative">
                                              <span className="material-symbols-outlined text-[#FBAE17] font-black cursor-help">warning</span>
-                                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-zinc-900 text-white text-[10px] rounded shadow-xl z-50 text-center">
-                                                Atención: Cantidad superior al stock disponible ({stockTotal} und)
+                                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-zinc-900 text-white text-[10px] rounded-lg shadow-xl z-50 text-center">
+                                                Stock insuficiente. Disponibles: {stockDisponible}
                                              </div>
                                           </div>
                                        )}
