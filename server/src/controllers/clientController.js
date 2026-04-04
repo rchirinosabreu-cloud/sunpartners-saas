@@ -49,12 +49,16 @@ exports.update = async (req, res) => {
 
 exports.cleanupZombies = async (req, res) => {
   try {
-    const result = await prisma.client.deleteMany({
+    const result = await prisma.client.updateMany({
       where: {
         OR: [
           { razon_social: { equals: 'SIN EMPRESA', mode: 'insensitive' } },
           { razon_social: { equals: 'Sin Empresa', mode: 'insensitive' } }
         ]
+      },
+      data: {
+        deletedAt: new Date(),
+        deletedJustification: 'Limpieza de registros de migración fallida'
       }
     });
     res.json({ message: `Limpieza completa. ${result.count} registros eliminados.` });
@@ -63,11 +67,29 @@ exports.cleanupZombies = async (req, res) => {
   }
 };
 
-exports.checkDuplicates = async (req, res) => {
-  const { nit_id, email } = req.query;
+exports.remove = async (req, res) => {
   try {
-    const existingNit = nit_id ? await prisma.client.findUnique({ where: { nit_id } }) : null;
-    const existingEmail = email ? await prisma.client.findUnique({ where: { email } }) : null;
+    const { id } = req.params;
+    await prisma.client.softDelete(id, 'Ajuste manual del administrador');
+    res.json({ message: 'Cliente eliminado correctamente.' });
+  } catch (error) {
+    handlePrismaError(error, res);
+  }
+};
+
+exports.checkDuplicates = async (req, res) => {
+  const { nit_id, email, excludeId } = req.query;
+  try {
+    const whereNit = { nit_id };
+    const whereEmail = { email };
+
+    if (excludeId) {
+      whereNit.id = { not: excludeId };
+      whereEmail.id = { not: excludeId };
+    }
+
+    const existingNit = nit_id ? await prisma.client.findFirst({ where: whereNit }) : null;
+    const existingEmail = email ? await prisma.client.findFirst({ where: whereEmail }) : null;
 
     res.json({
       nitExists: !!existingNit,
