@@ -8,6 +8,7 @@ const inventoryRoutes = require('./routes/inventory');
 const clientRoutes = require('./routes/clients');
 const quotationRoutes = require('./routes/quotations');
 const userRoutes = require('./routes/users');
+const taskRoutes = require('./routes/tasks');
 const bootstrapAdmin = require('./bootstrap');
 
 dotenv.config();
@@ -51,6 +52,7 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/quotations', quotationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/tasks', taskRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
