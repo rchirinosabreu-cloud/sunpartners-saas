@@ -7,7 +7,9 @@ exports.getAll = async (req, res) => {
       select: {
         id: true,
         nombre: true,
+        username: true,
         email: true,
+        position: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -23,7 +25,11 @@ exports.getAll = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { nombre, email, password, role, department } = req.body;
+    const { nombre, username, email, position, password, role, department } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ error: 'El nombre de usuario es obligatorio.' });
+    }
 
     if (!password || password.length < 8) {
       return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres.' });
@@ -33,19 +39,22 @@ exports.create = async (req, res) => {
     const user = await prisma.user.create({
       data: {
         nombre,
-        email,
+        username,
+        email: email || null,
+        position,
         password: hashedPassword,
         role,
         department,
         isActive: true
       },
-      select: { id: true, nombre: true, email: true, role: true, isActive: true }
+      select: { id: true, nombre: true, username: true, email: true, role: true, isActive: true }
     });
 
     res.status(201).json(user);
   } catch (error) {
     if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Ya existe un usuario con este email.' });
+      const field = error.meta?.target?.includes('username') ? 'nombre de usuario' : 'email';
+      return res.status(400).json({ error: `Ya existe un registro con este ${field}.` });
     }
     res.status(500).json({ error: error.message });
   }
@@ -54,9 +63,9 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, role, department, isActive, password } = req.body;
+    const { nombre, username, email, position, role, department, isActive, password } = req.body;
 
-    const data = { nombre, role, department, isActive };
+    const data = { nombre, username, email: email || null, position, role, department, isActive };
 
     if (password) {
       if (password.length < 8) {
@@ -68,7 +77,7 @@ exports.update = async (req, res) => {
     const user = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, nombre: true, email: true, role: true, isActive: true }
+      select: { id: true, nombre: true, username: true, email: true, role: true, isActive: true }
     });
 
     res.json(user);

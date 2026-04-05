@@ -8,7 +8,7 @@ const TeamSettings = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ nombre: '', email: '', password: '', role: 'EDITOR', department: 'DIRECCION', isActive: true });
+  const [formData, setFormData] = useState({ nombre: '', username: '', position: '', email: '', password: '', role: 'EDITOR', department: 'ADMINISTRACION', isActive: true });
   const [messageModal, setMessageModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
 
   const fetchUsers = async () => {
@@ -29,10 +29,15 @@ const TeamSettings = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const dataToSubmit = { ...formData };
+      if (editingUser && !dataToSubmit.password) {
+        delete dataToSubmit.password;
+      }
+
       if (editingUser) {
-        await axios.put(`/api/users/${editingUser.id}`, formData, { withCredentials: true });
+        await axios.put(`/api/users/${editingUser.id}`, dataToSubmit, { withCredentials: true });
       } else {
-        await axios.post('/api/users', formData, { withCredentials: true });
+        await axios.post('/api/users', dataToSubmit, { withCredentials: true });
       }
       setMessageModal({ isOpen: true, title: 'Éxito', content: `Usuario ${editingUser ? 'actualizado' : 'creado'} correctamente.`, type: 'success' });
       setIsModalOpen(false);
@@ -53,7 +58,8 @@ const TeamSettings = () => {
 
   const filteredUsers = users.filter(u =>
     u.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -74,11 +80,19 @@ const TeamSettings = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Nombre Completo</label>
-                  <input required type="text" value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                  <input required type="text" autoComplete="new-password" value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Email Corporativo</label>
-                  <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Username (Obligatorio)</label>
+                  <input required type="text" autoComplete="new-password" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Cargo (Ej: Conductor)</label>
+                  <input type="text" autoComplete="new-password" value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Email (Opcional)</label>
+                  <input type="email" autoComplete="new-password" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Rol</label>
@@ -91,18 +105,18 @@ const TeamSettings = () => {
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">Departamento</label>
                   <select value={formData.department} onChange={e => setFormData({ ...formData, department: e.target.value })} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs">
-                    <option value="DIRECCION">DIRECCIÓN</option>
-                    <option value="COORDINACION">COORDINACIÓN</option>
                     <option value="ADMINISTRACION">ADMINISTRACIÓN</option>
-                    <option value="ALMACEN">ALMACÉN</option>
-                    <option value="LOGISTICA">LOGÍSTICA</option>
+                    <option value="OPERATIVO">OPERATIVO</option>
+                    <option value="DIRECCION_COMERCIAL">DIRECCIÓN / COMERCIAL</option>
+                    <option value="LOGISTICA_TRANSPORTE">LOGÍSTICA / TRANSPORTE</option>
+                    <option value="COMERCIAL">COMERCIAL</option>
                   </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">
-                    {editingUser ? 'Cambiar Contraseña (opcional)' : 'Contraseña Inicial'}
+                    {editingUser ? 'Resetear Contraseña (Manual)' : 'Contraseña Inicial'}
                   </label>
-                  <input required={!editingUser} type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" />
+                  <input required={!editingUser} type="password" autoComplete="new-password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" placeholder={editingUser ? "Asignar nueva clave temporal..." : ""} />
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-6">
@@ -122,7 +136,7 @@ const TeamSettings = () => {
           <p className="text-[13px] text-zinc-500 font-semibold mt-1 uppercase tracking-wider">Gestión de acceso, roles y estados de cuenta.</p>
         </div>
         <button
-          onClick={() => { setEditingUser(null); setFormData({ nombre: '', email: '', password: '', role: 'EDITOR', department: 'DIRECCION', isActive: true }); setIsModalOpen(true); }}
+          onClick={() => { setEditingUser(null); setFormData({ nombre: '', username: '', position: '', email: '', password: '', role: 'EDITOR', department: 'ADMINISTRACION', isActive: true }); setIsModalOpen(true); }}
           className="flex items-center gap-3 bg-zinc-900 text-white px-6 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
         >
           <span className="material-symbols-outlined text-[18px]">person_add</span>
@@ -147,7 +161,8 @@ const TeamSettings = () => {
         <table className="w-full text-left">
           <thead className="bg-zinc-50/50 border-b border-zinc-100 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">
             <tr>
-              <th className="px-6 py-4">Nombre / Email</th>
+              <th className="px-6 py-4">Nombre / Usuario</th>
+              <th className="px-6 py-4">Cargo / Email</th>
               <th className="px-6 py-4">Rol / Depto</th>
               <th className="px-6 py-4">Estado</th>
               <th className="px-6 py-4 text-right">Acciones</th>
@@ -158,7 +173,11 @@ const TeamSettings = () => {
               <tr key={u.id} className={`hover:bg-zinc-50/50 transition-all ${!u.isActive ? 'opacity-50 grayscale' : ''}`}>
                 <td className="px-6 py-5">
                    <div className="font-black text-zinc-900 uppercase text-[12px]">{u.nombre}</div>
-                   <div className="text-[10px] font-bold text-zinc-400 lowercase">{u.email}</div>
+                   <div className="text-[10px] font-bold text-zinc-400 lowercase italic tracking-tight">@{u.username}</div>
+                </td>
+                <td className="px-6 py-5">
+                   <div className="font-bold text-zinc-600 uppercase text-[10px]">{u.position || 'SIN CARGO'}</div>
+                   <div className="text-[10px] font-medium text-zinc-400 lowercase">{u.email || 'SIN EMAIL'}</div>
                 </td>
                 <td className="px-6 py-5">
                    <div className="inline-flex items-center gap-2">
