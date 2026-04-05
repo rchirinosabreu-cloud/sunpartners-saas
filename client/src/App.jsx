@@ -11,12 +11,18 @@ import QuotationList from './pages/QuotationList';
 import QuotationDetail from './pages/QuotationDetail';
 import NewQuotation from './pages/NewQuotation';
 import PublicQuotation from './pages/PublicQuotation';
+import Profile from './pages/Profile';
+import TeamSettings from './pages/TeamSettings';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
 
   if (loading) return <div className="flex items-center justify-center min-h-screen font-body text-zinc-400">Autenticando sesión...</div>;
   if (!user) return <Navigate to="/login" />;
+
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" />;
+  }
 
   return children;
 };
@@ -49,7 +55,15 @@ const App = () => {
             <Route path="cotizaciones/nueva" element={<NewQuotation />} />
             <Route path="cotizaciones/editar/:id" element={<NewQuotation />} />
             <Route path="cotizaciones/:id" element={<QuotationDetail />} />
-            <Route path="equipo" element={<div className="p-8 text-zinc-500 font-body uppercase text-xs font-black tracking-widest">Módulo de Equipo en desarrollo...</div>} />
+            <Route path="perfil" element={<Profile />} />
+            <Route
+              path="equipo"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <TeamSettings />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>

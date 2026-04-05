@@ -173,6 +173,7 @@ const QuotationList = () => {
           <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-semibold uppercase text-[11px] tracking-wider">
             <tr>
               <th className="px-6 py-4">Evento / Cliente</th>
+              <th className="px-6 py-4">Consultor</th>
               <th className="px-6 py-4">Fecha</th>
               <th className="px-6 py-4">Estado</th>
               <th className="px-6 py-4">Items</th>
@@ -198,6 +199,14 @@ const QuotationList = () => {
                     <div className="flex flex-col">
                       <span className="font-black text-zinc-900 uppercase tracking-tight text-[13px]">{q.nombre_evento}</span>
                       <span className="text-[10px] font-bold text-zinc-400 mt-0.5">{q.client.razon_social}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-2">
+                       <div className="size-6 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-400 border border-zinc-200 uppercase">
+                          {q.consultant?.nombre?.substring(0,2) || 'S'}
+                       </div>
+                       <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-tight">{q.consultant?.nombre || 'SISTEMA'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">

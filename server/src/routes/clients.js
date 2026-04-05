@@ -7,7 +7,13 @@ router.get('/', authMiddleware, (req, res) => clientController.getAll(req, res))
 router.get('/check-duplicates', authMiddleware, (req, res) => clientController.checkDuplicates(req, res));
 router.post('/', authMiddleware, (req, res) => clientController.create(req, res));
 router.put('/:id', authMiddleware, (req, res) => clientController.update(req, res));
-router.post('/cleanup', authMiddleware, (req, res) => clientController.cleanupZombies(req, res));
-router.delete('/:id', authMiddleware, (req, res) => clientController.remove(req, res));
+router.post('/cleanup', authMiddleware, (req, res) => {
+  if (req.userRole !== 'ADMIN') return res.status(403).json({ error: 'Acceso denegado' });
+  clientController.cleanupZombies(req, res);
+});
+router.delete('/:id', authMiddleware, (req, res) => {
+  if (req.userRole !== 'ADMIN') return res.status(403).json({ error: 'Acceso denegado' });
+  clientController.remove(req, res);
+});
 
 module.exports = router;

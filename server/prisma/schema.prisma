@@ -14,11 +14,13 @@ model User {
   nombre               String
   role                 Role        @default(EDITOR)
   department           Department?
+  isActive             Boolean     @default(true)
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
   deletedAt            DateTime?
   deletedJustification String?
   logs                 EventLog[]
+  quotations           Quotation[]
 }
 
 model Client {
@@ -90,6 +92,7 @@ model Quotation {
   rejectionType        RejectionType?
   rejectionReason      String?
   clientId             String
+  consultantId         String?
   archivedAt           DateTime?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
@@ -98,6 +101,7 @@ model Quotation {
   logs                 EventLog[]
   planning             PlanningStep?
   client               Client             @relation(fields: [clientId], references: [id])
+  consultant           User?              @relation(fields: [consultantId], references: [id])
   items                QuotationItem[]
   services             QuotationService[]
 }
@@ -159,6 +163,7 @@ model EventLog {
 enum Role {
   ADMIN
   EDITOR
+  CONSULTOR
 }
 
 enum Department {

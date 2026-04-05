@@ -3,6 +3,7 @@ const crypto = require('crypto');
 
 const includeAll = {
   client: true,
+  consultant: { select: { id: true, nombre: true, email: true } },
   items: { include: { inventory: true } },
   services: true,
   planning: true,
@@ -25,6 +26,7 @@ exports.getAll = async (req, res) => {
       where,
       include: {
         client: true,
+        consultant: { select: { nombre: true } },
         items: { include: { inventory: true } }
       },
       orderBy: { createdAt: 'desc' }
@@ -70,6 +72,7 @@ exports.create = async (req, res) => {
     const quotation = await prisma.quotation.create({
       data: {
         clientId,
+        consultantId: req.userId,
         nombre_evento: nombre_evento || 'Evento sin nombre',
         tipo_evento: tipo_evento || 'Corporativo',
         ubicacion: ubicacion || 'Por definir',
@@ -120,6 +123,15 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Security check for CONSULTOR
+    if (req.userRole === 'CONSULTOR') {
+      const existing = await prisma.quotation.findUnique({ where: { id } });
+      if (existing.consultantId !== req.userId) {
+        return res.status(403).json({ error: 'Acceso Denegado. Los consultores solo pueden editar sus propias cotizaciones.' });
+      }
+    }
+
     const {
         clientId,
         nombre_evento,
