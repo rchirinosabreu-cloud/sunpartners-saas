@@ -20,19 +20,24 @@ const bootstrapAdmin = async () => {
         // Force update the password to the new one
         await prisma.user.update({
           where: { email: adminEmail },
-          data: { password: hashedPassword }
+          data: {
+            username: 'admin',
+            password: hashedPassword,
+            department: 'DIRECCION_COMERCIAL'
+          }
         });
-        console.log(`[Sunpartners] Admin password updated successfully.`);
+        console.log(`[Sunpartners] Admin updated successfully.`);
         return;
     }
 
     await prisma.user.create({
       data: {
+        username: 'admin',
         email: adminEmail,
         password: hashedPassword,
         nombre: 'Administrador Sunpartners',
         role: 'ADMIN',
-        department: 'DIRECCION'
+        department: 'DIRECCION_COMERCIAL'
       },
     });
     console.log(`[Sunpartners] Admin creado con nuevo esquema: ${adminEmail}`);

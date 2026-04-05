@@ -3,13 +3,21 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../db');
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    // Dual login: Check by username or email
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: identifier },
+          { email: identifier }
+        ]
+      }
+    });
 
     if (!user) {
-      console.warn(`Intento de login fallido: Usuario no encontrado (${email})`);
+      console.warn(`Intento de login fallido: Usuario no encontrado (${identifier})`);
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
@@ -41,6 +49,7 @@ const login = async (req, res) => {
       user: {
         id: user.id,
         nombre: user.nombre,
+        username: user.username,
         email: user.email,
         role: user.role,
       },
@@ -63,7 +72,7 @@ const getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, nombre: true, email: true, role: true },
+      select: { id: true, nombre: true, username: true, email: true, role: true },
     });
 
     if (!user) {

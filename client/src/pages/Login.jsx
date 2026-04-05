@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,7 +15,7 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      await login(identifier, password);
       navigate('/');
     } catch (err) {
       setError('Credenciales incorrectas. Por favor, intenta de nuevo.');
@@ -84,19 +84,19 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Input */}
+            {/* Identifier Input */}
             <div className="space-y-1.5">
-              <label className="block text-[13px] font-medium text-text-dark" htmlFor="email">
-                Correo Electrónico
+              <label className="block text-[13px] font-medium text-text-dark" htmlFor="identifier">
+                Usuario o Correo
               </label>
               <input
-                id="email"
-                type="email"
+                id="identifier"
+                type="text"
                 required
                 className="block w-full h-[44px] px-3 py-2 bg-background-light border border-border-color rounded text-[15px] text-text-dark placeholder:text-text-muted transition-colors"
-                placeholder="operador@sunpartners.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin o email@ejemplo.com"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
               />
             </div>
 
