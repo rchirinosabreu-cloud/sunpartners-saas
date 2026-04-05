@@ -44,11 +44,16 @@ const AppLayout = () => {
   const menuItems = [
     { to: '/', icon: 'dashboard', label: 'Dashboard' },
     { to: '/cotizaciones', icon: 'receipt_long', label: 'Cotizaciones' },
-    { to: '/inventario', icon: 'warehouse', label: 'Bodega' },
-    { to: '/comercial', icon: 'shopping_cart', label: 'Catálogo' },
+    { to: '/inventario', icon: 'warehouse', label: 'Bodega', roles: ['ADMIN', 'EDITOR'] },
+    { to: '/comercial', icon: 'shopping_cart', label: 'Catálogo', roles: ['ADMIN', 'EDITOR'] },
     { to: '/eventos', icon: 'event', label: 'Eventos' },
     { to: '/clientes', icon: 'group', label: 'Clientes' },
+    { to: '/equipo', icon: 'badge', label: 'Equipo', roles: ['ADMIN'] },
   ];
+
+  const filteredMenuItems = menuItems.filter(item =>
+    !item.roles || item.roles.includes(user?.role)
+  );
 
   return (
     <div className="flex h-screen overflow-hidden bg-background-light text-zinc-900 selection:bg-primary/20 font-body">
@@ -68,7 +73,7 @@ const AppLayout = () => {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="flex flex-col gap-1 px-3">
-            {menuItems.map((item) => (
+            {filteredMenuItems.map((item) => (
               <li key={item.to}>
                 <SidebarItem {...item} />
               </li>
@@ -99,16 +104,19 @@ const AppLayout = () => {
 
         {/* User Profile Area (Bottom) */}
         <div className="mt-auto border-t border-zinc-800 p-4">
-          <div className="flex w-full items-center gap-3 rounded border border-transparent p-2 hover:bg-zinc-800/50 transition-colors group">
+          <div
+            onClick={() => navigate('/perfil')}
+            className="flex w-full items-center gap-3 rounded border border-transparent p-2 hover:bg-zinc-800/50 transition-colors group cursor-pointer"
+          >
             <div className="size-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-50 text-xs font-bold border border-zinc-700 uppercase">
               {user?.nombre?.substring(0, 2) || 'OP'}
             </div>
             <div className="flex flex-1 flex-col items-start min-w-0">
               <span className="text-sm font-medium text-zinc-50 truncate w-full">{user?.nombre || 'Operador'}</span>
-              <span className="text-xs text-zinc-500 truncate w-full">Admin</span>
+              <span className="text-[10px] font-black uppercase text-zinc-500 truncate w-full tracking-widest">{user?.role}</span>
             </div>
             <button
-              onClick={handleLogout}
+              onClick={(e) => { e.stopPropagation(); handleLogout(); }}
               className="material-symbols-outlined text-zinc-500 text-[20px] hover:text-zinc-50 transition-colors"
             >
               logout

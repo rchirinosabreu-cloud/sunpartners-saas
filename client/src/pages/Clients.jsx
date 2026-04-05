@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import NewClientModal from '../components/modals/NewClientModal';
 
@@ -11,6 +12,7 @@ const Clients = () => {
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [clientToDelete, setClientToDelete] = useState(null);
+  const { user } = useAuth();
 
   const fetchClients = async () => {
     try {
@@ -168,16 +170,18 @@ const Clients = () => {
                       >
                         <span className="material-symbols-outlined text-[20px]">settings_suggest</span>
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setClientToDelete(client);
-                        }}
-                        className="w-8 h-8 flex items-center justify-center rounded-sm text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all"
-                        title="Eliminar cliente"
-                      >
-                        <span className="material-symbols-outlined text-[20px]">delete</span>
-                      </button>
+                      {user?.role === 'ADMIN' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setClientToDelete(client);
+                          }}
+                          className="w-8 h-8 flex items-center justify-center rounded-sm text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                          title="Eliminar cliente"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

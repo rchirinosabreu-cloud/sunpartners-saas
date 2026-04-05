@@ -3,6 +3,7 @@ const crypto = require('crypto');
 
 const includeAll = {
   client: true,
+  consultant: { select: { id: true, nombre: true, email: true } },
   items: { include: { inventory: true } },
   services: true,
   planning: true,
@@ -11,11 +12,21 @@ const includeAll = {
 
 exports.getAll = async (req, res) => {
   try {
-    const { estado } = req.query;
+    const { estado, archived } = req.query;
+    const where = estado ? { estado } : {};
+
+    // Default: only non-archived. If archived='true', only archived.
+    if (archived === 'true') {
+      where.archivedAt = { not: null };
+    } else {
+      where.archivedAt = null;
+    }
+
     const quotations = await prisma.quotation.findMany({
-      where: estado ? { estado } : {},
+      where,
       include: {
         client: true,
+        consultant: { select: { nombre: true } },
         items: { include: { inventory: true } }
       },
       orderBy: { createdAt: 'desc' }
@@ -61,6 +72,7 @@ exports.create = async (req, res) => {
     const quotation = await prisma.quotation.create({
       data: {
         clientId,
+        consultantId: req.userId,
         nombre_evento: nombre_evento || 'Evento sin nombre',
         tipo_evento: tipo_evento || 'Corporativo',
         ubicacion: ubicacion || 'Por definir',
@@ -111,6 +123,15 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Security check for CONSULTOR
+    if (req.userRole === 'CONSULTOR') {
+      const existing = await prisma.quotation.findUnique({ where: { id } });
+      if (existing.consultantId !== req.userId) {
+        return res.status(403).json({ error: 'Acceso Denegado. Los consultores solo pueden editar sus propias cotizaciones.' });
+      }
+    }
+
     const {
         clientId,
         nombre_evento,
@@ -347,6 +368,7 @@ async function checkAvailability(quotationId) {
     where: {
       id: { not: quotationId },
       estado: { in: ['APROBADA', 'EJECUCION'] },
+      archivedAt: null, // Only non-archived quotations consume stock
       OR: [
         { montaje_inicio: { lte: end }, desmontaje_fin: { gte: start } }
       ]
@@ -384,4 +406,58 @@ exports.checkAvailabilityEndpoint = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+};
+
+exports.archive = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const quotation = await prisma.quotation.findUnique({ where: { id } });
+    if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
+
+    // Restriction: Only BORRADOR, ENVIADA, FINALIZADA, CANCELADA are allowed
+    const allowedStatuses = ['BORRADOR', 'ENVIADA', 'FINALIZADA', 'CANCELADA'];
+    if (!allowedStatuses.includes(quotation.estado)) {
+      return res.status(400).json({
+        error: `Restricción de Seguridad: No se pueden archivar cotizaciones en estado ${quotation.estado}. Solo se permiten estados de cierre o etapas iniciales.`
+      });
+    }
+
+    const updated = await prisma.quotation.update({
+      where: { id },
+      data: {
+        archivedAt: new Date(),
+        logs: {
+          create: {
+            message: 'Cotización ARCHIVADA. Se libera stock reservado.',
+            userId: req.userId
+          }
+        }
+      }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.unarchive = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updated = await prisma.quotation.update({
+      where: { id },
+      data: {
+        archivedAt: null,
+        logs: {
+          create: {
+            message: 'Cotización DESARCHIVADA. Vuelve a la línea de tiempo activa.',
+            userId: req.userId
+          }
+        }
+      }
+    });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

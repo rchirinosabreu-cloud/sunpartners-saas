@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { generateQuotationPDF } from '../utils/pdfGenerator';
 import Modal from '../components/ui/Modal';
 
 const QuotationDetail = () => {
+  const { user: currentUser } = useAuth();
   const { id } = useParams();
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -130,6 +132,12 @@ const QuotationDetail = () => {
                 }`}>
                   {quotation.estado}
                 </span>
+                  {quotation.archivedAt && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">inventory_2</span>
+                      Archivada
+                    </span>
+                  )}
               </div>
               <p className="text-xs text-zinc-500 font-body uppercase tracking-wider font-bold">{quotation.client.razon_social} • NIT: {quotation.client.nit_id}</p>
             </div>
@@ -145,8 +153,10 @@ const QuotationDetail = () => {
 
              {quotation.estado === 'BORRADOR' && (
                <button
+                disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
+                title={quotation.archivedAt ? "Desarchive esta cotización para realizar cambios" : (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id) ? "No tienes permisos para editar esta cotización" : ""}
                 onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg"
+                className={`flex items-center gap-2 bg-primary text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                >
                  <span className="material-symbols-outlined text-[18px]">edit_note</span>
                  Editar Cotización
@@ -155,8 +165,10 @@ const QuotationDetail = () => {
 
              {quotation.estado === 'REVISION_SOLICITADA' && (
                <button
+                disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
+                title={quotation.archivedAt ? "Desarchive esta cotización para realizar cambios" : (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id) ? "No tienes permisos para editar esta cotización" : ""}
                 onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className="flex items-center gap-2 bg-brand-alert text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg"
+                className={`flex items-center gap-2 bg-brand-alert text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                >
                  <span className="material-symbols-outlined text-[18px]">edit_note</span>
                  Editar y Corregir
@@ -301,6 +313,15 @@ const QuotationDetail = () => {
                     <span className="text-[10px] uppercase font-black text-zinc-400 block">Contacto Cliente</span>
                     <span className="text-sm font-bold text-zinc-900">{quotation.client.responsable}</span>
                     <span className="text-xs text-zinc-500 block">{quotation.client.ciudad}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-black text-zinc-400 block">Consultor Responsable</span>
+                    <div className="flex items-center gap-2 mt-1">
+                       <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 uppercase">
+                          {quotation.consultant?.nombre?.substring(0,2) || 'S'}
+                       </div>
+                       <span className="text-sm font-bold text-zinc-900 uppercase">{quotation.consultant?.nombre || 'SISTEMA'}</span>
+                    </div>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-black text-zinc-400 block">Fecha Principal</span>

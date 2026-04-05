@@ -77,4 +77,31 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { login, logout, getMe };
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 8 caracteres.' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: 'Contraseña actual incorrecta.' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: req.userId },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: 'Contraseña actualizada con éxito.' });
+  } catch (error) {
+    console.error('Error en changePassword:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};
+
+module.exports = { login, logout, getMe, changePassword };

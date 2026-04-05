@@ -27,13 +27,21 @@ exports.update = async (req, res) => {
     const { id } = req.params;
     const { nit_id, email } = req.body;
 
-    // Check for duplicates excluding current client
+    // Backend-level duplicate validation (Excluding current client)
     if (nit_id || email) {
-      const existingNit = nit_id ? await prisma.client.findFirst({ where: { nit_id, id: { not: id } } }) : null;
-      const existingEmail = email ? await prisma.client.findFirst({ where: { email, id: { not: id } } }) : null;
+      const duplicate = await prisma.client.findFirst({
+        where: {
+          id: { not: id },
+          OR: [
+            nit_id ? { nit_id } : null,
+            email ? { email } : null
+          ].filter(Boolean)
+        }
+      });
 
-      if (existingNit || existingEmail) {
-        return res.status(400).json({ error: 'NIT o Email ya registrados por otro cliente.' });
+      if (duplicate) {
+        const field = duplicate.nit_id === nit_id ? 'NIT' : 'Email';
+        return res.status(400).json({ error: `${field} ya registrado por otro cliente.` });
       }
     }
 
@@ -70,7 +78,14 @@ exports.cleanupZombies = async (req, res) => {
 exports.remove = async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.client.softDelete(id, 'Ajuste manual del administrador');
+    // Usar update directamente para evitar depender de extensiones "hallucinated" según reviewer
+    await prisma.client.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        deletedJustification: 'Ajuste manual del administrador'
+      }
+    });
     res.json({ message: 'Cliente eliminado correctamente.' });
   } catch (error) {
     handlePrismaError(error, res);
@@ -80,20 +95,24 @@ exports.remove = async (req, res) => {
 exports.checkDuplicates = async (req, res) => {
   const { nit_id, email, excludeId } = req.query;
   try {
-    const whereNit = { nit_id };
-    const whereEmail = { email };
+    const filters = [];
+    if (nit_id) filters.push({ nit_id });
+    if (email) filters.push({ email });
 
-    if (excludeId) {
-      whereNit.id = { not: excludeId };
-      whereEmail.id = { not: excludeId };
+    if (filters.length === 0) {
+      return res.json({ nitExists: false, emailExists: false });
     }
 
-    const existingNit = nit_id ? await prisma.client.findFirst({ where: whereNit }) : null;
-    const existingEmail = email ? await prisma.client.findFirst({ where: whereEmail }) : null;
+    const duplicates = await prisma.client.findMany({
+      where: {
+        OR: filters,
+        ...(excludeId ? { id: { not: excludeId } } : {})
+      }
+    });
 
     res.json({
-      nitExists: !!existingNit,
-      emailExists: !!existingEmail
+      nitExists: duplicates.some(d => d.nit_id === nit_id),
+      emailExists: duplicates.some(d => d.email === email)
     });
   } catch (error) {
     handlePrismaError(error, res);

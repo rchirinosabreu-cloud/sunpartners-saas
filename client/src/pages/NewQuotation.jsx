@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import NewClientModal from '../components/modals/NewClientModal';
 import Flatpickr from 'react-flatpickr';
@@ -211,6 +212,7 @@ const BlindajeDatePicker = ({ id, label, value, onChange }) => {
 
 
 const NewQuotation = () => {
+  const { user: currentUser } = useAuth();
   const { id } = useParams();
   const isEditing = !!id;
   const navigate = useNavigate();
@@ -556,6 +558,16 @@ const NewQuotation = () => {
                      <div className="lg:col-span-2">
                         <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Nombre Oficial del Proyecto</label>
                         <input type="text" value={formData.evento_nombre} onChange={e => setFormData({...formData, evento_nombre: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-4 font-black text-lg bg-zinc-50 outline-none focus:border-primary transition-all" placeholder="Ej: LANZAMIENTO SUNBTL 2026" />
+                     </div>
+
+                     <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Consultor Responsable</label>
+                        <div className="w-full border-2 border-zinc-100 rounded-lg p-3 bg-zinc-50 flex items-center gap-2">
+                           <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 uppercase">
+                              {currentUser?.nombre?.substring(0,2)}
+                           </div>
+                           <span className="text-xs font-bold text-zinc-900 uppercase">{currentUser?.nombre}</span>
+                        </div>
                      </div>
                      <div className="lg:col-span-2">
                         <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Ubicación Exacta (Venue)</label>
