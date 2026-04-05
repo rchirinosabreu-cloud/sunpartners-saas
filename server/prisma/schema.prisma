@@ -23,6 +23,7 @@ model User {
   deletedJustification String?
   logs                 EventLog[]
   quotations           Quotation[]
+  tasks                Task[]
 }
 
 model Client {
@@ -40,6 +41,7 @@ model Client {
   deletedAt            DateTime?
   deletedJustification String?
   quotations           Quotation[]
+  tasks                Task[]
 }
 
 model Inventory_Bodega {
@@ -162,6 +164,23 @@ model EventLog {
   user        User?     @relation(fields: [userId], references: [id])
 }
 
+model Task {
+  id                   String      @id @default(uuid())
+  titulo               String
+  status               TaskStatus  @default(PENDIENTE)
+  isPriority           Boolean     @default(false)
+  fechaLimite          DateTime
+  comentarios          String?
+  clientId             String
+  userId               String
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  client               Client      @relation(fields: [clientId], references: [id])
+  user                 User        @relation(fields: [userId], references: [id])
+}
+
 enum Role {
   ADMIN
   EDITOR
@@ -224,4 +243,10 @@ enum RejectionType {
   FECHAS
   CAMBIO_PLAN
   OTRO
+}
+
+enum TaskStatus {
+  PENDIENTE
+  EN_PROCESO
+  REALIZADO
 }

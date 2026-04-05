@@ -1,0 +1,85 @@
+const prisma = require('../db');
+
+exports.getAll = async (req, res) => {
+  try {
+    const tasks = await prisma.task.findMany({
+      include: {
+        client: { select: { id: true, razon_social: true } },
+        user: { select: { id: true, nombre: true, username: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.create = async (req, res) => {
+  try {
+    const { titulo, clientId, userId, fechaLimite, isPriority, comentarios, status } = req.body;
+
+    const task = await prisma.task.create({
+      data: {
+        titulo,
+        clientId,
+        userId,
+        fechaLimite: new Date(fechaLimite),
+        isPriority: isPriority || false,
+        comentarios,
+        status: status || 'PENDIENTE'
+      },
+      include: {
+        client: { select: { id: true, razon_social: true } },
+        user: { select: { id: true, nombre: true, username: true } }
+      }
+    });
+    res.status(201).json(task);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { titulo, clientId, userId, fechaLimite, isPriority, comentarios, status } = req.body;
+
+    const data = {};
+    if (titulo) data.titulo = titulo;
+    if (clientId) data.clientId = clientId;
+    if (userId) data.userId = userId;
+    if (fechaLimite) data.fechaLimite = new Date(fechaLimite);
+    if (isPriority !== undefined) data.isPriority = isPriority;
+    if (comentarios !== undefined) data.comentarios = comentarios;
+    if (status) data.status = status;
+
+    const task = await prisma.task.update({
+      where: { id },
+      data,
+      include: {
+        client: { select: { id: true, razon_social: true } },
+        user: { select: { id: true, nombre: true, username: true } }
+      }
+    });
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.remove = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.task.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        deletedJustification: 'Ajuste manual del administrador'
+      }
+    });
+    res.json({ message: 'Tarea eliminada correctamente.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

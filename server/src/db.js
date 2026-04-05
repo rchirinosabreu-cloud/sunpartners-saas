@@ -63,7 +63,7 @@ const prisma = prismaClient.$extends({
     },
     $allModels: {
       async findMany({ model, operation, args, query }) {
-        const modelsWithSoftDelete = ['User', 'Client', 'Inventory_Bodega', 'Inventory_Commercial', 'Quotation', 'QuotationItem', 'QuotationService'];
+        const modelsWithSoftDelete = ['User', 'Client', 'Inventory_Bodega', 'Inventory_Commercial', 'Quotation', 'QuotationItem', 'QuotationService', 'Task'];
         if (!modelsWithSoftDelete.includes(model)) return query(args);
 
         if (!args) args = {};
@@ -72,7 +72,7 @@ const prisma = prismaClient.$extends({
         return query(args);
       },
       async findFirst({ model, operation, args, query }) {
-        const modelsWithSoftDelete = ['User', 'Client', 'Inventory_Bodega', 'Inventory_Commercial', 'Quotation', 'QuotationItem', 'QuotationService'];
+        const modelsWithSoftDelete = ['User', 'Client', 'Inventory_Bodega', 'Inventory_Commercial', 'Quotation', 'QuotationItem', 'QuotationService', 'Task'];
         if (!modelsWithSoftDelete.includes(model)) return query(args);
 
         if (!args) args = {};
@@ -81,7 +81,7 @@ const prisma = prismaClient.$extends({
         return query(args);
       },
       async count({ model, operation, args, query }) {
-        const modelsWithSoftDelete = ['User', 'Client', 'Inventory_Bodega', 'Inventory_Commercial', 'Quotation', 'QuotationItem', 'QuotationService'];
+        const modelsWithSoftDelete = ['User', 'Client', 'Inventory_Bodega', 'Inventory_Commercial', 'Quotation', 'QuotationItem', 'QuotationService', 'Task'];
         if (!modelsWithSoftDelete.includes(model)) return query(args);
 
         if (!args) args = {};

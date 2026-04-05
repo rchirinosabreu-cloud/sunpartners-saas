@@ -13,6 +13,7 @@ import NewQuotation from './pages/NewQuotation';
 import PublicQuotation from './pages/PublicQuotation';
 import Profile from './pages/Profile';
 import TeamSettings from './pages/TeamSettings';
+import Kanban from './pages/Kanban';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="cotizaciones/nueva" element={<NewQuotation />} />
             <Route path="cotizaciones/editar/:id" element={<NewQuotation />} />
             <Route path="cotizaciones/:id" element={<QuotationDetail />} />
+            <Route path="tareas" element={<Kanban />} />
             <Route path="perfil" element={<Profile />} />
             <Route
               path="equipo"
