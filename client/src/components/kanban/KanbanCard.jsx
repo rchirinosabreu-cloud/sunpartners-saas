@@ -37,7 +37,9 @@ const KanbanCard = ({ task, onClick }) => {
       <div className="flex flex-col gap-2">
         <div className="pr-6">
           <h4 className="font-bold text-zinc-900 text-[13px] leading-tight uppercase line-clamp-2">{task.titulo}</h4>
-          <p className="text-[11px] font-black text-primary uppercase mt-1 tracking-tight">{task.client?.razon_social || 'SIN CLIENTE'}</p>
+          {task.client && (
+            <p className="text-[11px] font-black text-primary uppercase mt-1 tracking-tight">{task.client.razon_social}</p>
+          )}
         </div>
 
         <div className="flex items-center justify-between mt-2 pt-3 border-t border-zinc-50">
