@@ -24,16 +24,15 @@ const KanbanCard = ({ task, onClick }) => {
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       className={`
         relative bg-white p-4 rounded-xl shadow-sm border-2 transition-all cursor-pointer group
-        ${task.isPriority ? 'border-l-[6px] border-l-red-500 border-zinc-100' : 'border-zinc-100 hover:border-primary/30'}
+        ${task.isPriority ? 'border-l-[2px] border-l-red-500 border-zinc-100' : 'border-zinc-100 hover:border-primary/30'}
         ${isDragging ? 'z-50 shadow-xl scale-105' : ''}
       `}
       onClick={() => onClick(task)}
     >
-      <div {...attributes} {...listeners} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-zinc-100 rounded-md cursor-grab active:cursor-grabbing">
-        <span className="material-symbols-outlined text-zinc-400 text-[18px]">drag_indicator</span>
-      </div>
 
       <div className="flex flex-col gap-2">
         <div className="pr-6">
@@ -53,7 +52,7 @@ const KanbanCard = ({ task, onClick }) => {
 
           <div className="flex items-center gap-1.5">
              <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${isExpired ? 'bg-red-50 text-red-600' : 'bg-zinc-50 text-zinc-400'}`}>
-                <span className="material-symbols-outlined text-[14px]">{isExpired ? 'skull' : 'calendar_today'}</span>
+                <span className={`material-symbols-outlined text-[14px] ${isExpired ? 'animate-pulse' : ''}`}>{isExpired ? 'skull' : 'calendar_today'}</span>
                 {format(new Date(task.fechaLimite), 'dd/MM')}
              </div>
           </div>

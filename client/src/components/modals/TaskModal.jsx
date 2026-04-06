@@ -70,6 +70,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
       onClose={onClose}
       title={editingTask ? 'Editar Tarea' : 'Nueva Tarea'}
       type="info"
+      showFooter={false}
     >
       <form onSubmit={handleSubmit} className="space-y-4 p-2">
         <div className="space-y-1">
@@ -85,9 +86,8 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente (Opcional)</label>
             <select
-              required
               className="w-full h-11 border-2 border-zinc-100 rounded-lg px-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
               value={formData.clientId}
               onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
@@ -106,7 +106,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
               onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
             >
               <option value="">Seleccionar Responsable</option>
-              {users.map(u => <option key={u.id} value={u.id}>{u.nombre} (@{u.username})</option>)}
+              {users.map(u => <option key={u.id} value={u.id}>{u.nombre}</option>)}
             </select>
           </div>
         </div>
@@ -156,7 +156,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
              checked={formData.isPriority}
              onChange={(e) => setFormData({ ...formData, isPriority: e.target.checked })}
            />
-           <label htmlFor="isPriority" className="text-[11px] font-black uppercase tracking-widest text-zinc-600 cursor-pointer">Marcar como PRIORIDAD ALTA (Resaltado en tablero)</label>
+           <label htmlFor="isPriority" className="text-[11px] font-black uppercase tracking-widest text-zinc-600 cursor-pointer">Prioritario</label>
         </div>
 
         <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100">

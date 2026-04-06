@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null }) => {
+const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null, showFooter = true }) => {
   if (!isOpen) return null;
 
   const typeStyles = {
@@ -33,6 +33,7 @@ const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null 
             {children}
           </div>
         </div>
+        {showFooter && (
         <div className="bg-zinc-50/80 px-8 py-5 flex items-center justify-end gap-3 border-t border-zinc-100">
           {action ? (
             <>
@@ -58,6 +59,7 @@ const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null 
             </button>
           )}
         </div>
+        )}
       </div>
     </div>
   );
