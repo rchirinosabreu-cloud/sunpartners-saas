@@ -22,7 +22,7 @@ exports.create = async (req, res) => {
     const task = await prisma.task.create({
       data: {
         titulo,
-        clientId,
+        clientId: clientId || null,
         userId,
         fechaLimite: new Date(fechaLimite),
         isPriority: isPriority || false,
@@ -47,7 +47,7 @@ exports.update = async (req, res) => {
 
     const data = {};
     if (titulo) data.titulo = titulo;
-    if (clientId) data.clientId = clientId;
+    if (clientId !== undefined) data.clientId = clientId || null;
     if (userId) data.userId = userId;
     if (fechaLimite) data.fechaLimite = new Date(fechaLimite);
     if (isPriority !== undefined) data.isPriority = isPriority;

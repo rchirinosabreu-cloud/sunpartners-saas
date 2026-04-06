@@ -86,7 +86,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente (Opcional)</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente</label>
             <select
               className="w-full h-11 border-2 border-zinc-100 rounded-lg px-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
               value={formData.clientId}
