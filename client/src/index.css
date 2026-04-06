@@ -115,6 +115,16 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #a1a1aa;
   }
+
+  @keyframes floating {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(5deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+  }
+
+  .animate-floating {
+    animation: floating 3s ease-in-out infinite;
+  }
 }
 
 :root {

@@ -1,6 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { format, isBefore, startOfDay } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
+
+const COLOMBIA_TZ = 'America/Bogota';
 
 const KanbanCard = ({ task, onClick }) => {
   const {
@@ -18,7 +21,8 @@ const KanbanCard = ({ task, onClick }) => {
     opacity: isDragging ? 0.5 : task.status === 'REALIZADO' ? 0.7 : 1,
   };
 
-  const isExpired = task.status !== 'REALIZADO' && isBefore(new Date(task.fechaLimite), startOfDay(new Date()));
+  const nowColombia = toZonedTime(new Date(), COLOMBIA_TZ);
+  const isExpired = task.status !== 'REALIZADO' && isBefore(new Date(task.fechaLimite), startOfDay(nowColombia));
 
   return (
     <div
@@ -33,6 +37,11 @@ const KanbanCard = ({ task, onClick }) => {
       `}
       onClick={() => onClick(task)}
     >
+      {isExpired && (
+        <div className="absolute -top-3 -right-3 text-4xl z-10 animate-floating select-none" title="Tarea Vencida">
+          💀
+        </div>
+      )}
 
       <div className="flex flex-col gap-2">
         <div className="pr-6">
@@ -54,7 +63,7 @@ const KanbanCard = ({ task, onClick }) => {
 
           <div className="flex items-center gap-1.5">
              <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${isExpired ? 'bg-red-50 text-red-600' : 'bg-zinc-50 text-zinc-400'}`}>
-                <span className={`material-symbols-outlined text-[14px] ${isExpired ? 'animate-pulse' : ''}`}>{isExpired ? 'skull' : 'calendar_today'}</span>
+                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                 {format(new Date(task.fechaLimite), 'dd/MM')}
              </div>
           </div>

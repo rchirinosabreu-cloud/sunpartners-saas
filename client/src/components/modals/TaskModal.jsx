@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../ui/Modal';
+import { formatInTimeZone, toDate } from 'date-fns-tz';
+
+const COLOMBIA_TZ = 'America/Bogota';
 
 const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
+  const getTodayColombia = () => formatInTimeZone(new Date(), COLOMBIA_TZ, 'yyyy-MM-dd');
+
   const [formData, setFormData] = useState({
     titulo: '',
     clientId: '',
     userId: '',
-    fechaLimite: new Date().toISOString().split('T')[0],
+    fechaLimite: getTodayColombia(),
     isPriority: false,
     comentarios: '',
     status: 'PENDIENTE'
@@ -34,14 +39,15 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
     if (editingTask) {
       setFormData({
         ...editingTask,
-        fechaLimite: new Date(editingTask.fechaLimite).toISOString().split('T')[0]
+        clientId: editingTask.clientId || '',
+        fechaLimite: formatInTimeZone(new Date(editingTask.fechaLimite), COLOMBIA_TZ, 'yyyy-MM-dd')
       });
     } else {
       setFormData({
         titulo: '',
         clientId: '',
         userId: '',
-        fechaLimite: new Date().toISOString().split('T')[0],
+        fechaLimite: getTodayColombia(),
         isPriority: false,
         comentarios: '',
         status: 'PENDIENTE'
@@ -52,15 +58,35 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Forzar 00:00:00 en Colombia
+      const colombiaDate = toDate(`${formData.fechaLimite}T00:00:00`, { timeZone: COLOMBIA_TZ });
+
+      const payload = {
+        ...formData,
+        clientId: formData.clientId || null,
+        fechaLimite: colombiaDate.toISOString()
+      };
+
       if (editingTask) {
-        await axios.put(`/api/tasks/${editingTask.id}`, formData);
+        await axios.put(`/api/tasks/${editingTask.id}`, payload);
       } else {
-        await axios.post('/api/tasks', formData);
+        await axios.post('/api/tasks', payload);
       }
       onTaskCreated();
       onClose();
     } catch (error) {
       console.error('Error saving task:', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!editingTask) return;
+    try {
+      await axios.delete(`/api/tasks/${editingTask.id}`);
+      onTaskCreated();
+      onClose();
+    } catch (error) {
+      console.error('Error deleting task:', error);
     }
   };
 
@@ -89,10 +115,10 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
             <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente</label>
             <select
               className="w-full h-11 border-2 border-zinc-100 rounded-lg px-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
-              value={formData.clientId}
-              onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
+              value={formData.clientId || ''}
+              onChange={(e) => setFormData({ ...formData, clientId: e.target.value || null })}
             >
-              <option value="">Seleccionar Cliente</option>
+              <option value="">Ninguno / No aplica</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.razon_social}</option>)}
             </select>
           </div>
@@ -159,9 +185,19 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
            <label htmlFor="isPriority" className="text-[11px] font-black uppercase tracking-widest text-zinc-600 cursor-pointer">Prioritario</label>
         </div>
 
-        <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100">
+        <div className="flex justify-end items-center gap-3 pt-6 border-t border-zinc-100 mt-4">
+          {editingTask && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="mr-auto w-10 h-10 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
+              title="Eliminar Tarea"
+            >
+              <span className="material-symbols-outlined">delete</span>
+            </button>
+          )}
           <button type="button" onClick={onClose} className="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-zinc-100 transition-colors">Cancelar</button>
-          <button type="submit" className="bg-primary text-white px-10 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest hover:opacity-90 shadow-lg transition-all">{editingTask ? 'Actualizar Tarea' : 'Crear Tarea'}</button>
+          <button type="submit" className="bg-primary text-white px-10 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest hover:opacity-90 shadow-lg transition-all">{editingTask ? 'Actualizar' : 'Crear Tarea'}</button>
         </div>
       </form>
     </Modal>
