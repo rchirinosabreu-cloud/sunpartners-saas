@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import NewClientModal from '../components/modals/NewClientModal';
+import { calculateLineTotal } from '../utils/quotationUtils';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import 'flatpickr/dist/themes/light.css';
@@ -325,13 +326,6 @@ const NewQuotation = () => {
   }, [id, isEditing]);
 
   const financials = useMemo(() => {
-    const calculateLineTotal = (item) => {
-      const cant = parseInt(item.cantidad || 0);
-      const dias = parseInt(item.dias || 1);
-      const v1 = parseFloat(item.precio_pactado || 0);
-      const vExtra = parseFloat(item.precio_dia_adicional || 0);
-      return (cant * v1) + (cant * (Math.max(0, dias - 1)) * vExtra);
-    };
     const subtotal = formData.items.reduce((acc, it) => acc + calculateLineTotal(it), 0) +
                      formData.services.reduce((acc, sv) => acc + calculateLineTotal(sv), 0);
     return { subtotal, total: subtotal * 1.19 };
@@ -665,40 +659,38 @@ const NewQuotation = () => {
                               const n = [...formData.services]; n[idx][f] = v;
                               setFormData({...formData, services: n});
                            };
-                           const calculateSvTotal = (item) => {
-                             const cant = parseInt(item.cantidad || 0);
-                             const dias = parseInt(item.dias || 1);
-                             const v1 = parseFloat(item.precio_pactado || 0);
-                             const vExtra = parseFloat(item.precio_dia_adicional || 0);
-                             return (cant * v1) + (cant * (Math.max(0, dias - 1)) * vExtra);
-                           };
                            return (
                               <tr key={`sv-${idx}`} className="border-b border-zinc-50 bg-primary/[0.02]">
                                  <td className="p-4">
-                                    <div className="flex gap-2">
-                                       <select
-                                          value={sv.tipo}
-                                          onChange={e => updateSv('tipo', e.target.value)}
-                                          className="w-40 p-2 bg-white border border-zinc-200 rounded text-[10px] font-black uppercase outline-none focus:border-primary"
-                                       >
-                                          <option value="Transporte">Transporte</option>
-                                          <option value="Cargue / Descargue">Cargue / Descargue</option>
-                                          <option value="Personal">Personal</option>
-                                       </select>
-                                       <input
-                                          type="text"
-                                          value={sv.descripcion}
-                                          onChange={e => updateSv('descripcion', e.target.value)}
-                                          placeholder="Descripción del servicio..."
-                                          className="flex-1 p-2 bg-white border border-zinc-200 rounded italic text-zinc-500 font-medium outline-none focus:border-primary text-xs"
-                                       />
+                                    <div className="flex flex-col gap-1">
+                                       <div className="flex gap-2">
+                                          <select
+                                             value={sv.tipo}
+                                             onChange={e => updateSv('tipo', e.target.value)}
+                                             className="w-40 p-2 bg-white border border-zinc-200 rounded text-[10px] font-black uppercase outline-none focus:border-primary"
+                                          >
+                                             <option value="Transporte">Transporte</option>
+                                             <option value="Cargue / Descargue">Cargue / Descargue</option>
+                                             <option value="Personal">Personal</option>
+                                          </select>
+                                          <input
+                                             type="text"
+                                             value={sv.descripcion}
+                                             onChange={e => updateSv('descripcion', e.target.value)}
+                                             placeholder="Descripción del servicio..."
+                                             className="flex-1 p-2 bg-white border border-zinc-200 rounded italic text-zinc-500 font-medium outline-none focus:border-primary text-xs"
+                                          />
+                                       </div>
+                                       <div className="px-1">
+                                          <span className="text-[9px] text-zinc-400 font-bold uppercase">({sv.cantidad || 0} UNIDADES X {sv.dias || 1} DÍAS)</span>
+                                       </div>
                                     </div>
                                  </td>
                                  <td className="p-4"><input type="number" value={sv.cantidad} onChange={e => updateSv('cantidad', e.target.value)} className="w-16 text-center bg-transparent outline-none" /></td>
                                  <td className="p-4"><input type="number" value={sv.dias} onChange={e => updateSv('dias', e.target.value)} className="w-16 text-center bg-transparent outline-none" /></td>
                                  <td className="p-4 text-right">$ <input type="number" value={sv.precio_pactado} onChange={e => updateSv('precio_pactado', e.target.value)} className="w-24 text-right bg-transparent outline-none" /></td>
                                  <td className="p-4 text-right">$ <input type="number" value={sv.precio_dia_adicional} onChange={e => updateSv('precio_dia_adicional', e.target.value)} className="w-24 text-right bg-transparent outline-none" /></td>
-                                 <td className="p-6 text-right text-primary font-black text-sm">$ {calculateSvTotal(sv).toLocaleString()}</td>
+                                 <td className="p-6 text-right text-primary font-black text-sm">$ {calculateLineTotal(sv).toLocaleString()}</td>
                                  <td className="p-6"><button type="button" onClick={() => setFormData(p => ({...p, services: p.services.filter((_, i) => i !== idx)}))} className="text-zinc-300 hover:text-red-500 transition-colors">×</button></td>
                               </tr>
                            );
@@ -718,28 +710,28 @@ const NewQuotation = () => {
                               }
                               setFormData({...formData, items: n});
                            };
-                           const calculateLineTotal = (item) => {
-                             const cant = parseInt(item.cantidad || 0);
-                             const dias = parseInt(item.dias || 1);
-                             const v1 = parseFloat(item.precio_pactado || 0);
-                             const vExtra = parseFloat(item.precio_dia_adicional || 0);
-                             return (cant * v1) + (cant * (Math.max(0, dias - 1)) * vExtra);
-                           };
                            return (
                               <tr key={idx} className="border-b border-zinc-50 hover:bg-zinc-50/50">
                                  <td className="p-4">
-                                    <div className="flex items-center gap-2">
-                                       <SearchableSelect
-                                          value={it.inventoryId}
-                                          options={inventory}
-                                          onChange={val => update('inventoryId', val)}
-                                       />
-                                       {hasStockWarning && (
-                                          <div className="group relative">
-                                             <span className="material-symbols-outlined text-[#FBAE17] font-black cursor-help">warning</span>
-                                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-zinc-900 text-white text-[10px] rounded-lg shadow-xl z-50 text-center">
-                                                Stock insuficiente. Disponibles: {stockDisponible}
+                                    <div className="flex flex-col gap-1">
+                                       <div className="flex items-center gap-2">
+                                          <SearchableSelect
+                                             value={it.inventoryId}
+                                             options={inventory}
+                                             onChange={val => update('inventoryId', val)}
+                                          />
+                                          {hasStockWarning && (
+                                             <div className="group relative">
+                                                <span className="material-symbols-outlined text-[#FBAE17] font-black cursor-help">warning</span>
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-zinc-900 text-white text-[10px] rounded-lg shadow-xl z-50 text-center">
+                                                   Stock insuficiente. Disponibles: {stockDisponible}
+                                                </div>
                                              </div>
+                                          )}
+                                       </div>
+                                       {it.inventoryId && (
+                                          <div className="px-1">
+                                             <span className="text-[9px] text-zinc-400 font-bold uppercase">({it.cantidad || 0} UNIDADES X {it.dias || 1} DÍAS)</span>
                                           </div>
                                        )}
                                     </div>
