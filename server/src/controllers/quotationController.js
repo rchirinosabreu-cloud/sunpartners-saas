@@ -1,5 +1,6 @@
 const prisma = require('../db');
 const crypto = require('crypto');
+const { calculateLineTotal } = require('../utils/quotationUtils');
 
 const includeAll = {
   client: true,
@@ -69,6 +70,10 @@ exports.create = async (req, res) => {
         estado = 'BORRADOR'
     } = req.body;
 
+    const vlrNeto = (items || []).reduce((acc, it) => acc + calculateLineTotal(it), 0) +
+                   (services || []).reduce((acc, sv) => acc + calculateLineTotal(sv), 0);
+    const vlrTotal = vlrNeto * 1.19;
+
     const quotation = await prisma.quotation.create({
       data: {
         clientId,
@@ -84,6 +89,8 @@ exports.create = async (req, res) => {
         desmontaje_fin: new Date(desmontaje_fin),
         bitacora,
         estado,
+        vlrNeto,
+        vlrTotal,
         items: {
           create: (items || []).map(item => ({
             inventoryId: item.inventoryId,
@@ -148,6 +155,10 @@ exports.update = async (req, res) => {
         services
     } = req.body;
 
+    const vlrNeto = (items || []).reduce((acc, it) => acc + calculateLineTotal(it), 0) +
+                   (services || []).reduce((acc, sv) => acc + calculateLineTotal(sv), 0);
+    const vlrTotal = vlrNeto * 1.19;
+
     // Delete existing items and services to replace them
     await prisma.quotationItem.deleteMany({ where: { quotationId: id } });
     await prisma.quotationService.deleteMany({ where: { quotationId: id } });
@@ -166,6 +177,8 @@ exports.update = async (req, res) => {
         desmontaje_inicio: new Date(desmontaje_inicio),
         desmontaje_fin: new Date(desmontaje_fin),
         bitacora,
+        vlrNeto,
+        vlrTotal,
         items: {
           create: (items || []).map(item => ({
             inventoryId: item.inventoryId,

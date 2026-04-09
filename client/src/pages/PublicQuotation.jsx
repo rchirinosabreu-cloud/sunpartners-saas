@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import { calculateLineTotal } from '../utils/quotationUtils';
 import Modal from '../components/ui/Modal';
 
 const PublicQuotation = () => {
@@ -96,17 +97,8 @@ const PublicQuotation = () => {
     );
   }
 
-  const calculateLineTotalPublic = (item) => {
-    if (!item) return 0;
-    const cant = parseInt(item.cantidad || 0);
-    const dias = parseInt(item.dias || 1);
-    const v1 = parseFloat(item.precio_pactado || 0);
-    const vExtra = parseFloat(item.precio_dia_adicional || 0);
-    return (cant * v1) + (cant * (Math.max(0, dias - 1)) * vExtra);
-  };
-
-  const subtotalItems = (quotation?.items || []).reduce((acc, item) => acc + calculateLineTotalPublic(item), 0);
-  const subtotalServices = (quotation?.services || []).reduce((acc, svc) => acc + calculateLineTotalPublic(svc), 0);
+  const subtotalItems = (quotation?.items || []).reduce((acc, item) => acc + calculateLineTotal(item), 0);
+  const subtotalServices = (quotation?.services || []).reduce((acc, svc) => acc + calculateLineTotal(svc), 0);
   const subtotal = subtotalItems + subtotalServices;
   const iva = subtotal * 0.19;
   const total = subtotal + iva;
@@ -189,7 +181,7 @@ const PublicQuotation = () => {
                 <tr className="border-b-2 border-zinc-100">
                   <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900">Descripción Técnica</th>
                   <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-center">Cant.</th>
-                  <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-center">Días</th>
+                  <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-center">Días.</th>
                   <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-right">Inversión Un.</th>
                   <th className="pb-6 text-[10px] font-black uppercase tracking-widest text-zinc-900 text-right">Subtotal</th>
                 </tr>
@@ -199,30 +191,36 @@ const PublicQuotation = () => {
                   <tr key={idx} className="group">
                     <td className="py-8">
                        <p className="font-black text-base text-zinc-900 uppercase tracking-tight group-hover:text-primary transition-colors">{item.inventory.nombre_comercial}</p>
+                       <span className="text-[10px] font-bold text-zinc-400 uppercase mt-0.5">({item.cantidad} UNIDADES X {item.dias} DÍAS)</span>
                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1 block">Estándar de Calidad: Clase {item.clase_asignada}</span>
                     </td>
                     <td className="py-8 text-center font-black text-zinc-600">{item.cantidad}</td>
                     <td className="py-8 text-center font-black text-zinc-600">{item.dias}</td>
-                    <td className="py-8 text-right font-bold text-zinc-500">
-                       <p>$ {item.precio_pactado.toLocaleString()}</p>
-                       {item.dias > 1 && <p className="text-[8px] text-zinc-400 font-black">+ $ {item.precio_dia_adicional.toLocaleString()} / día extra</p>}
+                    <td className="py-8 text-right font-bold text-zinc-500 text-[10px] uppercase">
+                       <div className="flex flex-col">
+                          <span>VR. 1ER DÍA: $ {item.precio_pactado.toLocaleString()}</span>
+                          {item.dias > 1 && <span className="text-primary font-black">VR. ADIC: $ {item.precio_dia_adicional.toLocaleString()}</span>}
+                       </div>
                     </td>
-                    <td className="py-8 text-right font-black text-lg text-zinc-900 tracking-tighter">$ {calculateLineTotalPublic(item).toLocaleString()}</td>
+                    <td className="py-8 text-right font-black text-lg text-zinc-900 tracking-tighter">$ {calculateLineTotal(item).toLocaleString()}</td>
                   </tr>
                 ))}
                 {(quotation.services || []).map((svc, idx) => (
                   <tr key={idx}>
                     <td className="py-8 border-l-4 border-primary/20 pl-4 bg-primary/5">
                        <p className="font-black text-base text-zinc-900 uppercase tracking-tight">{svc.descripcion}</p>
+                       <span className="text-[10px] font-bold text-zinc-400 uppercase mt-0.5">({svc.cantidad} UNIDADES X {svc.dias} DÍAS)</span>
                        <span className="text-[9px] font-black text-primary uppercase tracking-widest mt-1 block">{svc.tipo} Especializado</span>
                     </td>
                     <td className="py-8 text-center font-black text-zinc-600 bg-primary/5">{svc.cantidad}</td>
                     <td className="py-8 text-center font-black text-zinc-600 bg-primary/5">{svc.dias}</td>
-                    <td className="py-8 text-right font-bold text-zinc-500 bg-primary/5">
-                       <p>$ {svc.precio_pactado.toLocaleString()}</p>
-                       {svc.dias > 1 && <p className="text-[8px] text-zinc-400 font-black">+ $ {svc.precio_dia_adicional.toLocaleString()} / día extra</p>}
+                    <td className="py-8 text-right font-bold text-zinc-500 bg-primary/5 text-[10px] uppercase">
+                       <div className="flex flex-col">
+                          <span>VR. 1ER DÍA: $ {svc.precio_pactado.toLocaleString()}</span>
+                          {svc.dias > 1 && <span className="text-primary font-black">VR. ADIC: $ {svc.precio_dia_adicional.toLocaleString()}</span>}
+                       </div>
                     </td>
-                    <td className="py-8 text-right font-black text-lg text-zinc-900 tracking-tighter bg-primary/5">$ {calculateLineTotalPublic(svc).toLocaleString()}</td>
+                    <td className="py-8 text-right font-black text-lg text-zinc-900 tracking-tighter bg-primary/5">$ {calculateLineTotal(svc).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

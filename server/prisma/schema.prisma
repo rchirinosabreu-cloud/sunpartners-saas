@@ -90,6 +90,7 @@ model Quotation {
   desmontaje_fin       DateTime
   ubicacion            String
   estado               QuotationStatus    @default(BORRADOR)
+  vlrNeto              Float              @default(0)
   vlrTotal             Float              @default(0)
   bitacora             String?
   secureHash           String?            @unique

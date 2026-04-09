@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { generateQuotationPDF } from '../utils/pdfGenerator';
+import { calculateLineTotal } from '../utils/quotationUtils';
 import Modal from '../components/ui/Modal';
 
 const QuotationDetail = () => {
@@ -73,8 +74,8 @@ const QuotationDetail = () => {
   if (loading) return <div className="p-8 font-body text-zinc-500 text-center mt-20 animate-pulse">Sincronizando con el motor de negocio...</div>;
   if (!quotation) return <div className="p-8 font-body text-red-500 text-center">Cotización no encontrada.</div>;
 
-  const subtotalItems = (quotation.items || []).reduce((acc, item) => acc + (item.cantidad * item.precio_pactado), 0);
-  const subtotalServices = (quotation.services || []).reduce((acc, svc) => acc + (svc.cantidad * svc.precio_pactado), 0);
+  const subtotalItems = (quotation.items || []).reduce((acc, item) => acc + calculateLineTotal(item), 0);
+  const subtotalServices = (quotation.services || []).reduce((acc, svc) => acc + calculateLineTotal(svc), 0);
   const subtotal = subtotalItems + subtotalServices;
   const iva = subtotal * 0.19;
   const total = subtotal + iva;
@@ -241,15 +242,18 @@ const QuotationDetail = () => {
                   {quotation.items.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between py-2 border-b border-zinc-50 last:border-0">
                       <div className="flex flex-col">
-                        <span className="font-bold text-zinc-900 text-sm">{item.inventory.nombre}</span>
+                        <span className="font-bold text-zinc-900 text-sm uppercase">{item.inventory.nombre}</span>
+                        <span className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">({item.cantidad} UNIDADES X {item.dias} DÍAS)</span>
                         <div className="flex items-center gap-3 mt-1.5">
                           <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${item.clase_asignada === 'A' ? 'bg-primary/10 text-primary' : 'bg-brand-alert/10 text-brand-alert'}`}>Clase {item.clase_asignada}</span>
-                          <span className="text-[11px] text-zinc-400 font-bold uppercase tracking-tighter">Cantidad: {item.cantidad}</span>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="block text-sm font-black text-zinc-900">$ {(item.precio_pactado * item.cantidad).toLocaleString()}</span>
-                        <span className="text-[10px] text-zinc-400 font-bold">$ {item.precio_pactado.toLocaleString()} /u</span>
+                        <span className="block text-sm font-black text-zinc-900">$ {calculateLineTotal(item).toLocaleString()}</span>
+                        <div className="flex flex-col text-[9px] text-zinc-400 font-bold mt-0.5">
+                          <span>VR. 1ER DÍA: $ {item.precio_pactado.toLocaleString()}</span>
+                          {item.dias > 1 && <span>VR. ADIC: $ {item.precio_dia_adicional.toLocaleString()}</span>}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -266,10 +270,15 @@ const QuotationDetail = () => {
                         <div key={idx} className="flex items-center justify-between py-2 border-b border-zinc-50 last:border-0">
                           <div>
                             <span className="text-[10px] font-black uppercase text-zinc-400 block mb-0.5">{svc.tipo}</span>
-                            <span className="font-bold text-zinc-900 text-sm">{svc.descripcion}</span>
+                            <span className="font-bold text-zinc-900 text-sm uppercase">{svc.descripcion}</span>
+                            <span className="text-[10px] text-zinc-400 font-bold uppercase block mt-0.5">({svc.cantidad} UNIDADES X {svc.dias} DÍAS)</span>
                           </div>
-                          <div className="text-right font-black text-zinc-900 text-sm">
-                            $ {(svc.precio_pactado * svc.cantidad).toLocaleString()}
+                          <div className="text-right">
+                            <span className="block text-sm font-black text-zinc-900">$ {calculateLineTotal(svc).toLocaleString()}</span>
+                            <div className="flex flex-col text-[9px] text-zinc-400 font-bold mt-0.5">
+                              <span>VR. 1ER DÍA: $ {svc.precio_pactado.toLocaleString()}</span>
+                              {svc.dias > 1 && <span>VR. ADIC: $ {svc.precio_dia_adicional.toLocaleString()}</span>}
+                            </div>
                           </div>
                         </div>
                       ))}

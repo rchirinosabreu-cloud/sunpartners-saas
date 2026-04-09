@@ -1,12 +1,13 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { calculateLineTotal } from './quotationUtils';
 
 export const generateQuotationPDF = (quotation) => {
   const doc = new jsPDF();
 
   // Totals Calculation
-  const subtotalItems = (quotation.items || []).reduce((acc, item) => acc + (item.cantidad * item.precio_pactado), 0);
-  const subtotalServices = (quotation.services || []).reduce((acc, svc) => acc + (svc.cantidad * svc.precio_pactado), 0);
+  const subtotalItems = (quotation.items || []).reduce((acc, item) => acc + calculateLineTotal(item), 0);
+  const subtotalServices = (quotation.services || []).reduce((acc, svc) => acc + calculateLineTotal(svc), 0);
   const subtotal = subtotalItems + subtotalServices;
   const iva = subtotal * 0.19;
   const total = subtotal + iva;
@@ -53,18 +54,18 @@ export const generateQuotationPDF = (quotation) => {
   // Items Table
   const tableData = [
     ...(quotation.items || []).map(item => [
-      item.inventory.nombre,
+      `${item.inventory.nombre.toUpperCase()}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)`,
       `Clase ${item.clase_asignada}`,
       item.cantidad,
-      `$ ${item.precio_pactado.toLocaleString()}`,
-      `$ ${(item.precio_pactado * item.cantidad).toLocaleString()}`
+      `$ ${item.precio_pactado.toLocaleString()}${item.dias > 1 ? ` (+ $ ${item.precio_dia_adicional.toLocaleString()} adic)` : ''}`,
+      `$ ${calculateLineTotal(item).toLocaleString()}`
     ]),
     ...(quotation.services || []).map(svc => [
-      svc.descripcion,
+      `${svc.descripcion.toUpperCase()}\n(${svc.cantidad} UNIDADES X ${svc.dias} DÍAS)`,
       svc.tipo,
       svc.cantidad,
-      `$ ${svc.precio_pactado.toLocaleString()}`,
-      `$ ${(svc.precio_pactado * svc.cantidad).toLocaleString()}`
+      `$ ${svc.precio_pactado.toLocaleString()}${svc.dias > 1 ? ` (+ $ ${svc.precio_dia_adicional.toLocaleString()} adic)` : ''}`,
+      `$ ${calculateLineTotal(svc).toLocaleString()}`
     ])
   ];
 
