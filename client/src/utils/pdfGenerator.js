@@ -1,16 +1,12 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { calculateLineTotal } from './quotationUtils';
+import { calculateLineTotal, calculateTotals } from './quotationUtils';
 
 export const generateQuotationPDF = (quotation) => {
   const doc = new jsPDF();
 
   // Totals Calculation
-  const subtotalItems = (quotation.items || []).reduce((acc, item) => acc + calculateLineTotal(item), 0);
-  const subtotalServices = (quotation.services || []).reduce((acc, svc) => acc + calculateLineTotal(svc), 0);
-  const subtotal = subtotalItems + subtotalServices;
-  const iva = subtotal * 0.19;
-  const total = subtotal + iva;
+  const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
   // Header - Premium Style
   doc.setFillColor(24, 24, 27); // Zinc-900
@@ -40,7 +36,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.text(`EMPRESA: ${quotation.client.razon_social}`, 15, 62);
-  doc.text(`NIT: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, 67);
+  doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, 67);
   doc.text(`CONTACTO: ${quotation.client.responsable || 'N/A'}`, 15, 72);
   doc.text(`UBICACIÓN: ${quotation.ubicacion}`, 15, 77);
 
@@ -89,7 +85,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.text('SUBTOTAL NETO:', 130, finalY + 10);
   doc.text(`$ ${subtotal.toLocaleString()}`, 165, finalY + 10);
 
-  doc.text('IVA (19%):', 130, finalY + 16);
+  doc.text(quotation.client.isTaxExempt ? 'IVA (0% - Exento):' : 'IVA (19%):', 130, finalY + 16);
   doc.text(`$ ${iva.toLocaleString()}`, 165, finalY + 16);
 
   doc.setFont('helvetica', 'bold');

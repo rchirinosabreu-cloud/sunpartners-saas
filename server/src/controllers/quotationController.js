@@ -1,6 +1,6 @@
 const prisma = require('../db');
 const crypto = require('crypto');
-const { calculateLineTotal } = require('../utils/quotationUtils');
+const { calculateLineTotal, calculateTotals } = require('../utils/quotationUtils');
 
 const includeAll = {
   client: true,
@@ -70,9 +70,10 @@ exports.create = async (req, res) => {
         estado = 'BORRADOR'
     } = req.body;
 
-    const vlrNeto = (items || []).reduce((acc, it) => acc + calculateLineTotal(it), 0) +
-                   (services || []).reduce((acc, sv) => acc + calculateLineTotal(sv), 0);
-    const vlrTotal = vlrNeto * 1.19;
+    const client = await prisma.client.findUnique({ where: { id: clientId } });
+    const isTaxExempt = client?.isTaxExempt || false;
+
+    const { subtotal: vlrNeto, total: vlrTotal } = calculateTotals(items, services, isTaxExempt);
 
     const quotation = await prisma.quotation.create({
       data: {
@@ -155,9 +156,10 @@ exports.update = async (req, res) => {
         services
     } = req.body;
 
-    const vlrNeto = (items || []).reduce((acc, it) => acc + calculateLineTotal(it), 0) +
-                   (services || []).reduce((acc, sv) => acc + calculateLineTotal(sv), 0);
-    const vlrTotal = vlrNeto * 1.19;
+    const client = await prisma.client.findUnique({ where: { id: clientId } });
+    const isTaxExempt = client?.isTaxExempt || false;
+
+    const { subtotal: vlrNeto, total: vlrTotal } = calculateTotals(items, services, isTaxExempt);
 
     // Delete existing items and services to replace them
     await prisma.quotationItem.deleteMany({ where: { quotationId: id } });

@@ -226,7 +226,7 @@ const QuotationList = () => {
                   </td>
                   <td className="px-6 py-5 text-right">
                     <span className="font-black text-zinc-900 text-[14px] tracking-tight">
-                      $ {((q.items?.reduce((acc, it) => acc + (it.cantidad * it.precio_pactado), 0) || 0) + (q.services?.reduce((acc, sv) => acc + (sv.cantidad * sv.precio_pactado), 0) || 0)).toLocaleString()}
+                      $ {(q.vlrTotal || 0).toLocaleString()}
                     </span>
                   </td>
                   <td className="px-6 py-5 text-right">

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { generateQuotationPDF } from '../utils/pdfGenerator';
-import { calculateLineTotal } from '../utils/quotationUtils';
+import { calculateLineTotal, calculateTotals } from '../utils/quotationUtils';
 import Modal from '../components/ui/Modal';
 
 const QuotationDetail = () => {
@@ -74,11 +74,7 @@ const QuotationDetail = () => {
   if (loading) return <div className="p-8 font-body text-zinc-500 text-center mt-20 animate-pulse">Sincronizando con el motor de negocio...</div>;
   if (!quotation) return <div className="p-8 font-body text-red-500 text-center">Cotización no encontrada.</div>;
 
-  const subtotalItems = (quotation.items || []).reduce((acc, item) => acc + calculateLineTotal(item), 0);
-  const subtotalServices = (quotation.services || []).reduce((acc, svc) => acc + calculateLineTotal(svc), 0);
-  const subtotal = subtotalItems + subtotalServices;
-  const iva = subtotal * 0.19;
-  const total = subtotal + iva;
+  const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
   const tabs = [
     { id: 'cotizador', label: 'Cotizador', icon: 'receipt_long' },
@@ -133,6 +129,12 @@ const QuotationDetail = () => {
                 }`}>
                   {quotation.estado}
                 </span>
+                  {quotation.client.isTaxExempt && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">money_off</span>
+                      Exento de IVA
+                    </span>
+                  )}
                   {quotation.archivedAt && (
                     <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">inventory_2</span>
@@ -140,7 +142,7 @@ const QuotationDetail = () => {
                     </span>
                   )}
               </div>
-              <p className="text-xs text-zinc-500 font-body uppercase tracking-wider font-bold">{quotation.client.razon_social} • NIT: {quotation.client.nit_id}</p>
+              <p className="text-xs text-zinc-500 font-body uppercase tracking-wider font-bold">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -297,7 +299,7 @@ const QuotationDetail = () => {
                     <span className="text-zinc-200">$ {subtotal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
-                    <span className="text-zinc-500">IVA (19%)</span>
+                    <span className="text-zinc-500">{quotation.client.isTaxExempt ? 'IVA (0% - Exento)' : 'IVA (19%)'}</span>
                     <span className="text-zinc-200">$ {iva.toLocaleString()}</span>
                   </div>
                   <div className="h-px bg-zinc-800 my-4"></div>

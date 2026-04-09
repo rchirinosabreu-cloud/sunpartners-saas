@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import NewClientModal from '../components/modals/NewClientModal';
-import { calculateLineTotal } from '../utils/quotationUtils';
+import { calculateLineTotal, calculateTotals } from '../utils/quotationUtils';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import 'flatpickr/dist/themes/light.css';
@@ -326,10 +326,9 @@ const NewQuotation = () => {
   }, [id, isEditing]);
 
   const financials = useMemo(() => {
-    const subtotal = formData.items.reduce((acc, it) => acc + calculateLineTotal(it), 0) +
-                     formData.services.reduce((acc, sv) => acc + calculateLineTotal(sv), 0);
-    return { subtotal, total: subtotal * 1.19 };
-  }, [formData]);
+    const selectedClient = clients.find(c => c.id === formData.clientId);
+    return calculateTotals(formData.items, formData.services, selectedClient?.isTaxExempt || false);
+  }, [formData, clients]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
