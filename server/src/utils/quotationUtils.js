@@ -6,11 +6,11 @@ const calculateLineTotal = (item) => {
   return (cant * v1) + (cant * (Math.max(0, dias - 1)) * vExtra);
 };
 
-const calculateTotals = (items, services) => {
+const calculateTotals = (items, services, isTaxExempt = false) => {
   const subtotalItems = (items || []).reduce((acc, item) => acc + calculateLineTotal(item), 0);
   const subtotalServices = (services || []).reduce((acc, svc) => acc + calculateLineTotal(svc), 0);
   const subtotal = subtotalItems + subtotalServices;
-  const iva = subtotal * 0.19;
+  const iva = isTaxExempt ? 0 : subtotal * 0.19;
   const total = subtotal + iva;
 
   return { subtotal, iva, total };

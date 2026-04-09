@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { calculateLineTotal } from '../utils/quotationUtils';
+import { calculateLineTotal, calculateTotals } from '../utils/quotationUtils';
 import Modal from '../components/ui/Modal';
 
 const PublicQuotation = () => {
@@ -97,11 +97,7 @@ const PublicQuotation = () => {
     );
   }
 
-  const subtotalItems = (quotation?.items || []).reduce((acc, item) => acc + calculateLineTotal(item), 0);
-  const subtotalServices = (quotation?.services || []).reduce((acc, svc) => acc + calculateLineTotal(svc), 0);
-  const subtotal = subtotalItems + subtotalServices;
-  const iva = subtotal * 0.19;
-  const total = subtotal + iva;
+  const { subtotal, iva, total } = calculateTotals(quotation?.items, quotation?.services, quotation?.client?.isTaxExempt);
 
   const formatPublicDate = (dateString) => {
     if (!dateString) return 'PENDIENTE';
@@ -149,7 +145,7 @@ const PublicQuotation = () => {
                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block border-b border-zinc-100 pb-2">Destinatario Corporativo</span>
                  <p className="text-xl font-black text-zinc-900 uppercase tracking-tight">{quotation.client.razon_social}</p>
                  <div className="text-[11px] font-bold text-zinc-500 space-y-1">
-                    <p>NIT: {quotation.client.nit_id || 'PENDIENTE'}</p>
+                    <p>{quotation.client.documentType || 'NIT'}: {quotation.client.nit_id || 'PENDIENTE'}</p>
                     <p>CIUDAD: {quotation.client.ciudad || 'BOGOTÁ, COL'}</p>
                  </div>
               </div>
@@ -257,7 +253,7 @@ const PublicQuotation = () => {
                 <span className="text-zinc-900">$ {subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-                <span>IVA Causado (19%)</span>
+                <span>{quotation.client.isTaxExempt ? 'IVA (0% - Exento)' : 'IVA Causado (19%)'}</span>
                 <span className="text-zinc-900">$ {iva.toLocaleString()}</span>
               </div>
               <div className="pt-8 border-t border-zinc-200 flex justify-between items-end">

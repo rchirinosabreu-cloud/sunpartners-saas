@@ -5,6 +5,8 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
   const [clientData, setClientData] = useState({
     razon_social: '',
     nit_id: '',
+    documentType: 'NIT',
+    isTaxExempt: false,
     responsable: '',
     direccion_fiscal: '',
     email: '',
@@ -23,6 +25,8 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
       setClientData({
         razon_social: '',
         nit_id: '',
+        documentType: 'NIT',
+        isTaxExempt: false,
         responsable: '',
         direccion_fiscal: '',
         email: '',
@@ -62,12 +66,16 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
   }, [clientData.nit_id, clientData.email]);
 
   const handleNitChange = (val) => {
-    const clean = val.replace(/\D/g, '').substring(0, 10);
-    let masked = clean;
-    if (clean.length > 9) masked = `${clean.substring(0, 3)}.${clean.substring(3, 6)}.${clean.substring(6, 9)}-${clean.substring(9, 10)}`;
-    else if (clean.length > 6) masked = `${clean.substring(0, 3)}.${clean.substring(3, 6)}.${clean.substring(6)}`;
-    else if (clean.length > 3) masked = `${clean.substring(0, 3)}.${clean.substring(3)}`;
-    setClientData({ ...clientData, nit_id: masked });
+    if (clientData.documentType === 'NIT') {
+      const clean = val.replace(/\D/g, '').substring(0, 10);
+      let masked = clean;
+      if (clean.length > 9) masked = `${clean.substring(0, 3)}.${clean.substring(3, 6)}.${clean.substring(6, 9)}-${clean.substring(9, 10)}`;
+      else if (clean.length > 6) masked = `${clean.substring(0, 3)}.${clean.substring(3, 6)}.${clean.substring(6)}`;
+      else if (clean.length > 3) masked = `${clean.substring(0, 3)}.${clean.substring(3)}`;
+      setClientData({ ...clientData, nit_id: masked });
+    } else {
+      setClientData({ ...clientData, nit_id: val });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -125,16 +133,30 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
                   className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
                 />
               </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">NIT / Identificación</label>
-                <input
-                  required
-                  type="text"
-                  placeholder="Ej: 900.123.456-1"
-                  value={clientData.nit_id}
-                  onChange={e => handleNitChange(e.target.value)}
-                  className={`w-full border-2 ${isDuplicate.nit ? 'border-brand-alert' : 'border-zinc-100'} rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs`}
-                />
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-1">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Tipo</label>
+                  <select
+                    value={clientData.documentType}
+                    onChange={e => setClientData({ ...clientData, documentType: e.target.value })}
+                    className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                  >
+                    <option value="NIT">NIT</option>
+                    <option value="EIN">EIN</option>
+                    <option value="OTHER">OTRO</option>
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Documento / ID</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder={clientData.documentType === 'NIT' ? "900.123.456-1" : "Número de ID"}
+                    value={clientData.nit_id}
+                    onChange={e => handleNitChange(e.target.value)}
+                    className={`w-full border-2 ${isDuplicate.nit ? 'border-brand-alert' : 'border-zinc-100'} rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs`}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Responsable de Cuenta</label>
@@ -168,6 +190,19 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
                   onChange={e => setClientData({ ...clientData, email: e.target.value })}
                   className={`w-full border-2 ${isDuplicate.email ? 'border-brand-alert' : 'border-zinc-100'} rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs`}
                 />
+              </div>
+              <div className="flex items-center justify-between p-3 border-2 border-zinc-100 rounded-lg bg-zinc-50/50">
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-zinc-900 leading-none">Exento de IVA</p>
+                   <p className="text-[9px] font-bold text-zinc-400 uppercase mt-1">Habilitar para clientes internacionales</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setClientData({ ...clientData, isTaxExempt: !clientData.isTaxExempt })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${clientData.isTaxExempt ? 'bg-primary' : 'bg-zinc-200'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${clientData.isTaxExempt ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
