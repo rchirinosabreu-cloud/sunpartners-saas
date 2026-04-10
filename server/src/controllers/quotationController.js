@@ -38,6 +38,52 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.formalizeByHash = async (req, res) => {
+  try {
+    const { hash } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: 'Debes cargar el archivo de la Orden de Compra.' });
+    }
+
+    const quotation = await prisma.quotation.findUnique({
+      where: { secureHash: hash },
+      include: { client: true }
+    });
+
+    if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
+
+    // En un entorno real, aquí subiríamos a S3/Cloudinary y guardaríamos la URL resultante.
+    // Por ahora, guardamos la ruta relativa del servidor de archivos local.
+    const purchaseOrderUrl = `/uploads/purchase_orders/${file.filename}`;
+
+    const updated = await prisma.quotation.update({
+      where: { id: quotation.id },
+      data: {
+        estado: 'ACCEPTED_PENDING_OC',
+        purchaseOrderUrl,
+        logs: {
+          create: {
+            message: 'El cliente aceptó la propuesta y cargó la Orden de Compra.'
+          }
+        }
+      }
+    });
+
+    // Lógica de Notificación (Mock)
+    console.log(`[EMAIL NOTIFICATION] ¡Evento Legalizado! El cliente ${quotation.client.razon_social} ha subido la Orden de Compra para la cotización #Q-${quotation.id.substring(0,6).toUpperCase()}`);
+
+    res.json({
+      message: 'Orden de Compra cargada con éxito. Su propuesta está siendo procesada.',
+      status: 'ACCEPTED_PENDING_OC',
+      purchaseOrderUrl
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.getById = async (req, res) => {
   try {
     const quotation = await prisma.quotation.findUnique({

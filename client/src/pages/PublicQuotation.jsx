@@ -11,6 +11,8 @@ const PublicQuotation = () => {
   const [error, setError] = useState(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [ocFile, setOcFile] = useState(null);
   const [rejection, setRejection] = useState({ type: 'CANTIDADES', reason: '' });
   const [processing, setProcessing] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -31,18 +33,33 @@ const PublicQuotation = () => {
   }, [hash]);
 
   const handleApprove = async () => {
+    setShowApproveModal(false);
+    setShowUploadModal(true);
+  };
+
+  const handleFormalize = async () => {
+    if (!ocFile) {
+      setUiModal({ isOpen: true, title: 'Atención', content: 'Por favor, selecciona el archivo de tu Orden de Compra.', type: 'warning' });
+      return;
+    }
+
     setProcessing(true);
+    const formData = new FormData();
+    formData.append('purchaseOrder', ocFile);
+
     try {
-      await axios.post(`/api/quotations/public/${hash}/approve`, {}, { timeout: 15000 });
+      await axios.post(`/api/quotations/public/${hash}/formalize`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 20000
+      });
       setFinished(true);
-      setShowApproveModal(false);
+      setShowUploadModal(false);
     } catch (err) {
-      const msg = err.response?.data?.details || err.response?.data?.error || 'No se pudo procesar la aprobación. Intenta de nuevo.';
       setUiModal({
         isOpen: true,
-        title: 'Validación de Disponibilidad',
-        content: msg,
-        type: 'warning'
+        title: 'Error de Carga',
+        content: err.response?.data?.error || 'No se pudo cargar la Orden de Compra. Inténtalo de nuevo.',
+        type: 'error'
       });
     } finally {
       setProcessing(false);
@@ -295,7 +312,7 @@ const PublicQuotation = () => {
       {showApproveModal && (
         <div className="fixed inset-0 bg-primary/20 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
           <div className="bg-white border border-zinc-100 w-full max-w-lg p-12 rounded-lg shadow-2xl animate-in zoom-in-95 duration-300">
-            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6">Aceptación de Términos</h3>
+            <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 text-zinc-900">Aceptación de Términos</h3>
             <p className="text-xs text-zinc-500 font-bold mb-10 uppercase tracking-widest leading-relaxed">¿Desea proceder con la formalización de este proyecto? Al confirmar, acepta los términos y condiciones legales y el proceso de reserva de inventario se activará de forma inmediata.</p>
             <div className="flex flex-col gap-4">
               <button
@@ -303,7 +320,7 @@ const PublicQuotation = () => {
                 onClick={handleApprove}
                 className="bg-[#fbae17] text-white py-4 rounded-lg text-xs font-black uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-50 shadow-lg border-b-4 border-black/5"
               >
-                {processing ? 'Formalizando...' : 'Aceptar y Formalizar'}
+                Continuar a Formalización
               </button>
               <button
                 disabled={processing}
@@ -312,6 +329,65 @@ const PublicQuotation = () => {
               >
                 Volver a la Propuesta
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Modal - Premium Style */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-primary/20 backdrop-blur-md flex items-center justify-center p-6 z-[110] animate-in fade-in duration-300">
+          <div className="bg-white border border-zinc-100 w-full max-w-xl p-12 rounded-lg shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="flex items-center gap-4 mb-6">
+               <div className="size-10 bg-primary/10 flex items-center justify-center rounded-lg">
+                  <span className="material-symbols-outlined text-primary text-[24px]">cloud_upload</span>
+               </div>
+               <h3 className="text-3xl font-black uppercase tracking-tighter text-zinc-900 leading-none">Cargar Orden de Compra</h3>
+            </div>
+
+            <p className="text-xs text-zinc-500 font-bold mb-10 uppercase tracking-widest leading-relaxed">
+              Para finalizar la legalización del evento, por favor adjunte el documento de su Orden de Compra (PDF o Imagen).
+              <span className="block mt-4 text-primary">También puedes enviarla a: <span className="underline">hola@sunpartners.com.co</span></span>
+            </p>
+
+            <div className="space-y-8">
+              <div className="relative group">
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={e => setOcFile(e.target.files[0])}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div className={`border-2 border-dashed ${ocFile ? 'border-primary bg-primary/5' : 'border-zinc-200 group-hover:border-primary group-hover:bg-zinc-50'} rounded-xl p-10 transition-all text-center`}>
+                   <span className="material-symbols-outlined text-4xl text-zinc-300 mb-4 block group-hover:text-primary transition-colors">
+                     {ocFile ? 'description' : 'upload_file'}
+                   </span>
+                   <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
+                     {ocFile ? ocFile.name : 'Seleccionar Archivo (PDF, JPG, PNG)'}
+                   </p>
+                   {ocFile && (
+                     <p className="text-[10px] text-primary font-bold mt-2 uppercase">Archivo seleccionado correctamente</p>
+                   )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 pt-4">
+                <button
+                  disabled={processing || !ocFile}
+                  onClick={handleFormalize}
+                  className="w-full bg-[#fbae17] text-white py-5 rounded-lg text-xs font-black uppercase tracking-[0.4em] hover:opacity-90 disabled:opacity-50 shadow-lg border-b-4 border-black/5 flex items-center justify-center gap-4"
+                >
+                  {processing ? 'Procesando...' : 'Legalizar y Finalizar'}
+                  <span className="material-symbols-outlined text-[18px]">verified</span>
+                </button>
+                <button
+                  disabled={processing}
+                  onClick={() => { setShowUploadModal(false); setOcFile(null); }}
+                  className="w-full bg-white text-zinc-400 py-4 rounded-lg text-xs font-black uppercase tracking-[0.3em] hover:bg-zinc-50 transition-all border border-zinc-100"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         </div>

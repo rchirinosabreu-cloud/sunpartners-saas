@@ -96,6 +96,7 @@ model Quotation {
   vlrTotal             Float              @default(0)
   bitacora             String?
   secureHash           String?            @unique
+  purchaseOrderUrl     String?
   rejectionType        RejectionType?
   rejectionReason      String?
   clientId             String
@@ -239,6 +240,8 @@ enum QuotationStatus {
   EJECUCION
   FINALIZADA
   RECHAZADA
+  ACCEPTED_PENDING_OC
+  CONFIRMED
 }
 
 enum ItemStatus {

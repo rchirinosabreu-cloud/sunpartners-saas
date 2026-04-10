@@ -154,6 +154,16 @@ const QuotationDetail = () => {
                PDF Interno
              </button>
 
+             {quotation.purchaseOrderUrl && (
+               <button
+                onClick={() => window.open(quotation.purchaseOrderUrl, '_blank')}
+                className="flex items-center gap-2 border border-primary/20 bg-primary/5 px-4 py-2 rounded text-xs font-bold uppercase text-primary hover:bg-primary/10 transition-all"
+               >
+                 <span className="material-symbols-outlined text-[18px]">attachment</span>
+                 Ver Orden de Compra
+               </button>
+             )}
+
              {quotation.estado === 'BORRADOR' && (
                <button
                 disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}

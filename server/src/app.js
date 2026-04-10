@@ -40,6 +40,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static('uploads'));
 
 // Servir archivos estáticos del frontend en producción (antes de rutas de API para assets)
 if (process.env.NODE_ENV === 'production') {
