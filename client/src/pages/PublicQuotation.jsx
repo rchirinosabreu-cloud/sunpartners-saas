@@ -11,7 +11,7 @@ const PublicQuotation = () => {
   const [error, setError] = useState(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejection, setRejection] = useState({ type: 'PRECIO', reason: '' });
+  const [rejection, setRejection] = useState({ type: 'CANTIDADES', reason: '' });
   const [processing, setProcessing] = useState(false);
   const [finished, setFinished] = useState(false);
   const [uiModal, setUiModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
@@ -330,9 +330,10 @@ const PublicQuotation = () => {
                   onChange={e => setRejection({...rejection, type: e.target.value})}
                   className="w-full border border-zinc-200 bg-zinc-50 rounded-lg px-6 py-4 text-xs font-black uppercase tracking-widest outline-none focus:border-primary transition-all"
                 >
-                  <option value="PRECIO">Optimización de Presupuesto</option>
-                  <option value="FECHAS">Ajuste de Cronograma / Fechas</option>
-                  <option value="CAMBIO_PLAN">Revisión de Equipamiento</option>
+                  <option value="CANTIDADES">Ajuste de Cantidades</option>
+                  <option value="PRODUCTOS">Modificar Productos / Equipamiento</option>
+                  <option value="FECHAS">Ajuste de Fechas y Horarios</option>
+                  <option value="LOGISTICA">Cambio de Lugar o Logística</option>
                   <option value="OTRO">Otros Requerimientos</option>
                 </select>
               </div>
