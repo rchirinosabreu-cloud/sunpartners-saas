@@ -123,29 +123,30 @@ const QuotationDetail = () => {
               <div className="h-12 w-px bg-zinc-100"></div>
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
-                <h2 className="font-display text-xl font-bold tracking-tight text-zinc-900 uppercase leading-none">{quotation.nombre_evento}</h2>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border ${
-                  quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
-                  quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                  quotation.estado === 'REVISION_SOLICITADA' ? 'bg-brand-alert/10 border-brand-alert/30 text-brand-alert' :
-                  'bg-zinc-100 border-zinc-200 text-zinc-500'
-                }`}>
-                  {quotation.estado}
-                </span>
-                  {quotation.client.isTaxExempt && (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[12px]">money_off</span>
-                      Exento de IVA
-                    </span>
-                  )}
-                  {quotation.archivedAt && (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[12px]">inventory_2</span>
-                      Archivada
-                    </span>
-                  )}
+                  <h2 className="font-display text-xl font-bold tracking-tight text-zinc-900 uppercase leading-none">{quotation.nombre_evento}</h2>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border ${
+                    quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
+                    quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                    quotation.estado === 'REVISION_SOLICITADA' ? 'bg-brand-alert/10 border-brand-alert/30 text-brand-alert' :
+                    'bg-zinc-100 border-zinc-200 text-zinc-500'
+                  }`}>
+                    {quotation.estado}
+                  </span>
+                    {quotation.client.isTaxExempt && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">money_off</span>
+                        Exento de IVA
+                      </span>
+                    )}
+                    {quotation.archivedAt && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">inventory_2</span>
+                        Archivada
+                      </span>
+                    )}
+                </div>
+                <p className="text-xs text-zinc-500 font-body uppercase tracking-wider font-bold">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
               </div>
-              <p className="text-xs text-zinc-500 font-body uppercase tracking-wider font-bold">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
