@@ -252,7 +252,11 @@ enum RejectionType {
   PRODUCTOS
   FECHAS
   LOGISTICA
+  OTROS
+  // Temporary for migration
   OTRO
+  PRECIO
+  CAMBIO_PLAN
 }
 
 enum TaskStatus {
