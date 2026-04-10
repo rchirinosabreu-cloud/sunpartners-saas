@@ -8,44 +8,47 @@ export const generateQuotationPDF = (quotation) => {
   // Totals Calculation
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
-  // Header - Premium Style
-  doc.setFillColor(24, 24, 27); // Zinc-900
+  // Header - Premium Style (White for cleanliness)
+  doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, 210, 40, 'F');
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.text('SUNPARTNERS', 15, 20);
+  // Add Corporate Logo
+  const logoUrl = '/assets/logo_sp.png';
+  doc.addImage(logoUrl, 'PNG', 15, 10, 50, 20); // Scaled for corporate elegance
 
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text('ESTÁNDAR DE EXCELENCIA EN EVENTOS', 15, 26);
-
-  doc.setFontSize(12);
-  doc.text('COTIZACIÓN CORPORATIVA', 140, 20);
-  doc.setFontSize(9);
-  doc.text(`ID: #Q-${quotation.id.substring(0, 6).toUpperCase()}`, 140, 26);
-  doc.text(`FECHA EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 140, 31);
-
-  // Client & Event Details
   doc.setTextColor(39, 39, 42); // Zinc-900
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('INFORMACIÓN DEL CLIENTE', 15, 55);
-
+  doc.text('PROPUESTA TÉCNICA Y COMERCIAL', 140, 20);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
+  doc.text(`REF: #Q-${quotation.id.substring(0, 6).toUpperCase()}`, 140, 25);
+  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 140, 29);
+
+  // Decorative line
+  doc.setDrawColor(228, 228, 231);
+  doc.setLineWidth(0.5);
+  doc.line(15, 40, 195, 40);
+
+  // Client & Event Details
+  doc.setTextColor(39, 39, 42); // Zinc-900
+  doc.setFontSize(14); // Scaled down as requested
+  doc.setFont('helvetica', 'bold');
+  doc.text(quotation.nombre_evento.toUpperCase(), 15, 55);
+
   doc.setFontSize(9);
-  doc.text(`EMPRESA: ${quotation.client.razon_social}`, 15, 62);
-  doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, 67);
-  doc.text(`CONTACTO: ${quotation.client.responsable || 'N/A'}`, 15, 72);
-  doc.text(`UBICACIÓN: ${quotation.ubicacion}`, 15, 77);
+  doc.text('DESTINATARIO CORPORATIVO', 15, 65);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`EMPRESA: ${quotation.client.razon_social}`, 15, 70);
+  doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, 74);
+  doc.text(`CIUDAD: ${quotation.client.ciudad || 'BOGOTÁ, COL'}`, 15, 78);
 
   doc.setFont('helvetica', 'bold');
-  doc.text('LOGÍSTICA DEL EVENTO', 120, 55);
+  doc.text('DETALLES LOGÍSTICOS', 120, 65);
   doc.setFont('helvetica', 'normal');
-  doc.text(`MONTAJE: ${new Date(quotation.montaje_inicio).toLocaleString()}`, 120, 62);
-  doc.text(`EVENTO: ${new Date(quotation.evento_inicio).toLocaleString()}`, 120, 67);
-  doc.text(`DESMONTAJE: ${new Date(quotation.desmontaje_inicio).toLocaleString()}`, 120, 72);
+  doc.text(`INICIO MONTAJE: ${new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`, 120, 70);
+  doc.text(`INICIO EVENTO: ${new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`, 120, 74);
+  doc.text(`FIN DESMONTAJE: ${new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`, 120, 78);
 
   // Items Table
   const tableData = [
@@ -67,7 +70,7 @@ export const generateQuotationPDF = (quotation) => {
 
   doc.autoTable({
     startY: 90,
-    head: [['Descripción del Servicio / Equipo', 'Tipo', 'Cant.', 'Vlr. Unitario', 'Subtotal']],
+    head: [['Descripción del Servicio / Equipamiento', 'Categoría', 'Cant.', 'Inversión Un.', 'Subtotal']],
     body: tableData,
     headStyles: { fillColor: [24, 24, 27], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
     bodyStyles: { fontSize: 8, textColor: [63, 63, 70] },
