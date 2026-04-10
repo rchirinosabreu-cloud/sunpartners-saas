@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { calculateLineTotal, calculateTotals } from './quotationUtils';
 
 export const generateQuotationPDF = (quotation) => {
@@ -68,7 +68,7 @@ export const generateQuotationPDF = (quotation) => {
     ])
   ];
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 90,
     head: [['Descripción del Servicio / Equipamiento', 'Categoría', 'Cant.', 'Inversión Un.', 'Subtotal']],
     body: tableData,
