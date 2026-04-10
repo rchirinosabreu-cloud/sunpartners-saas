@@ -12,6 +12,7 @@
     "test": "npm test --workspaces"
   },
   "dependencies": {
+    "pg": "^8.20.0",
     "playwright": "^1.58.2",
     "xlsx": "^0.18.5"
   }

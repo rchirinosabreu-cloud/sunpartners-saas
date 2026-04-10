@@ -334,7 +334,7 @@ const PublicQuotation = () => {
                   <option value="PRODUCTOS">Modificar Productos / Equipamiento</option>
                   <option value="FECHAS">Ajuste de Fechas y Horarios</option>
                   <option value="LOGISTICA">Cambio de Lugar o Logística</option>
-                  <option value="OTRO">Otros Requerimientos</option>
+                  <option value="OTROS">Otros Requerimientos</option>
                 </select>
               </div>
               <div>

@@ -60,6 +60,26 @@ const bootstrapAdmin = async () => {
       console.log(`[Sunpartners] Se eliminaron ${cleanResult.count} registros legacy del directorio.`);
     }
 
+    // Migration of legacy RejectionType values
+    const legacyRejections = await prisma.quotation.count({
+      where: {
+        rejectionType: { in: ['PRECIO', 'CAMBIO_PLAN', 'OTRO'] }
+      }
+    });
+
+    if (legacyRejections > 0) {
+      console.log(`[Sunpartners] Migrando ${legacyRejections} motivos de rechazo antiguos...`);
+      await prisma.quotation.updateMany({
+        where: { rejectionType: { in: ['PRECIO', 'OTRO'] } },
+        data: { rejectionType: 'OTROS' }
+      });
+      await prisma.quotation.updateMany({
+        where: { rejectionType: 'CAMBIO_PLAN' },
+        data: { rejectionType: 'PRODUCTOS' }
+      });
+      console.log(`[Sunpartners] Migración de motivos completada.`);
+    }
+
   } catch (err) {
     console.error(`[Sunpartners] Error en bootstrap: ${err.message}`);
   }
