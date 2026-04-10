@@ -22,7 +22,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.text('PROPUESTA TÉCNICA Y COMERCIAL', 135, 20);
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text(`REF: #Q-${quotation.id.substring(0, 6).toUpperCase()}`, 135, 25);
+  doc.text(`REF: #Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`, 135, 25);
   doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 135, 29);
 
   // Decorative line
@@ -34,13 +34,13 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(39, 39, 42); // Zinc-900
   doc.setFontSize(12); // Reduced from 14/22 to corporate level
   doc.setFont('helvetica', 'bold');
-  doc.text(quotation.nombre_evento.toUpperCase(), 15, 55);
+  doc.text((quotation?.nombre_evento || 'EVENTO SIN NOMBRE').toUpperCase(), 15, 55);
 
   doc.setFontSize(9);
   doc.text('DESTINATARIO CORPORATIVO', 15, 65);
   doc.setFont('helvetica', 'normal');
-  doc.text(`EMPRESA: ${quotation.client.razon_social}`, 15, 70);
-  doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, 74);
+  doc.text(`EMPRESA: ${quotation?.client?.razon_social || 'N/A'}`, 15, 70);
+  doc.text(`${(quotation?.client?.documentType || 'NIT').toUpperCase()}: ${quotation?.client?.nit_id || 'PENDIENTE'}`, 15, 74);
   doc.text(`CIUDAD: ${quotation.client.ciudad || 'BOGOTÁ, COL'}`, 15, 78);
 
   doc.setFont('helvetica', 'bold');
@@ -52,15 +52,15 @@ export const generateQuotationPDF = (quotation) => {
 
   // Items Table
   const tableData = [
-    ...(quotation.items || []).map(item => [
-      `${item.inventory.nombre.toUpperCase()}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)`,
+    ...(quotation?.items || []).map(item => [
+      `${(item?.inventory?.nombre || 'EQUIPO').toUpperCase()}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)`,
       `Clase ${item.clase_asignada}`,
       item.cantidad,
       `$ ${item.precio_pactado.toLocaleString()}${item.dias > 1 ? ` (+ $ ${item.precio_dia_adicional.toLocaleString()} adic)` : ''}`,
       `$ ${calculateLineTotal(item).toLocaleString()}`
     ]),
-    ...(quotation.services || []).map(svc => [
-      `${svc.descripcion.toUpperCase()}\n(${svc.cantidad} UNIDADES X ${svc.dias} DÍAS)`,
+    ...(quotation?.services || []).map(svc => [
+      `${(svc?.descripcion || 'SERVICIO').toUpperCase()}\n(${svc.cantidad} UNIDADES X ${svc.dias} DÍAS)`,
       svc.tipo,
       svc.cantidad,
       `$ ${svc.precio_pactado.toLocaleString()}${svc.dias > 1 ? ` (+ $ ${svc.precio_dia_adicional.toLocaleString()} adic)` : ''}`,
@@ -131,6 +131,8 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(161, 161, 170);
   doc.text('Sunpartners S.A.S • Nit: 901.456.789-2 • Bogotá, Colombia', 105, 285, { align: 'center' });
 
-  const fileName = `Cotizacion_${quotation.nombre_evento.replace(/\s+/g, '_')}_${quotation.id.substring(0, 6).toUpperCase()}.pdf`;
+  const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');
+  const idSafe = (quotation?.id || 'REF').substring(0, 6).toUpperCase();
+  const fileName = `Cotizacion_${eventNameSafe}_${idSafe}.pdf`;
   doc.save(fileName);
 };
