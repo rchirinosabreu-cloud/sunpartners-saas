@@ -153,7 +153,7 @@ const PublicQuotation = () => {
               <div className="space-y-4">
                  <h2 className="text-5xl font-black tracking-tighter text-zinc-900 uppercase leading-none">{quotation.nombre_evento}</h2>
                  <div className="inline-block bg-primary/5 text-primary border border-primary/10 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">
-                   PROPUESTA #Q-{quotation?.id?.substring(0,6).toUpperCase() || 'REF'}
+                   PROPUESTA #Q-{(quotation?.id || 'REF').substring(0,6).toUpperCase()}
                  </div>
               </div>
            </div>
