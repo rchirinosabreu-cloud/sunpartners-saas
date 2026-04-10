@@ -118,9 +118,12 @@ const QuotationDetail = () => {
             >
               <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             </button>
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <h2 className="font-display text-2xl font-bold tracking-tight text-zinc-900 uppercase">{quotation.nombre_evento}</h2>
+            <div className="flex items-start gap-6">
+              <img src="/logo_sp.png" alt="Sunpartners" className="h-12 w-auto" />
+              <div className="h-12 w-px bg-zinc-100"></div>
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                <h2 className="font-display text-xl font-bold tracking-tight text-zinc-900 uppercase leading-none">{quotation.nombre_evento}</h2>
                 <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border ${
                   quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
                   quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
