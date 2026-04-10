@@ -248,9 +248,10 @@ enum ItemStatus {
 }
 
 enum RejectionType {
-  PRECIO
+  CANTIDADES
+  PRODUCTOS
   FECHAS
-  CAMBIO_PLAN
+  LOGISTICA
   OTRO
 }
 
