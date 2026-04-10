@@ -14,25 +14,25 @@ export const generateQuotationPDF = (quotation) => {
 
   // Add Corporate Logo
   const logoUrl = '/assets/logo_sp.png';
-  doc.addImage(logoUrl, 'PNG', 15, 10, 50, 20); // Scaled for corporate elegance
+  doc.addImage(logoUrl, 'PNG', 15, 12, 60, 24); // Scaled for corporate elegance
 
   doc.setTextColor(39, 39, 42); // Zinc-900
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('PROPUESTA TÉCNICA Y COMERCIAL', 140, 20);
+  doc.text('PROPUESTA TÉCNICA Y COMERCIAL', 135, 20);
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text(`REF: #Q-${quotation.id.substring(0, 6).toUpperCase()}`, 140, 25);
-  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 140, 29);
+  doc.text(`REF: #Q-${quotation.id.substring(0, 6).toUpperCase()}`, 135, 25);
+  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 135, 29);
 
   // Decorative line
   doc.setDrawColor(228, 228, 231);
   doc.setLineWidth(0.5);
-  doc.line(15, 40, 195, 40);
+  doc.line(15, 42, 195, 42);
 
   // Client & Event Details
   doc.setTextColor(39, 39, 42); // Zinc-900
-  doc.setFontSize(14); // Scaled down as requested
+  doc.setFontSize(12); // Reduced from 14/22 to corporate level
   doc.setFont('helvetica', 'bold');
   doc.text(quotation.nombre_evento.toUpperCase(), 15, 55);
 
@@ -131,5 +131,6 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(161, 161, 170);
   doc.text('Sunpartners S.A.S • Nit: 901.456.789-2 • Bogotá, Colombia', 105, 285, { align: 'center' });
 
-  doc.save(`Cotizacion_Sunpartners_${quotation.client.razon_social.replace(/\s+/g, '_')}.pdf`);
+  const fileName = `Cotizacion_${quotation.nombre_evento.replace(/\s+/g, '_')}_${quotation.id.substring(0, 6).toUpperCase()}.pdf`;
+  doc.save(fileName);
 };
