@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const quotationController = require('../controllers/quotationController');
 const { authMiddleware, adminMiddleware } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 // Public routes (no auth required)
 router.get('/public/:hash', (req, res) => quotationController.getByHash(req, res));
 router.post('/public/:hash/approve', (req, res) => quotationController.approveByHash(req, res));
+router.post('/public/:hash/formalize', upload.single('purchaseOrder'), (req, res) => quotationController.formalizeByHash(req, res));
 router.post('/public/:hash/reject', (req, res) => quotationController.rejectByHash(req, res));
 
 // Protected routes
