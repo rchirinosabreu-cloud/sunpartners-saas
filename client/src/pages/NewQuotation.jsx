@@ -391,8 +391,8 @@ const NewQuotation = () => {
       <div className="flex justify-between items-center mb-12 bg-white p-10 rounded-lg shadow-sm border border-zinc-100">
         <h2 className="text-3xl font-black uppercase tracking-tight text-zinc-900">CONSTRUCTOR DE COTIZACIONES</h2>
         <div className="bg-primary/5 border border-primary/20 text-primary px-10 py-4 rounded-lg text-right">
-           <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Inversión Total Estimada</p>
-           <p className="text-3xl font-black tracking-tighter">$ {financials.total.toLocaleString()}</p>
+           <p className="text-[11px] font-black uppercase text-primary tracking-[0.4em]">TOTAL</p>
+           <p className="text-3xl font-black tracking-tighter ml-8">$ {financials.total.toLocaleString()}</p>
         </div>
       </div>
 

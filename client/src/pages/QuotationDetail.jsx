@@ -120,7 +120,7 @@ const QuotationDetail = () => {
             </button>
             <div className="flex items-start gap-6">
               <img src="/logo_sp.png" alt="Sunpartners" className="h-12 w-auto" />
-              <div className="h-12 w-px bg-zinc-100"></div>
+              <div className="h-12 w-px bg-zinc-200"></div>
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
                   <h2 className="font-display text-xl font-bold tracking-tight text-zinc-900 uppercase leading-none">{quotation.nombre_evento}</h2>
@@ -318,8 +318,8 @@ const QuotationDetail = () => {
                   </div>
                   <div className="h-px bg-zinc-800 my-4"></div>
                   <div className="flex justify-between items-end">
-                    <span className="text-xs font-black uppercase text-primary tracking-widest">Total General</span>
-                    <span className="text-3xl font-black tracking-tighter text-white">$ {total.toLocaleString()}</span>
+                    <span className="text-xs font-black uppercase text-primary tracking-[0.4em]">TOTAL</span>
+                    <span className="text-3xl font-black tracking-tighter text-white ml-10">$ {total.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
