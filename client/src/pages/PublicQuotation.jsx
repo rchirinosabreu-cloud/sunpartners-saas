@@ -141,12 +141,11 @@ const PublicQuotation = () => {
         {/* Public Header - Ultra Clean */}
         <div className="p-12 md:p-20 border-b border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
            <div>
-              <div className="flex items-center gap-4 mb-12">
-                 <div className="size-12 bg-primary/10 flex items-center justify-center rounded-lg border border-primary/20">
-                    <span className="material-symbols-outlined text-primary text-[28px] fill">architecture</span>
-                 </div>
-                 <div>
-                    <h1 className="text-2xl font-black uppercase tracking-[0.3em] text-zinc-900 leading-none mb-1">SUNPARTNERS</h1>
+              <div className="flex items-center gap-6 mb-12">
+                 <img src="/logo_sp.png" alt="Sunpartners" className="h-12 w-auto" />
+                 <div className="h-12 w-px bg-zinc-100 hidden md:block"></div>
+                 <div className="hidden md:block">
+                    <h1 className="text-xl font-black uppercase tracking-[0.3em] text-zinc-900 leading-none mb-1">SUNPARTNERS</h1>
                     <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">Estándar de Excelencia</p>
                  </div>
               </div>
@@ -274,8 +273,8 @@ const PublicQuotation = () => {
                 <span className="text-zinc-900">$ {iva.toLocaleString()}</span>
               </div>
               <div className="pt-8 border-t border-zinc-200 flex justify-between items-end">
-                <span className="text-[11px] font-black uppercase tracking-[0.4em] text-primary">Inversión Total</span>
-                <span className="text-5xl font-black tracking-tighter text-zinc-900">$ {total.toLocaleString()}</span>
+                <span className="text-[11px] font-black uppercase tracking-[0.4em] text-primary">TOTAL</span>
+                <span className="text-5xl font-black tracking-tighter text-zinc-900 ml-12">$ {total.toLocaleString()}</span>
               </div>
            </div>
         </div>

@@ -16,6 +16,12 @@ export const generateQuotationPDF = (quotation) => {
   const logoUrl = '/assets/logo_sp.png';
   doc.addImage(logoUrl, 'PNG', 15, 12, 60, 24); // Scaled for corporate elegance
 
+  // Add Legal NIT below logo
+  doc.setTextColor(113, 113, 122);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('NIT. 901.480.536-2', 15, 38);
+
   doc.setTextColor(39, 39, 42); // Zinc-900
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
@@ -93,7 +99,7 @@ export const generateQuotationPDF = (quotation) => {
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.text('TOTAL GENERAL:', 130, finalY + 26);
+  doc.text('TOTAL:', 130, finalY + 26);
   doc.setTextColor(18, 174, 226); // Sunpartners Blue
   doc.text(`$ ${total.toLocaleString()}`, 165, finalY + 26);
 
@@ -126,10 +132,27 @@ export const generateQuotationPDF = (quotation) => {
     doc.text(term, 15, finalY + 7 + (i * 4));
   });
 
-  // Footer
-  doc.setFontSize(8);
-  doc.setTextColor(161, 161, 170);
-  doc.text('Sunpartners S.A.S • Nit: 901.456.789-2 • Bogotá, Colombia', 105, 285, { align: 'center' });
+  // Footer Functionality
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(244, 244, 245);
+    doc.setLineWidth(0.3);
+    doc.line(15, 280, 195, 280);
+
+    doc.setFontSize(7);
+    doc.setTextColor(113, 113, 122);
+    doc.setFont('helvetica', 'bold');
+    doc.text('BY PROCAMPO DEL CARIBE S.A.S.', 15, 285);
+
+    doc.setFont('helvetica', 'normal');
+    doc.text('Cra. 15 No. 15-25, Local 2, Cartagena de Indias.', 15, 289);
+
+    doc.text('Móvil: +57 301 400 4743 | sunpartnersco@gmail.com', 120, 285);
+    doc.text('Social: @sunpartners', 120, 289);
+
+    doc.text(`Página ${i} de ${pageCount}`, 195, 289, { align: 'right' });
+  }
 
   const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');
   const idSafe = (quotation?.id || 'REF').substring(0, 6).toUpperCase();
