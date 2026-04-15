@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import NewClientModal from '../components/modals/NewClientModal';
+import { toTitleCase } from '../utils/formatters';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
@@ -137,7 +138,7 @@ const Clients = () => {
               ) : filteredClients.map((client, idx) => (
                 <tr key={client.id} className="hover:bg-zinc-50/80 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-primary">
                   <td className="px-6 py-5">
-                    <div className="font-black text-zinc-900  tracking-tight text-[13px]">{client.razon_social}</div>
+                    <div className="font-black text-zinc-900  tracking-tight text-[13px]">{toTitleCase(client.razon_social)}</div>
                     <div className="text-[10px] font-bold text-zinc-400 mt-1 flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">mail</span>
                       {client.email || 'SIN EMAIL'}
@@ -149,8 +150,8 @@ const Clients = () => {
                     </span>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="font-bold text-zinc-700 text-[12px] ">{client.responsable || 'No asignado'}</div>
-                    <div className="text-[10px] font-medium text-zinc-400 mt-0.5">{client.ciudad || '-'}</div>
+                    <div className="font-bold text-zinc-700 text-[12px] ">{toTitleCase(client.responsable) || 'No asignado'}</div>
+                    <div className="text-[10px] font-medium text-zinc-400 mt-0.5">{toTitleCase(client.ciudad) || '-'}</div>
                   </td>
                   <td className="px-6 py-5 text-center">
                     <span className="inline-flex items-center px-3 py-1 rounded-sm text-[9px] font-black  tracking-widest bg-green-50 text-green-700 border border-green-100 shadow-sm">

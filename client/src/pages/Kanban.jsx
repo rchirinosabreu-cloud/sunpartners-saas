@@ -74,18 +74,49 @@ const Kanban = () => {
     const { active, over } = event;
     if (!over) return;
 
-    const activeTask = tasks.find(t => t.id === active.id);
+    const activeId = active.id;
     const overId = over.id;
 
-    // Moving to a column - Purely local for performance
+    const activeTask = tasks.find(t => t.id === activeId);
+    if (!activeTask) return;
+
+    const overTask = tasks.find(t => t.id === overId);
+
+    // CASO A: Arrastrar sobre una COLUMNA vacía
     if (['PENDIENTE', 'EN_PROCESO', 'REALIZADO'].includes(overId)) {
        if (activeTask.status !== overId) {
           setTasks(prev => {
             const newTasks = [...prev];
-            const idx = newTasks.findIndex(t => t.id === active.id);
+            const idx = newTasks.findIndex(t => t.id === activeId);
             newTasks[idx] = { ...newTasks[idx], status: overId };
             return newTasks;
           });
+       }
+       return;
+    }
+
+    // CASO B: Arrastrar sobre otra TARJETA
+    if (overTask && activeId !== overId) {
+       const overStatus = overTask.status;
+
+       if (activeTask.status !== overStatus) {
+          setTasks(prev => {
+             const newTasks = [...prev];
+             const activeIdx = newTasks.findIndex(t => t.id === activeId);
+             newTasks[activeIdx] = { ...newTasks[activeIdx], status: overStatus };
+
+             // Mover posición localmente
+             const oldIndex = newTasks.findIndex(t => t.id === activeId);
+             const newIndex = newTasks.findIndex(t => t.id === overId);
+             return arrayMove(newTasks, oldIndex, newIndex);
+          });
+       } else {
+          // Solo reordenar en la misma columna
+          const oldIndex = tasks.findIndex(t => t.id === activeId);
+          const newIndex = tasks.findIndex(t => t.id === overId);
+          if (oldIndex !== newIndex) {
+             setTasks(prev => arrayMove(prev, oldIndex, newIndex));
+          }
        }
     }
   };
@@ -96,9 +127,12 @@ const Kanban = () => {
     if (!over) return;
 
     const activeTask = tasks.find(t => t.id === active.id);
-    const overId = over.id;
-    let newStatus = activeTask.status;
+    if (!activeTask) return;
 
+    const overId = over.id;
+    let newStatus = activeTask.status; // El status ya fue actualizado en onDragOver
+
+    // Determinar status final de persistencia
     if (['PENDIENTE', 'EN_PROCESO', 'REALIZADO'].includes(overId)) {
         newStatus = overId;
     } else {
@@ -106,20 +140,11 @@ const Kanban = () => {
         if (overTask) newStatus = overTask.status;
     }
 
+    // Persistencia silenciosa (Optimistic UI)
     if (initialStatus !== newStatus) {
         try {
-            // Actualización optimista: El estado ya fue actualizado parcialmente por handleDragOver
-            // Pero nos aseguramos de que el reordenamiento final se mantenga
-            if (active.id !== over.id) {
-               const oldIndex = tasks.findIndex(t => t.id === active.id);
-               const newIndex = tasks.findIndex(t => t.id === over.id);
-               setTasks(prev => arrayMove(prev, oldIndex, newIndex));
-            }
-
-            // Llamada silenciosa al backend
             await axios.put(`/api/tasks/${activeTask.id}`, { status: newStatus });
 
-            // Efecto celebración
             if (newStatus === 'REALIZADO' && initialStatus !== 'REALIZADO') {
                 confetti({
                     particleCount: 150,
@@ -129,18 +154,17 @@ const Kanban = () => {
                 });
             }
             setInitialStatus(null);
-            // NOTA: NO llamamos a fetchTasks() aquí para evitar el "salto" de recarga
+            setSnapshot(null);
         } catch (e) {
             console.error('API Error, rolling back state:', e);
-            if (snapshot) setTasks(snapshot); // Rollback exacto al inicio del drag
+            if (snapshot) setTasks(snapshot);
             setInitialStatus(null);
+            setSnapshot(null);
         }
-    } else if (active.id !== over.id) {
-        // Reordenamiento en la misma columna
-        const oldIndex = tasks.findIndex(t => t.id === active.id);
-        const newIndex = tasks.findIndex(t => t.id === over.id);
-        setTasks(prev => arrayMove(prev, oldIndex, newIndex));
-        // Opcional: Persistir el nuevo orden en la DB si el backend lo soporta
+    } else {
+        // Solo reordenamiento local persistido (si el backend lo soportara)
+        setInitialStatus(null);
+        setSnapshot(null);
     }
   };
 
@@ -157,7 +181,7 @@ const Kanban = () => {
 
   const columns = [
     { id: 'PENDIENTE', title: 'Pendiente' },
-    { id: 'EN_PROCESO', title: 'En Proceso' },
+    { id: 'EN_PROCESO', title: 'En proceso' },
     { id: 'REALIZADO', title: 'Realizado' }
   ];
 
