@@ -93,7 +93,7 @@ const Clients = () => {
       {/* Header */}
       <header className="h-16 border-b border-zinc-200 flex items-center justify-between px-8 shrink-0 bg-white shadow-sm">
         <div className="flex items-center flex-1">
-          <h2 className="font-display font-black text-[22px] text-zinc-900 uppercase tracking-tight">Directorio de Clientes</h2>
+          <h2 className="font-display font-black text-[22px] text-zinc-900  tracking-tight">Directorio de Clientes</h2>
         </div>
         <div className="flex items-center space-x-4">
           <div className="relative w-72">
@@ -108,7 +108,7 @@ const Clients = () => {
           </div>
           <button
             onClick={() => { setEditingClient(null); setIsClientModalOpen(true); }}
-            className="h-10 px-6 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-sm hover:opacity-90 transition-all flex items-center shadow-lg"
+            className="h-10 px-6 bg-primary text-white text-xs font-black  tracking-widest rounded-sm hover:opacity-90 transition-all flex items-center shadow-lg"
           >
             <span className="material-symbols-outlined text-[18px] mr-2">person_add</span>
             Nuevo Cliente
@@ -122,22 +122,22 @@ const Clients = () => {
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-zinc-50/50 border-b-2 border-zinc-100">
-                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] w-1/3">Empresa / Razón Social</th>
-                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] w-1/4">NIT / Identificación</th>
-                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] w-1/4">Contacto Principal</th>
-                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] text-center w-32">Estado</th>
-                <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] text-right w-20"></th>
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400  tracking-[0.2em] w-1/3">Empresa / Razón Social</th>
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400  tracking-[0.2em] w-1/4">NIT / Identificación</th>
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400  tracking-[0.2em] w-1/4">Contacto Principal</th>
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400  tracking-[0.2em] text-center w-32">Estado</th>
+                <th className="px-6 py-4 text-[10px] font-black text-zinc-400  tracking-[0.2em] text-right w-20"></th>
               </tr>
             </thead>
             <tbody className="text-sm divide-y divide-zinc-50">
               {loading ? (
-                <tr><td colSpan="5" className="p-12 text-center text-zinc-400 font-medium animate-pulse uppercase text-[10px] tracking-widest">Sincronizando base de clientes...</td></tr>
+                <tr><td colSpan="5" className="p-12 text-center text-zinc-400 font-medium animate-pulse  text-[10px] tracking-widest">Sincronizando base de clientes...</td></tr>
               ) : filteredClients.length === 0 ? (
-                <tr><td colSpan="5" className="p-12 text-center text-zinc-400 font-bold uppercase text-[11px] tracking-widest">No se encontraron clientes registrados.</td></tr>
+                <tr><td colSpan="5" className="p-12 text-center text-zinc-400 font-bold  text-[11px] tracking-widest">No se encontraron clientes registrados.</td></tr>
               ) : filteredClients.map((client, idx) => (
                 <tr key={client.id} className="hover:bg-zinc-50/80 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-primary">
                   <td className="px-6 py-5">
-                    <div className="font-black text-zinc-900 uppercase tracking-tight text-[13px]">{client.razon_social}</div>
+                    <div className="font-black text-zinc-900  tracking-tight text-[13px]">{client.razon_social}</div>
                     <div className="text-[10px] font-bold text-zinc-400 mt-1 flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">mail</span>
                       {client.email || 'SIN EMAIL'}
@@ -149,11 +149,11 @@ const Clients = () => {
                     </span>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="font-bold text-zinc-700 text-[12px] uppercase">{client.responsable || 'No asignado'}</div>
+                    <div className="font-bold text-zinc-700 text-[12px] ">{client.responsable || 'No asignado'}</div>
                     <div className="text-[10px] font-medium text-zinc-400 mt-0.5">{client.ciudad || '-'}</div>
                   </td>
                   <td className="px-6 py-5 text-center">
-                    <span className="inline-flex items-center px-3 py-1 rounded-sm text-[9px] font-black uppercase tracking-widest bg-green-50 text-green-700 border border-green-100 shadow-sm">
+                    <span className="inline-flex items-center px-3 py-1 rounded-sm text-[9px] font-black  tracking-widest bg-green-50 text-green-700 border border-green-100 shadow-sm">
                       ACTIVO
                     </span>
                   </td>

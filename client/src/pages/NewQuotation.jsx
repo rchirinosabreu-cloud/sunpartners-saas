@@ -15,7 +15,7 @@ const ComboBox = ({ label, value, options, onChange }) => {
 
   return (
     <div className="space-y-2">
-      <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">{label}</label>
+      <label className="block text-[10px] font-black  tracking-widest text-zinc-400">{label}</label>
       <div className="flex gap-2">
         {!isManual ? (
           <select
@@ -116,7 +116,7 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
           <span className={`material-symbols-outlined text-[18px] ${selectedItem ? 'text-primary' : 'text-zinc-400'}`}>
             {selectedItem ? 'inventory_2' : 'search'}
           </span>
-          <span className={`text-xs font-bold truncate ${selectedItem ? 'text-zinc-900 uppercase' : 'text-zinc-400'}`}>
+          <span className={`text-xs font-bold truncate ${selectedItem ? 'text-zinc-900 ' : 'text-zinc-400'}`}>
             {selectedItem ? selectedItem.nombre_comercial : placeholder}
           </span>
         </div>
@@ -152,7 +152,7 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
           </div>
           <div className="max-h-[300px] overflow-y-auto p-1 custom-scrollbar">
             {filteredOptions.length === 0 ? (
-              <div className="p-6 text-center text-zinc-400 text-[10px] font-black uppercase tracking-widest">No hay resultados</div>
+              <div className="p-6 text-center text-zinc-400 text-[10px] font-black  tracking-widest">No hay resultados</div>
             ) : (
               filteredOptions.map(opt => (
                 <div
@@ -165,9 +165,9 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
                   }}
                   className={`p-3 rounded-lg cursor-pointer transition-all flex flex-col gap-0.5 hover:bg-zinc-50 ${value === opt.id ? 'bg-primary/5 border border-primary/10' : 'border border-transparent'}`}
                 >
-                  <span className="text-[11px] font-black text-zinc-900 uppercase tracking-tight">{opt.nombre_comercial}</span>
+                  <span className="text-[11px] font-black text-zinc-900  tracking-tight">{opt.nombre_comercial}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase">Stock: {opt.claseA + opt.claseB} und</span>
+                    <span className="text-[9px] font-bold text-zinc-400 ">Stock: {opt.claseA + opt.claseB} und</span>
                     <span className="text-[9px] font-black text-primary">$ {opt.valor_alquiler.toLocaleString()}</span>
                   </div>
                 </div>
@@ -193,7 +193,7 @@ const BlindajeDatePicker = ({ id, label, value, onChange }) => {
 
   return (
     <div className="space-y-1">
-      <label className="block text-[9px] font-black uppercase text-zinc-400 tracking-tighter">{label}</label>
+      <label className="block text-[9px] font-black  text-zinc-400 tracking-tighter">{label}</label>
       <Flatpickr
         id={id}
         name={id}
@@ -389,9 +389,9 @@ const NewQuotation = () => {
       />
 
       <div className="flex justify-between items-center mb-12 bg-white p-10 rounded-lg shadow-sm border border-zinc-100">
-        <h2 className="text-3xl font-black uppercase tracking-tight text-zinc-900">CONSTRUCTOR DE COTIZACIONES</h2>
+        <h2 className="text-3xl font-black  tracking-tight text-zinc-900">Constructor de cotizaciones</h2>
         <div className="bg-primary/5 border border-primary/20 text-primary px-10 py-4 rounded-lg text-right">
-           <p className="text-[11px] font-black uppercase text-primary tracking-[0.4em]">TOTAL</p>
+           <p className="text-[11px] font-black  text-primary tracking-[0.4em]">TOTAL</p>
            <p className="text-3xl font-black tracking-tighter ml-8">$ {financials.total.toLocaleString()}</p>
         </div>
       </div>
@@ -411,7 +411,7 @@ const NewQuotation = () => {
               className={`flex-1 py-8 flex flex-col items-center gap-2 transition-all relative ${activeTab === tab.n ? 'text-primary bg-primary/5' : 'text-zinc-400 hover:bg-zinc-50'}`}
             >
               <span className="material-symbols-outlined text-[24px]">{tab.i}</span>
-              <span className="text-[10px] font-black uppercase tracking-widest">{tab.l}</span>
+              <span className="text-[10px] font-black  tracking-widest">{tab.l}</span>
               {activeTab === tab.n && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>}
             </button>
           ))}
@@ -427,12 +427,12 @@ const NewQuotation = () => {
                         <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
                            <span className="material-symbols-outlined text-primary text-[20px] fill">apartment</span>
                         </div>
-                        <h3 className="font-black uppercase tracking-widest text-sm text-zinc-900">Tarjeta A: Datos del Cliente</h3>
+                        <h3 className="font-black  tracking-widest text-sm text-zinc-900">Tarjeta A: Datos del cliente</h3>
                      </div>
                      <button
                         type="button"
                         onClick={() => setIsClientModalOpen(true)}
-                        className="bg-primary text-white px-6 py-2 rounded-[12px] text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+                        className="bg-primary text-white px-6 py-2 rounded-[12px] text-[10px] font-black  tracking-widest hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
                      >
                         <span className="material-symbols-outlined text-[16px]">person_add</span>
                         Nuevo Cliente
@@ -441,7 +441,7 @@ const NewQuotation = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                      <div className="md:col-span-2 lg:col-span-1">
                         <div className="flex justify-between mb-2">
-                           <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Selector de Cliente Maestro</label>
+                           <label className="block text-[10px] font-black  tracking-widest text-zinc-400">Selector de cliente maestro</label>
                            {formData.clientId && (
                               <button
                                  type="button"
@@ -452,7 +452,7 @@ const NewQuotation = () => {
                                        setIsClientModalOpen(true);
                                     }
                                  }}
-                                 className="text-primary hover:text-primary-hover flex items-center gap-1 text-[10px] font-black uppercase tracking-widest"
+                                 className="text-primary hover:text-primary-hover flex items-center gap-1 text-[10px] font-black  tracking-widest"
                               >
                                  <span className="material-symbols-outlined text-[14px]">settings_suggest</span>
                                  Editar Maestro
@@ -481,7 +481,7 @@ const NewQuotation = () => {
                         </select>
                      </div>
                      <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Empresa / Razón Social</label>
+                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Empresa / Razón Social</label>
                         <input
                            type="text"
                            value={formData.razon_social}
@@ -490,7 +490,7 @@ const NewQuotation = () => {
                         />
                      </div>
                      <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Responsable de Cuenta</label>
+                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Responsable de Cuenta</label>
                         <input
                            type="text"
                            value={formData.responsable}
@@ -499,7 +499,7 @@ const NewQuotation = () => {
                         />
                      </div>
                      <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Dirección Fiscal/Evento</label>
+                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Dirección Fiscal/Evento</label>
                         <input
                            type="text"
                            value={formData.direccion_fiscal}
@@ -508,7 +508,7 @@ const NewQuotation = () => {
                         />
                      </div>
                      <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Email Corporativo</label>
+                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Email Corporativo</label>
                         <input
                            type="email"
                            value={formData.email}
@@ -518,7 +518,7 @@ const NewQuotation = () => {
                      </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                           <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Teléfono</label>
+                           <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Teléfono</label>
                            <input
                               type="text"
                               value={formData.telefono}
@@ -527,7 +527,7 @@ const NewQuotation = () => {
                            />
                         </div>
                         <div>
-                           <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Ciudad</label>
+                           <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Ciudad</label>
                            <input
                               type="text"
                               value={formData.ciudad}
@@ -545,25 +545,25 @@ const NewQuotation = () => {
                      <div className="size-8 bg-brand-alert/10 rounded-lg flex items-center justify-center">
                         <span className="material-symbols-outlined text-brand-alert text-[20px] fill">celebration</span>
                      </div>
-                     <h3 className="font-black uppercase tracking-widest text-sm text-zinc-900">Tarjeta B: Datos del Evento</h3>
+                     <h3 className="font-black  tracking-widest text-sm text-zinc-900">Tarjeta B: Datos del evento</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                      <div className="lg:col-span-2">
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Nombre Oficial del Proyecto</label>
+                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Nombre oficial del proyecto</label>
                         <input type="text" value={formData.evento_nombre} onChange={e => setFormData({...formData, evento_nombre: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-4 font-black text-lg bg-zinc-50 outline-none focus:border-primary transition-all" placeholder="Ej: LANZAMIENTO SUNBTL 2026" />
                      </div>
 
                      <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Consultor Responsable</label>
+                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Consultor responsable</label>
                         <div className="w-full border-2 border-zinc-100 rounded-lg p-3 bg-zinc-50 flex items-center gap-2">
-                           <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 uppercase">
+                           <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 ">
                               {currentUser?.nombre?.substring(0,2)}
                            </div>
-                           <span className="text-xs font-bold text-zinc-900 uppercase">{currentUser?.nombre}</span>
+                           <span className="text-xs font-bold text-zinc-900 ">{currentUser?.nombre}</span>
                         </div>
                      </div>
                      <div className="lg:col-span-2">
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Ubicación Exacta (Venue)</label>
+                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Ubicación Exacta (Venue)</label>
                         <input type="text" value={formData.evento_venue} onChange={e => setFormData({...formData, evento_venue: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-4 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-sm" placeholder="Ej: Corferias - Pabellón 4" />
                      </div>
 
@@ -589,7 +589,7 @@ const NewQuotation = () => {
                      />
 
                      <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Operación (Días/Horas)</label>
+                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Operación (Días/Horas)</label>
                         <input type="text" value={formData.evento_duracion} onChange={e => setFormData({...formData, evento_duracion: e.target.value})} className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs" placeholder="Ej: 3 días / 12h diarias" />
                      </div>
                   </div>
@@ -600,7 +600,7 @@ const NewQuotation = () => {
           {activeTab === 2 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                <div className="p-8 border-2 border-zinc-100 rounded bg-white shadow-sm">
-                  <h4 className="text-[11px] font-black uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                  <h4 className="text-[11px] font-black  tracking-[0.2em] mb-8 flex items-center gap-2">
                     <span className="material-symbols-outlined text-zinc-400">build</span> FASE MONTAJE
                   </h4>
                   <div className="space-y-6">
@@ -609,7 +609,7 @@ const NewQuotation = () => {
                   </div>
                </div>
                <div className="p-8 border-2 border-zinc-100 rounded bg-white shadow-sm">
-                  <h4 className="text-[11px] font-black uppercase tracking-[0.2em] mb-8 flex items-center gap-2 text-primary">
+                  <h4 className="text-[11px] font-black  tracking-[0.2em] mb-8 flex items-center gap-2 text-primary">
                     <span className="material-symbols-outlined">celebration</span> FASE EVENTO
                   </h4>
                   <div className="space-y-6">
@@ -618,7 +618,7 @@ const NewQuotation = () => {
                   </div>
                </div>
                <div className="p-8 border-2 border-zinc-100 rounded bg-white shadow-sm">
-                  <h4 className="text-[11px] font-black uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                  <h4 className="text-[11px] font-black  tracking-[0.2em] mb-8 flex items-center gap-2">
                     <span className="material-symbols-outlined text-zinc-400">restart_alt</span> FASE DESMONTAJE
                   </h4>
                   <div className="space-y-6">
@@ -632,15 +632,15 @@ const NewQuotation = () => {
           {activeTab === 3 && (
             <div className="space-y-6">
                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Resumen de Equipamiento y Servicios</h3>
+                  <h3 className="text-[11px] font-black  tracking-widest text-zinc-400">Resumen de equipamiento y servicios</h3>
                   <div className="flex gap-2">
-                     <button type="button" onClick={() => setFormData(p => ({...p, items: [...p.items, {inventoryId: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-primary text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase hover:opacity-90 transition-all shadow-md">+ Equipo</button>
-                     <button type="button" onClick={() => setFormData(p => ({...p, services: [...p.services, {tipo: 'Transporte', descripcion: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-white border border-zinc-200 text-zinc-900 px-6 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-zinc-50 transition-all shadow-sm">+ Personal</button>
+                     <button type="button" onClick={() => setFormData(p => ({...p, items: [...p.items, {inventoryId: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-primary text-white px-6 py-2 rounded-lg text-[10px] font-black  hover:opacity-90 transition-all shadow-md">+ Equipo</button>
+                     <button type="button" onClick={() => setFormData(p => ({...p, services: [...p.services, {tipo: 'Transporte', descripcion: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-white border border-zinc-200 text-zinc-900 px-6 py-2 rounded-lg text-[10px] font-black  hover:bg-zinc-50 transition-all shadow-sm">+ Personal</button>
                   </div>
                </div>
                <div className="border border-zinc-200 rounded-lg overflow-hidden shadow-sm">
                   <table className="w-full text-left text-xs">
-                     <thead className="bg-zinc-50 text-zinc-900 uppercase font-black tracking-widest border-b border-zinc-200">
+                     <thead className="bg-zinc-50 text-zinc-900  font-black tracking-widest border-b border-zinc-200">
                         <tr>
                            <th className="p-6">Ítem / Descripción Técnica</th>
                            <th className="p-6 text-center">Cant</th>
@@ -666,7 +666,7 @@ const NewQuotation = () => {
                                           <select
                                              value={sv.tipo}
                                              onChange={e => updateSv('tipo', e.target.value)}
-                                             className="w-40 p-2 bg-white border border-zinc-200 rounded text-[10px] font-black uppercase outline-none focus:border-primary"
+                                             className="w-40 p-2 bg-white border border-zinc-200 rounded text-[10px] font-black  outline-none focus:border-primary"
                                           >
                                              <option value="Transporte">Transporte</option>
                                              <option value="Cargue / Descargue">Cargue / Descargue</option>
@@ -681,7 +681,7 @@ const NewQuotation = () => {
                                           />
                                        </div>
                                        <div className="px-1">
-                                          <span className="text-[9px] text-zinc-400 font-bold uppercase">({sv.cantidad || 0} UNIDADES X {sv.dias || 1} DÍAS)</span>
+                                          <span className="text-[9px] text-zinc-400 font-bold ">({sv.cantidad || 0} UNIDADES X {sv.dias || 1} DÍAS)</span>
                                        </div>
                                     </div>
                                  </td>
@@ -730,7 +730,7 @@ const NewQuotation = () => {
                                        </div>
                                        {it.inventoryId && (
                                           <div className="px-1">
-                                             <span className="text-[9px] text-zinc-400 font-bold uppercase">({it.cantidad || 0} UNIDADES X {it.dias || 1} DÍAS)</span>
+                                             <span className="text-[9px] text-zinc-400 font-bold ">({it.cantidad || 0} UNIDADES X {it.dias || 1} DÍAS)</span>
                                           </div>
                                        )}
                                     </div>
@@ -756,18 +756,18 @@ const NewQuotation = () => {
                    <span className="material-symbols-outlined text-primary text-4xl font-black">check</span>
                 </div>
                 <div>
-                   <h3 className="text-2xl font-black uppercase tracking-tighter text-zinc-900">Validación Técnica Completa</h3>
-                   <p className="text-zinc-500 font-bold text-xs uppercase tracking-widest mt-2">Presione el botón inferior para formalizar la propuesta y generar el link seguro.</p>
+                   <h3 className="text-2xl font-black  tracking-tighter text-zinc-900">Validación Técnica Completa</h3>
+                   <p className="text-zinc-500 font-bold text-xs  tracking-widest mt-2">Presione el botón inferior para formalizar la propuesta y generar el link seguro.</p>
                 </div>
              </div>
           )}
 
           <div className="mt-16 flex justify-between items-center border-t border-zinc-100 pt-12">
-             <button type="button" onClick={() => setActiveTab(p => Math.max(1, p - 1))} className="px-12 py-4 rounded-lg border border-zinc-200 text-[11px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all shadow-sm">Regresar</button>
+             <button type="button" onClick={() => setActiveTab(p => Math.max(1, p - 1))} className="px-12 py-4 rounded-lg border border-zinc-200 text-[11px] font-black  tracking-widest hover:bg-zinc-50 transition-all shadow-sm">Regresar</button>
              {activeTab < 4 ? (
-                <button type="button" onClick={() => setActiveTab(p => Math.min(4, p + 1))} className="bg-primary text-white px-14 py-4 rounded-lg text-[11px] font-black uppercase tracking-widest hover:opacity-90 shadow-lg shadow-primary/20 transition-all">Siguiente Estación</button>
+                <button type="button" onClick={() => setActiveTab(p => Math.min(4, p + 1))} className="bg-primary text-white px-14 py-4 rounded-lg text-[11px] font-black  tracking-widest hover:opacity-90 shadow-lg shadow-primary/20 transition-all">Siguiente Estación</button>
              ) : (
-                <button type="submit" disabled={saving} className="bg-primary text-white px-20 py-4 rounded-lg text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:opacity-90 transition-all">
+                <button type="submit" disabled={saving} className="bg-primary text-white px-20 py-4 rounded-lg text-[11px] font-black  tracking-widest shadow-xl shadow-primary/20 hover:opacity-90 transition-all">
                    {saving ? 'Procesando...' : 'Finalizar Propuesta Maestro'}
                 </button>
              )}

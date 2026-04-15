@@ -42,26 +42,26 @@ const Profile = () => {
 
       <div className="max-w-3xl mx-auto space-y-8">
         <header className="mb-12">
-          <h2 className="font-display text-3xl font-black uppercase tracking-tight text-zinc-900">Mi Perfil de Usuario</h2>
-          <p className="text-[13px] text-zinc-500 font-semibold mt-1 uppercase tracking-wider">Gestión de seguridad y datos personales en Sunpartners.</p>
+          <h2 className="font-display text-3xl font-black  tracking-tight text-zinc-900">Mi perfil de usuario</h2>
+          <p className="text-[13px] text-zinc-500 font-semibold mt-1  tracking-wider">Gestión de seguridad y datos personales en Sunpartners.</p>
         </header>
 
         <div className="bg-white border-2 border-zinc-100 rounded-xl p-8 shadow-sm">
-          <h3 className="text-[11px] font-black uppercase tracking-widest text-zinc-400 mb-8 flex items-center gap-2">
+          <h3 className="text-[11px] font-black  tracking-widest text-zinc-400 mb-8 flex items-center gap-2">
              <span className="material-symbols-outlined text-[18px]">account_circle</span> Información del Sistema
           </h3>
           <div className="grid grid-cols-2 gap-8">
             <div>
-              <span className="block text-[10px] font-black uppercase text-zinc-400 mb-1">Nombre Completo</span>
-              <p className="font-black text-zinc-900 uppercase">{user?.nombre}</p>
+              <span className="block text-[10px] font-black  text-zinc-400 mb-1">Nombre completo</span>
+              <p className="font-black text-zinc-900 ">{user?.nombre}</p>
             </div>
             <div>
-              <span className="block text-[10px] font-black uppercase text-zinc-400 mb-1">Correo Electrónico</span>
+              <span className="block text-[10px] font-black  text-zinc-400 mb-1">Correo electrónico</span>
               <p className="font-bold text-zinc-600">{user?.email}</p>
             </div>
             <div>
-              <span className="block text-[10px] font-black uppercase text-zinc-400 mb-1">Rol Asignado</span>
-              <span className="inline-block px-3 py-1 rounded bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20 mt-1">
+              <span className="block text-[10px] font-black  text-zinc-400 mb-1">Rol asignado</span>
+              <span className="inline-block px-3 py-1 rounded bg-primary/10 text-primary text-[10px] font-black  tracking-widest border border-primary/20 mt-1">
                 {user?.role}
               </span>
             </div>
@@ -69,12 +69,12 @@ const Profile = () => {
         </div>
 
         <div className="bg-white border-2 border-zinc-100 rounded-xl p-8 shadow-sm">
-          <h3 className="text-[11px] font-black uppercase tracking-widest text-zinc-400 mb-8 flex items-center gap-2">
+          <h3 className="text-[11px] font-black  tracking-widest text-zinc-400 mb-8 flex items-center gap-2">
              <span className="material-symbols-outlined text-[18px]">lock</span> Seguridad: Cambiar Contraseña
           </h3>
           <form onSubmit={handleChangePassword} className="space-y-6 max-w-md">
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Contraseña Actual</label>
+              <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Contraseña actual</label>
               <input
                 required
                 type="password"
@@ -85,7 +85,7 @@ const Profile = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Nueva Contraseña</label>
+                <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Nueva contraseña</label>
                 <input
                   required
                   type="password"
@@ -95,7 +95,7 @@ const Profile = () => {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Confirmar</label>
+                <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Confirmar</label>
                 <input
                   required
                   type="password"
@@ -105,11 +105,11 @@ const Profile = () => {
                 />
               </div>
             </div>
-            <p className="text-[10px] font-bold text-zinc-400 uppercase">* Mínimo 8 caracteres</p>
+            <p className="text-[10px] font-bold text-zinc-400 ">* Mínimo 8 caracteres</p>
             <button
               disabled={loading}
               type="submit"
-              className="bg-primary text-white px-10 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest hover:opacity-90 shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+              className="bg-primary text-white px-10 py-3 rounded-lg text-[11px] font-black  tracking-widest hover:opacity-90 shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
             >
               {loading ? 'Procesando...' : 'Actualizar Contraseña'}
             </button>

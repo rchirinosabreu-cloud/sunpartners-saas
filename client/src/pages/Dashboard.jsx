@@ -4,7 +4,7 @@ const MetricCard = ({ label, value, unit, icon, alert = false }) => (
   }`}>
     {alert && <div className="absolute top-0 left-0 w-1 h-full bg-alert"></div>}
     <div className={`flex items-center justify-between ${alert ? 'pl-1' : ''}`}>
-      <span className={`text-[13px] font-medium uppercase tracking-wide ${alert ? 'text-zinc-900' : 'text-zinc-500'}`}>
+      <span className={`text-[13px] font-medium  tracking-wide ${alert ? 'text-zinc-900' : 'text-zinc-500'}`}>
         {label}
       </span>
       <span className={`material-symbols-outlined text-[20px] ${alert ? 'text-alert' : 'text-zinc-400'}`}>

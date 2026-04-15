@@ -92,7 +92,7 @@ const QuotationList = () => {
       RECHAZADA: 'bg-red-100 text-red-700',
       REVISION_SOLICITADA: 'bg-amber-50 text-amber-600'
     };
-    return <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${styles[status] || 'bg-zinc-100 text-zinc-600'}`}>{status}</span>;
+    return <span className={`px-2 py-0.5 rounded text-[10px] font-bold  tracking-wider ${styles[status] || 'bg-zinc-100 text-zinc-600'}`}>{status}</span>;
   };
 
   const filteredQuotations = quotations.filter(q =>
@@ -185,7 +185,7 @@ const QuotationList = () => {
           <tbody className="divide-y divide-zinc-50">
             {filteredQuotations.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-6 py-16 text-center text-zinc-400 font-bold uppercase text-[11px] tracking-widest">
+                <td colSpan="6" className="px-6 py-16 text-center text-zinc-400 font-bold  text-[11px] tracking-widest">
                   {loading ? 'Sincronizando registros...' : `No se encontraron cotizaciones ${activeTab === 'active' ? 'activas' : 'archivadas'}.`}
                 </td>
               </tr>
@@ -204,7 +204,7 @@ const QuotationList = () => {
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-2">
-                       <div className="size-6 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-400 border border-zinc-200 uppercase">
+                       <div className="size-6 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-400 border border-zinc-200 ">
                           {(q.consultant?.nombre?.substring(0,2) || 'S').toUpperCase()}
                        </div>
                        <span className="text-[11px] font-bold text-zinc-600 tracking-tight">{toTitleCase(q.consultant?.nombre) || 'SISTEMA'}</span>
@@ -215,12 +215,12 @@ const QuotationList = () => {
                       <span className="text-zinc-700 font-bold text-xs">
                         {q.evento_inicio ? new Date(q.evento_inicio).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'PEND'} - {q.evento_fin ? new Date(q.evento_fin).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'PEND'}
                       </span>
-                      <span className="text-[9px] text-zinc-400 uppercase font-black tracking-tighter">{q.evento_inicio ? new Date(q.evento_inicio).getFullYear() : '-'}</span>
+                      <span className="text-[9px] text-zinc-400  font-black tracking-tighter">{q.evento_inicio ? new Date(q.evento_inicio).getFullYear() : '-'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">{getStatusBadge(q.estado)}</td>
                   <td className="px-6 py-5">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-100 text-zinc-500 font-black text-[9px] uppercase tracking-wider">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-100 text-zinc-500 font-black text-[9px]  tracking-wider">
                       <span className="material-symbols-outlined text-[14px]">inventory_2</span>
                       {(q.items?.length || 0) + (q.services?.length || 0)} líneas
                     </div>
