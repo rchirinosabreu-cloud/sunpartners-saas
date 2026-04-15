@@ -48,7 +48,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, clientId, userId, fechaLimite, isPriority, isImprorrogable, order, comentarios, status } = req.body;
+    const { titulo, clientId, userId, fechaLimite, isPriority, isImprorrogable, order, comentarios, status, reason } = req.body;
 
     const data = {};
     if (titulo) data.titulo = titulo;
@@ -78,13 +78,13 @@ exports.update = async (req, res) => {
 exports.remove = async (req, res) => {
   try {
     const { id } = req.params;
-    const { justification } = req.body;
+    const { justification, reason } = req.body;
 
     await prisma.task.update({
       where: { id },
       data: {
         deletedAt: new Date(),
-        deletedJustification: justification || 'Ajuste manual del administrador'
+        deletedJustification: reason || justification || 'Ajuste manual del administrador'
       }
     });
     res.json({ message: 'Tarea eliminada correctamente.' });

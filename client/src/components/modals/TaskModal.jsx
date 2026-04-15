@@ -89,7 +89,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
     if (!editingTask || !reasonModal.value.trim()) return;
     try {
       await axios.delete(`/api/tasks/${editingTask.id}`, {
-        data: { justification: reasonModal.value }
+        data: { reason: reasonModal.value } // Usando 'reason' como alias
       });
       onTaskCreated();
       setReasonModal({ isOpen: false, type: null, value: '' });
@@ -108,15 +108,28 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
     }
   };
 
-  const confirmReassignment = () => {
+  const confirmReassignment = async () => {
     if (!reasonModal.value.trim()) return;
-    setFormData(prev => ({
-      ...prev,
-      userId: pendingUserUpdate,
-      comentarios: (prev.comentarios ? prev.comentarios + '\n\n' : '') + `[REASIGNACIÓN] Motivo: ${reasonModal.value}`
-    }));
-    setReasonModal({ isOpen: false, type: null, value: '' });
-    setPendingUserUpdate(null);
+
+    const newReason = (formData.comentarios ? formData.comentarios + '\n\n' : '') + `[REASIGNACIÓN] Motivo: ${reasonModal.value}`;
+
+    try {
+      // Actualización real al backend (v10.4)
+      await axios.put(`/api/tasks/${editingTask.id}`, {
+        ...formData,
+        userId: pendingUserUpdate,
+        comentarios: newReason,
+        reason: reasonModal.value // Incluir motivo específico
+      });
+
+      setFormData(prev => ({ ...prev, userId: pendingUserUpdate, comentarios: newReason }));
+      setReasonModal({ isOpen: false, type: null, value: '' });
+      setPendingUserUpdate(null);
+      onTaskCreated();
+      onClose();
+    } catch (error) {
+      console.error('Error reassigning task:', error);
+    }
   };
 
   return (
@@ -130,6 +143,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
       }}
       title={reasonModal.type === 'delete' ? 'Motivo de eliminación' : 'Motivo de reasignación'}
       type="warning"
+      zIndexClass="z-[110]"
       action={{
         label: 'Confirmar',
         onClick: reasonModal.type === 'delete' ? handleDelete : confirmReassignment,
@@ -159,6 +173,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
       title={editingTask ? 'Editar Tarea' : 'Nueva Tarea'}
       type="info"
       showFooter={false}
+      zIndexClass="z-[80]"
     >
       <form onSubmit={handleSubmit} className="space-y-4 p-2">
         <div className="space-y-1">
