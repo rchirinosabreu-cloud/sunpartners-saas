@@ -14,6 +14,7 @@ import KanbanColumn from '../components/kanban/KanbanColumn';
 import KanbanCard from '../components/kanban/KanbanCard';
 import TaskModal from '../components/modals/TaskModal';
 import { toSentenceCase } from '../utils/formatters';
+import confetti from 'canvas-confetti';
 
 const Kanban = () => {
   const [tasks, setTasks] = useState([]);
@@ -100,6 +101,16 @@ const Kanban = () => {
     if (initialStatus !== newStatus) {
         try {
             await axios.put(`/api/tasks/${activeTask.id}`, { status: newStatus });
+
+            if (newStatus === 'REALIZADO' && initialStatus !== 'REALIZADO') {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#5486A1', '#FBAE17', '#ffffff']
+                });
+            }
+
             setInitialStatus(null);
             fetchTasks();
         } catch (e) {
@@ -187,7 +198,7 @@ const Kanban = () => {
       </header>
 
       {/* Kanban Board */}
-      <div className="flex-1 overflow-x-auto p-8 bg-white flex gap-6 scrollbar-hide items-start">
+      <div className="flex-1 overflow-auto p-8 bg-white flex gap-6 items-start">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
