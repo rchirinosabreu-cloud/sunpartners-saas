@@ -173,6 +173,8 @@ model Task {
   titulo               String
   status               TaskStatus  @default(PENDIENTE)
   isPriority           Boolean     @default(false)
+  isImprorrogable      Boolean     @default(false)
+  order                Int         @default(0)
   fechaLimite          DateTime
   comentarios          String?
   clientId             String?
