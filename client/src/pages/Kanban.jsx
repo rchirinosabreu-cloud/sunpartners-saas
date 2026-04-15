@@ -13,6 +13,7 @@ import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import KanbanColumn from '../components/kanban/KanbanColumn';
 import KanbanCard from '../components/kanban/KanbanCard';
 import TaskModal from '../components/modals/TaskModal';
+import { toSentenceCase } from '../utils/formatters';
 
 const Kanban = () => {
   const [tasks, setTasks] = useState([]);
@@ -20,6 +21,7 @@ const Kanban = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [activeId, setActiveId] = useState(null);
+  const [initialStatus, setInitialStatus] = useState(null);
   const [filters, setFilters] = useState({ userId: '', clientId: '', showToday: false });
   const [users, setUsers] = useState([]);
   const [clients, setClients] = useState([]);
@@ -59,6 +61,8 @@ const Kanban = () => {
   }, []);
 
   const handleDragStart = (event) => {
+    const task = tasks.find(t => t.id === event.active.id);
+    if (task) setInitialStatus(task.status);
     setActiveId(event.active.id);
   };
 
@@ -93,12 +97,14 @@ const Kanban = () => {
         if (overTask) newStatus = overTask.status;
     }
 
-    if (activeTask.status !== newStatus) {
+    if (initialStatus !== newStatus) {
         try {
             await axios.put(`/api/tasks/${activeTask.id}`, { status: newStatus });
+            setInitialStatus(null);
             fetchTasks();
         } catch (e) {
             console.error(e);
+            setInitialStatus(null);
             fetchTasks(); // Revert on error
         }
     } else if (active.id !== over.id) {
@@ -138,8 +144,8 @@ const Kanban = () => {
       {/* Kanban Header */}
       <header className="h-20 border-b border-zinc-100 flex items-center justify-between px-8 bg-white shrink-0 shadow-sm z-20">
         <div className="flex flex-col">
-          <h2 className="font-display font-black text-2xl text-zinc-900 uppercase tracking-tighter">Tablero Kanban</h2>
-          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mt-1">Gestión operativa y seguimiento de pendientes</p>
+          <h2 className="font-display font-black text-2xl text-zinc-900 tracking-tighter">Tablero Kanban</h2>
+          <p className="text-[10px] font-black text-zinc-400 tracking-widest leading-none mt-1">Gestión operativa y seguimiento de pendientes</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -149,7 +155,7 @@ const Kanban = () => {
                value={filters.userId}
                onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
              >
-               <option value="">TODOS LOS RESPONSABLES</option>
+               <option value="">Todos los responsables</option>
                {users.map(u => <option key={u.id} value={u.id}>{u.nombre} (@{u.username})</option>)}
              </select>
 
@@ -158,13 +164,13 @@ const Kanban = () => {
                value={filters.clientId}
                onChange={(e) => setFilters({ ...filters, clientId: e.target.value })}
              >
-               <option value="">TODOS LOS CLIENTES</option>
+               <option value="">Todos los clientes</option>
                {clients.map(c => <option key={c.id} value={c.id}>{c.razon_social}</option>)}
              </select>
 
              <button
                onClick={() => setFilters({ ...filters, showToday: !filters.showToday })}
-               className={`h-9 px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${filters.showToday ? 'bg-primary text-white shadow-md' : 'bg-white text-zinc-400 border border-zinc-200 hover:bg-zinc-50'}`}
+               className={`h-9 px-4 rounded-md text-[10px] font-black tracking-widest transition-all ${filters.showToday ? 'bg-primary text-white shadow-md' : 'bg-white text-zinc-400 border border-zinc-200 hover:bg-zinc-50'}`}
              >
                Hoy
              </button>
@@ -172,10 +178,10 @@ const Kanban = () => {
 
           <button
             onClick={() => { setEditingTask(null); setIsModalOpen(true); }}
-            className="h-10 px-6 bg-zinc-900 text-white text-[11px] font-black uppercase tracking-widest rounded-lg hover:bg-primary transition-all shadow-lg flex items-center gap-2"
+            className="h-10 px-6 bg-zinc-900 text-white text-[11px] font-black tracking-widest rounded-lg hover:bg-primary transition-all shadow-lg flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px]">add_task</span>
-            Nueva Tarea
+            Nueva tarea
           </button>
         </div>
       </header>

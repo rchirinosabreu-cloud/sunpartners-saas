@@ -100,7 +100,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
     >
       <form onSubmit={handleSubmit} className="space-y-4 p-2">
         <div className="space-y-1">
-          <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Título de la Tarea</label>
+          <label className="block text-[10px] font-black tracking-widest text-zinc-400">Título de la tarea</label>
           <input
             required
             className="w-full h-11 border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
@@ -112,7 +112,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Cliente</label>
+            <label className="block text-[10px] font-black tracking-widest text-zinc-400">Cliente</label>
             <select
               className="w-full h-11 border-2 border-zinc-100 rounded-lg px-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
               value={formData.clientId || ''}
@@ -124,7 +124,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Responsable</label>
+            <label className="block text-[10px] font-black tracking-widest text-zinc-400">Responsable</label>
             <select
               required
               className="w-full h-11 border-2 border-zinc-100 rounded-lg px-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
@@ -139,7 +139,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Fecha Límite</label>
+            <label className="block text-[10px] font-black tracking-widest text-zinc-400">Fecha límite</label>
             <input
               required
               type="date"
@@ -150,7 +150,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Estado Inicial</label>
+            <label className="block text-[10px] font-black tracking-widest text-zinc-400">Estado inicial</label>
             <select
               className="w-full h-11 border-2 border-zinc-100 rounded-lg px-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
               value={formData.status}
@@ -164,7 +164,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
         </div>
 
         <div className="space-y-1">
-          <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400">Comentarios Operativos</label>
+          <label className="block text-[10px] font-black tracking-widest text-zinc-400">Comentarios operativos</label>
           <textarea
             className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs resize-none"
             rows="3"
@@ -182,7 +182,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
              checked={formData.isPriority}
              onChange={(e) => setFormData({ ...formData, isPriority: e.target.checked })}
            />
-           <label htmlFor="isPriority" className="text-[11px] font-black uppercase tracking-widest text-zinc-600 cursor-pointer">Prioritario</label>
+           <label htmlFor="isPriority" className="text-[11px] font-black tracking-widest text-zinc-600 cursor-pointer">Prioritario</label>
         </div>
 
         <div className="flex justify-end items-center gap-3 pt-6 border-t border-zinc-100 mt-4">
@@ -196,8 +196,8 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
               <span className="material-symbols-outlined">delete</span>
             </button>
           )}
-          <button type="button" onClick={onClose} className="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-zinc-100 transition-colors">Cancelar</button>
-          <button type="submit" className="bg-primary text-white px-10 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest hover:opacity-90 shadow-lg transition-all">{editingTask ? 'Actualizar' : 'Crear Tarea'}</button>
+          <button type="button" onClick={onClose} className="px-6 py-2 rounded-lg text-[10px] font-black tracking-widest text-zinc-500 hover:bg-zinc-100 transition-colors">Cancelar</button>
+          <button type="submit" className="bg-primary text-white px-10 py-3 rounded-lg text-[11px] font-black tracking-widest hover:opacity-90 shadow-lg transition-all">{editingTask ? 'Actualizar' : 'Crear tarea'}</button>
         </div>
       </form>
     </Modal>

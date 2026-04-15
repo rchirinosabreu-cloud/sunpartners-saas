@@ -111,8 +111,8 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary text-3xl">{initialData?.id ? 'edit_note' : 'person_add'}</span>
-              <h3 className="font-display text-xl font-black uppercase tracking-tight text-zinc-900">
-                {initialData?.id ? 'Editar Cliente Maestro' : 'Registrar Nuevo Cliente'}
+              <h3 className="font-display text-xl font-black tracking-tight text-zinc-900">
+                {initialData?.id ? 'Editar cliente maestro' : 'Registrar nuevo cliente'}
               </h3>
             </div>
             <button onClick={onClose} className="text-zinc-400 hover:text-zinc-900 transition-colors">
@@ -123,7 +123,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Empresa / Razón Social</label>
+                <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Empresa / Razón Social</label>
                 <input
                   required
                   type="text"
@@ -135,7 +135,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-1">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Tipo</label>
+                  <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Tipo</label>
                   <select
                     value={clientData.documentType}
                     onChange={e => setClientData({ ...clientData, documentType: e.target.value })}
@@ -147,7 +147,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Documento / ID</label>
+                  <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Documento / ID</label>
                   <input
                     required
                     type="text"
@@ -159,7 +159,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Responsable de Cuenta</label>
+                <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Responsable de cuenta</label>
                 <input
                   required
                   type="text"
@@ -170,7 +170,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Dirección Fiscal</label>
+                <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Dirección fiscal</label>
                 <input
                   required
                   type="text"
@@ -181,7 +181,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Email Corporativo</label>
+                <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Email corporativo</label>
                 <input
                   required
                   type="email"
@@ -193,8 +193,8 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
               </div>
               <div className="flex items-center justify-between p-3 border-2 border-zinc-100 rounded-lg bg-zinc-50/50">
                 <div>
-                   <p className="text-[10px] font-black uppercase tracking-widest text-zinc-900 leading-none">Exento de IVA</p>
-                   <p className="text-[9px] font-bold text-zinc-400 uppercase mt-1">Habilitar para clientes internacionales</p>
+                   <p className="text-[10px] font-black tracking-widest text-zinc-900 leading-none">Exento de IVA</p>
+                   <p className="text-[9px] font-bold text-zinc-400 mt-1">Habilitar para clientes internacionales</p>
                 </div>
                 <button
                   type="button"
@@ -206,7 +206,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Teléfono</label>
+                  <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Teléfono</label>
                   <input
                     required
                     type="text"
@@ -217,7 +217,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Ciudad</label>
+                  <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Ciudad</label>
                   <input
                     required
                     type="text"
@@ -230,7 +230,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Observaciones</label>
+              <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Observaciones</label>
               <textarea
                 placeholder="Notas adicionales sobre el cliente..."
                 value={clientData.observaciones}
@@ -254,16 +254,16 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
               <button
                 type="button"
                 onClick={onClose}
-                className="px-8 py-3 rounded-lg border-2 border-zinc-100 text-[11px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all"
+                className="px-8 py-3 rounded-lg border-2 border-zinc-100 text-[11px] font-black tracking-widest hover:bg-zinc-50 transition-all"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={saving || (isDuplicate.nit && !initialData?.id) || (isDuplicate.email && !initialData?.id)}
-                className="bg-primary text-white px-10 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                className="bg-primary text-white px-10 py-3 rounded-lg text-[11px] font-black tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
               >
-                {saving ? 'Guardando...' : (initialData?.id ? 'Actualizar Cliente' : 'Guardar Cliente')}
+                {saving ? 'Guardando...' : (initialData?.id ? 'Actualizar cliente' : 'Guardar cliente')}
               </button>
             </div>
           </form>

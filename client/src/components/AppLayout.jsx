@@ -44,7 +44,7 @@ const AppLayout = () => {
   const menuItems = [
     { to: '/', icon: 'dashboard', label: 'Dashboard' },
     { to: '/cotizaciones', icon: 'receipt_long', label: 'Cotizaciones' },
-    { to: '/tareas', icon: 'view_kanban', label: 'Kanban Pendientes' },
+    { to: '/tareas', icon: 'view_kanban', label: 'Kanban pendientes' },
     { to: '/inventario', icon: 'warehouse', label: 'Bodega', roles: ['ADMIN', 'EDITOR'] },
     { to: '/comercial', icon: 'shopping_cart', label: 'Catálogo', roles: ['ADMIN', 'EDITOR'] },
     { to: '/eventos', icon: 'event', label: 'Eventos' },
@@ -67,7 +67,7 @@ const AppLayout = () => {
           </div>
           <div className="flex flex-col">
             <span className="font-display text-sm font-semibold text-zinc-50 tracking-wide">SUNPARTNERS</span>
-            <span className="text-[11px] uppercase tracking-wider text-zinc-500">Contraste Estructural</span>
+            <span className="text-[11px] tracking-wider text-zinc-500">Contraste estructural</span>
           </div>
         </div>
 
@@ -83,7 +83,7 @@ const AppLayout = () => {
 
           {/* Stock Alerts Widget */}
           <div className="mt-8 px-3">
-            <h3 className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Alertas de Inventario</h3>
+            <h3 className="mb-3 px-3 text-xs font-semibold tracking-wider text-zinc-500">Alertas de inventario</h3>
             <div className="flex flex-col gap-2">
               <div className="flex items-start gap-3 rounded border border-zinc-800 bg-zinc-900 p-3">
                 <span className="material-symbols-outlined mt-0.5 text-[18px] text-alert fill">warning</span>
@@ -109,12 +109,12 @@ const AppLayout = () => {
             onClick={() => navigate('/perfil')}
             className="flex w-full items-center gap-3 rounded border border-transparent p-2 hover:bg-zinc-800/50 transition-colors group cursor-pointer"
           >
-            <div className="size-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-50 text-xs font-bold border border-zinc-700 uppercase">
-              {user?.nombre?.substring(0, 2) || 'OP'}
+            <div className="size-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-50 text-xs font-bold border border-zinc-700">
+              {(user?.nombre?.substring(0, 2) || 'OP').toUpperCase()}
             </div>
             <div className="flex flex-1 flex-col items-start min-w-0">
               <span className="text-sm font-medium text-zinc-50 truncate w-full">{user?.nombre || 'Operador'}</span>
-              <span className="text-[10px] font-black uppercase text-zinc-500 truncate w-full tracking-widest">{user?.role}</span>
+              <span className="text-[10px] font-black text-zinc-500 truncate w-full tracking-widest">{user?.role}</span>
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); handleLogout(); }}
@@ -131,7 +131,7 @@ const AppLayout = () => {
         {/* Header (64px) */}
         <header className="flex h-[64px] shrink-0 items-center justify-between border-b border-zinc-200 px-8 bg-background-light">
           <h1 className="font-display text-xl font-semibold tracking-tight text-zinc-900">
-            Dashboard - Resumen Operativo
+            Dashboard - Resumen operativo
           </h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-zinc-500 font-medium">

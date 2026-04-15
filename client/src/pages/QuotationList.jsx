@@ -127,15 +127,15 @@ const QuotationList = () => {
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="font-display text-3xl font-black uppercase tracking-tight text-zinc-900">Cotizaciones</h2>
+          <h2 className="font-display text-3xl font-black tracking-tight text-zinc-900">Cotizaciones</h2>
           <p className="text-[13px] text-zinc-500 font-semibold mt-1">Gestión del motor de negocio y eventos históricos.</p>
         </div>
         <button
           onClick={() => navigate('/cotizaciones/nueva')}
-          className="flex items-center gap-3 bg-primary text-white px-6 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+          className="flex items-center gap-3 bg-primary text-white px-6 py-3 rounded-lg text-[11px] font-black tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
-          Nueva Cotización
+          Nueva cotización
         </button>
       </div>
 
@@ -144,13 +144,13 @@ const QuotationList = () => {
         <div className="flex p-1 bg-zinc-100 rounded-lg w-fit">
           <button
             onClick={() => setActiveTab('active')}
-            className={`px-6 py-2 text-[11px] font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'active' ? 'bg-white text-primary shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+            className={`px-6 py-2 text-[11px] font-black tracking-widest rounded-md transition-all ${activeTab === 'active' ? 'bg-white text-primary shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
           >
             Activas
           </button>
           <button
             onClick={() => setActiveTab('archived')}
-            className={`px-6 py-2 text-[11px] font-black uppercase tracking-widest rounded-md transition-all ${activeTab === 'archived' ? 'bg-white text-zinc-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+            className={`px-6 py-2 text-[11px] font-black tracking-widest rounded-md transition-all ${activeTab === 'archived' ? 'bg-white text-zinc-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
           >
             Archivadas
           </button>
@@ -170,7 +170,7 @@ const QuotationList = () => {
 
       <div className={`bg-white border-2 border-zinc-100 rounded-xl overflow-hidden shadow-sm transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
         <table className="w-full text-left font-body text-sm">
-          <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-semibold uppercase text-[11px] tracking-wider">
+          <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-semibold text-[11px] tracking-wider">
             <tr>
               <th className="px-6 py-4">Evento / Cliente</th>
               <th className="px-6 py-4">Consultor</th>
@@ -197,21 +197,21 @@ const QuotationList = () => {
                 >
                   <td className="px-6 py-5">
                     <div className="flex flex-col">
-                      <span className="font-black text-zinc-900 uppercase tracking-tight text-[13px]">{q.nombre_evento}</span>
+                      <span className="font-black text-zinc-900 tracking-tight text-[13px]">{q.nombre_evento}</span>
                       <span className="text-[10px] font-bold text-zinc-400 mt-0.5">{q.client.razon_social}</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-2">
                        <div className="size-6 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-400 border border-zinc-200 uppercase">
-                          {q.consultant?.nombre?.substring(0,2) || 'S'}
+                          {(q.consultant?.nombre?.substring(0,2) || 'S').toUpperCase()}
                        </div>
-                       <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-tight">{q.consultant?.nombre || 'SISTEMA'}</span>
+                       <span className="text-[11px] font-bold text-zinc-600 tracking-tight">{q.consultant?.nombre || 'SISTEMA'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex flex-col">
-                      <span className="text-zinc-700 font-bold text-xs uppercase">
+                      <span className="text-zinc-700 font-bold text-xs">
                         {q.evento_inicio ? new Date(q.evento_inicio).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'PEND'} - {q.evento_fin ? new Date(q.evento_fin).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'PEND'}
                       </span>
                       <span className="text-[9px] text-zinc-400 uppercase font-black tracking-tighter">{q.evento_inicio ? new Date(q.evento_inicio).getFullYear() : '-'}</span>
