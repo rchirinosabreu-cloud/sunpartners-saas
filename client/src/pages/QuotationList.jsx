@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import { toTitleCase } from '../utils/formatters';
+import Avatar from "boring-avatars";
 
 const QuotationList = () => {
   const { user } = useAuth();
@@ -204,8 +205,13 @@ const QuotationList = () => {
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-2">
-                       <div className="size-6 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-400 border border-zinc-200 ">
-                          {(q.consultant?.nombre?.substring(0,2) || 'S').toUpperCase()}
+                       <div className="size-7 rounded-full overflow-hidden flex items-center justify-center border border-zinc-200" title={toTitleCase(q.consultant?.nombre) || 'Sistema'}>
+                          <Avatar
+                            size={28}
+                            name={q.consultant?.nombre || 'System'}
+                            variant="beam"
+                            colors={['#5486A1', '#FBAE17', '#222222', '#F2F2F2', '#EAEAEA']}
+                          />
                        </div>
                        <span className="text-[11px] font-bold text-zinc-600 tracking-tight">{toTitleCase(q.consultant?.nombre) || 'SISTEMA'}</span>
                     </div>

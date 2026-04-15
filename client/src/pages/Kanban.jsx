@@ -141,9 +141,14 @@ const Kanban = () => {
     }
 
     // Persistencia silenciosa (Optimistic UI)
-    if (initialStatus !== newStatus) {
+    if (initialStatus !== newStatus || active.id !== over.id) {
         try {
-            await axios.put(`/api/tasks/${activeTask.id}`, { status: newStatus });
+            // Persistir status y orden (basado en el índice local actual)
+            const newOrder = tasks.findIndex(t => t.id === active.id);
+            await axios.put(`/api/tasks/${activeTask.id}`, {
+              status: newStatus,
+              order: newOrder
+            });
 
             if (newStatus === 'REALIZADO' && initialStatus !== 'REALIZADO') {
                 confetti({
