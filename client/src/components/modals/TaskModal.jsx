@@ -22,6 +22,10 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
   const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
 
+  // States for interceptors
+  const [reasonModal, setReasonModal] = useState({ isOpen: false, type: null, value: '' });
+  const [pendingUserUpdate, setPendingUserUpdate] = useState(null);
+
   useEffect(() => {
     if (isOpen) {
       const fetchData = async () => {
@@ -82,17 +86,73 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
   };
 
   const handleDelete = async () => {
-    if (!editingTask) return;
+    if (!editingTask || !reasonModal.value.trim()) return;
     try {
-      await axios.delete(`/api/tasks/${editingTask.id}`);
+      await axios.delete(`/api/tasks/${editingTask.id}`, {
+        data: { justification: reasonModal.value }
+      });
       onTaskCreated();
+      setReasonModal({ isOpen: false, type: null, value: '' });
       onClose();
     } catch (error) {
       console.error('Error deleting task:', error);
     }
   };
 
+  const handleResponsibleChange = (newUserId) => {
+    if (editingTask && newUserId !== editingTask.userId) {
+       setPendingUserUpdate(newUserId);
+       setReasonModal({ isOpen: true, type: 'reassign', value: '' });
+    } else {
+       setFormData({ ...formData, userId: newUserId });
+    }
+  };
+
+  const confirmReassignment = () => {
+    if (!reasonModal.value.trim()) return;
+    setFormData(prev => ({
+      ...prev,
+      userId: pendingUserUpdate,
+      comentarios: (prev.comentarios ? prev.comentarios + '\n\n' : '') + `[REASIGNACIÓN] Motivo: ${reasonModal.value}`
+    }));
+    setReasonModal({ isOpen: false, type: null, value: '' });
+    setPendingUserUpdate(null);
+  };
+
   return (
+    <>
+    {/* Sub-modal for Justification Interceptors */}
+    <Modal
+      isOpen={reasonModal.isOpen}
+      onClose={() => {
+        setReasonModal({ isOpen: false, type: null, value: '' });
+        setPendingUserUpdate(null);
+      }}
+      title={reasonModal.type === 'delete' ? 'Motivo de eliminación' : 'Motivo de reasignación'}
+      type="warning"
+      action={{
+        label: 'Confirmar',
+        onClick: reasonModal.type === 'delete' ? handleDelete : confirmReassignment,
+        color: reasonModal.type === 'delete' ? 'danger' : 'primary',
+        disabled: !reasonModal.value.trim()
+      }}
+    >
+      <div className="space-y-4">
+        <p className="text-[11px] font-bold text-zinc-500 uppercase">
+          Esta acción requiere una justificación obligatoria:
+        </p>
+        <textarea
+          autoFocus
+          required
+          className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs resize-none"
+          rows="3"
+          placeholder="Escribe el motivo aquí..."
+          value={reasonModal.value}
+          onChange={(e) => setReasonModal({ ...reasonModal, value: e.target.value })}
+        />
+      </div>
+    </Modal>
+
     <Modal
       isOpen={isOpen}
       onClose={onClose}
@@ -131,7 +191,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
               required
               className="w-full h-11 border-2 border-zinc-100 rounded-lg px-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
               value={formData.userId}
-              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+              onChange={(e) => handleResponsibleChange(e.target.value)}
             >
               <option value="">Seleccionar Responsable</option>
               {users.map(u => <option key={u.id} value={u.id}>{u.nombre}</option>)}
@@ -207,7 +267,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
           {editingTask && (
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setReasonModal({ isOpen: true, type: 'delete', value: '' })}
               className="mr-auto w-10 h-10 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
               title="Eliminar Tarea"
             >
@@ -219,6 +279,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
         </div>
       </form>
     </Modal>
+    </>
   );
 };
 

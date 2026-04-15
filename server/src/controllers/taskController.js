@@ -78,11 +78,13 @@ exports.update = async (req, res) => {
 exports.remove = async (req, res) => {
   try {
     const { id } = req.params;
+    const { justification } = req.body;
+
     await prisma.task.update({
       where: { id },
       data: {
         deletedAt: new Date(),
-        deletedJustification: 'Ajuste manual del administrador'
+        deletedJustification: justification || 'Ajuste manual del administrador'
       }
     });
     res.json({ message: 'Tarea eliminada correctamente.' });
