@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import Avatar from "boring-avatars";
+import { toTitleCase } from '../utils/formatters';
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -119,7 +120,7 @@ const AppLayout = () => {
               />
             </div>
             <div className="flex flex-1 flex-col items-start min-w-0">
-              <span className="text-sm font-medium text-zinc-50 truncate w-full">{user?.nombre || 'Operador'}</span>
+              <span className="text-sm font-medium text-zinc-50 truncate w-full">{toTitleCase(user?.nombre) || 'Operador'}</span>
               <span className="text-[10px] font-black text-zinc-500 truncate w-full tracking-widest">{user?.role}</span>
             </div>
             <button

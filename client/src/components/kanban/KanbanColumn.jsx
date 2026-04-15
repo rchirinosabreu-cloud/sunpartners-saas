@@ -1,12 +1,13 @@
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import KanbanCard from './KanbanCard';
+import { motion } from 'framer-motion';
 
 const KanbanColumn = ({ id, title, tasks, onCardClick }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
-    <div className={`flex flex-col w-full min-w-[320px] max-w-[400px] bg-slate-50/50 p-5 rounded-2xl border-2 transition-all shadow-inner ${isOver ? 'border-primary/30 bg-primary/5' : 'border-transparent'}`}>
+    <div className={`flex flex-col w-full min-w-[320px] max-w-[400px] bg-slate-50/50 p-5 rounded-2xl border-2 transition-all shadow-inner ${isOver ? 'border-primary/40 bg-primary/5 scale-[1.01]' : 'border-transparent'}`}>
       <div className="flex items-center justify-between mb-6 px-2">
         <h3 className="font-display font-black text-zinc-900 tracking-tighter text-lg flex items-center gap-3">
           {title}

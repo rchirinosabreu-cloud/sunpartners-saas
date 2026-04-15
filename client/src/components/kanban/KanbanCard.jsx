@@ -5,6 +5,7 @@ import { toZonedTime } from 'date-fns-tz';
 import { normalizeData, toTitleCase } from '../../utils/formatters';
 import Avatar from "boring-avatars";
 import { CalendarDays } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const COLOMBIA_TZ = 'America/Bogota';
 
@@ -19,9 +20,9 @@ const KanbanCard = ({ task, onClick }) => {
   } = useSortable({ id: task.id });
 
   const style = {
-    transform: transform ? `${CSS.Translate.toString(transform)} ${isDragging ? 'rotate(2deg)' : ''}` : undefined,
+    transform: CSS.Translate.toString(transform),
     transition,
-    opacity: isDragging ? 0.6 : task.status === 'REALIZADO' ? 0.7 : 1,
+    opacity: isDragging ? 0.3 : task.status === 'REALIZADO' ? 0.7 : 1,
     zIndex: isDragging ? 50 : undefined,
   };
 
@@ -29,15 +30,24 @@ const KanbanCard = ({ task, onClick }) => {
   const isExpired = task.status !== 'REALIZADO' && isBefore(new Date(task.fechaLimite), startOfDay(nowColombia));
 
   return (
-    <div
+    <motion.div
+      layout
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98, rotate: '1deg', skew: '1deg' }}
+      transition={{
+        type: 'spring',
+        stiffness: 400,
+        damping: 30,
+        layout: { duration: 0.2 }
+      }}
       className={`
-        relative bg-white p-4 rounded-xl transition-all cursor-pointer group
+        relative bg-white p-4 rounded-xl transition-shadow cursor-pointer group
         ${task.isPriority ? 'border-l-[2px] border-l-red-500 border-2 border-zinc-100 shadow-sm' : 'border-2 border-zinc-100 shadow-sm hover:border-primary/30'}
-        ${isDragging ? 'shadow-2xl scale-105 border-primary/40' : ''}
+        ${isDragging ? 'shadow-none border-dashed border-zinc-300' : ''}
       `}
       onClick={() => onClick(task)}
     >
@@ -78,7 +88,7 @@ const KanbanCard = ({ task, onClick }) => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

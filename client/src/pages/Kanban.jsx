@@ -15,6 +15,7 @@ import KanbanCard from '../components/kanban/KanbanCard';
 import TaskModal from '../components/modals/TaskModal';
 import { toSentenceCase } from '../utils/formatters';
 import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Kanban = () => {
   const [tasks, setTasks] = useState([]);
@@ -74,10 +75,15 @@ const Kanban = () => {
     const activeTask = tasks.find(t => t.id === active.id);
     const overId = over.id;
 
-    // Moving to a column
+    // Moving to a column - Purely local for performance
     if (['PENDIENTE', 'EN_PROCESO', 'REALIZADO'].includes(overId)) {
        if (activeTask.status !== overId) {
-          setTasks(prev => prev.map(t => t.id === active.id ? { ...t, status: overId } : t));
+          setTasks(prev => {
+            const newTasks = [...prev];
+            const idx = newTasks.findIndex(t => t.id === active.id);
+            newTasks[idx] = { ...newTasks[idx], status: overId };
+            return newTasks;
+          });
        }
     }
   };
@@ -216,12 +222,23 @@ const Kanban = () => {
             />
           ))}
 
-          <DragOverlay>
+          <DragOverlay adjustScale={true}>
             {activeId ? (
-              <KanbanCard
-                task={tasks.find(t => t.id === activeId)}
-                onClick={() => {}}
-              />
+              <motion.div
+                initial={{ scale: 1, rotate: 0 }}
+                animate={{
+                  scale: 1.05,
+                  rotate: 2,
+                  boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+                }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                style={{ cursor: 'grabbing' }}
+              >
+                <KanbanCard
+                  task={tasks.find(t => t.id === activeId)}
+                  onClick={() => {}}
+                />
+              </motion.div>
             ) : null}
           </DragOverlay>
         </DndContext>

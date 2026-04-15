@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
+import { toTitleCase } from '../utils/formatters';
 
 const QuotationList = () => {
   const { user } = useAuth();
@@ -198,7 +199,7 @@ const QuotationList = () => {
                   <td className="px-6 py-5">
                     <div className="flex flex-col">
                       <span className="font-black text-zinc-900 tracking-tight text-[13px]">{q.nombre_evento}</span>
-                      <span className="text-[10px] font-bold text-zinc-400 mt-0.5">{q.client.razon_social}</span>
+                      <span className="text-[10px] font-bold text-zinc-400 mt-0.5">{toTitleCase(q.client.razon_social)}</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
@@ -206,7 +207,7 @@ const QuotationList = () => {
                        <div className="size-6 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-400 border border-zinc-200 uppercase">
                           {(q.consultant?.nombre?.substring(0,2) || 'S').toUpperCase()}
                        </div>
-                       <span className="text-[11px] font-bold text-zinc-600 tracking-tight">{q.consultant?.nombre || 'SISTEMA'}</span>
+                       <span className="text-[11px] font-bold text-zinc-600 tracking-tight">{toTitleCase(q.consultant?.nombre) || 'SISTEMA'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
