@@ -47,7 +47,7 @@ const QuotationDetail = () => {
         isOpen: true,
         title: 'Conflicto detectado',
         content: <div className="space-y-2">
-          <p className="text-red-600 font-bold uppercase text-[10px]">Stock insuficiente para aprobación</p>
+          <p className="text-red-600 font-bold  text-[10px]">Stock insuficiente para aprobación</p>
           <p className="text-zinc-800">{errorMsg}</p>
         </div>,
         type: 'error'
@@ -91,8 +91,8 @@ const QuotationDetail = () => {
 
     return (
       <div className="flex flex-col">
-        <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-tight">{datePart}</span>
-        <span className="text-zinc-900 text-sm font-black uppercase">{timePart}</span>
+        <span className="text-zinc-400 text-[10px] font-bold  tracking-tight">{datePart}</span>
+        <span className="text-zinc-900 text-sm font-black ">{timePart}</span>
       </div>
     );
   };
@@ -123,8 +123,8 @@ const QuotationDetail = () => {
               <div className="h-12 w-px bg-zinc-200"></div>
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h2 className="font-display text-xl font-bold tracking-tight text-zinc-900 uppercase leading-none">{quotation.nombre_evento}</h2>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border ${
+                  <h2 className="font-display text-xl font-bold tracking-tight text-zinc-900  leading-none">{quotation.nombre_evento}</h2>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black  tracking-widest border ${
                     quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
                     quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
                     quotation.estado === 'REVISION_SOLICITADA' ? 'bg-brand-alert/10 border-brand-alert/30 text-brand-alert' :
@@ -133,26 +133,26 @@ const QuotationDetail = () => {
                     {quotation.estado}
                   </span>
                     {quotation.client.isTaxExempt && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black  tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1">
                         <span className="material-symbols-outlined text-[12px]">money_off</span>
                         Exento de IVA
                       </span>
                     )}
                     {quotation.archivedAt && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black  tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
                         <span className="material-symbols-outlined text-[12px]">inventory_2</span>
                         Archivada
                       </span>
                     )}
                 </div>
-                <p className="text-xs text-zinc-500 font-body uppercase tracking-wider font-bold">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
+                <p className="text-xs text-zinc-500 font-body  tracking-wider font-bold">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
              <button
                 onClick={() => generateQuotationPDF(quotation)}
-                className="flex items-center gap-2 border border-zinc-200 px-4 py-2 rounded text-xs font-bold uppercase text-zinc-600 hover:bg-zinc-50 transition-all bg-white"
+                className="flex items-center gap-2 border border-zinc-200 px-4 py-2 rounded text-xs font-bold  text-zinc-600 hover:bg-zinc-50 transition-all bg-white"
              >
                <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                PDF Interno
@@ -161,7 +161,7 @@ const QuotationDetail = () => {
              {quotation.purchaseOrderUrl && (
                <button
                 onClick={() => window.open(quotation.purchaseOrderUrl, '_blank')}
-                className="flex items-center gap-2 border border-primary/20 bg-primary/5 px-4 py-2 rounded text-xs font-bold uppercase text-primary hover:bg-primary/10 transition-all"
+                className="flex items-center gap-2 border border-primary/20 bg-primary/5 px-4 py-2 rounded text-xs font-bold  text-primary hover:bg-primary/10 transition-all"
                >
                  <span className="material-symbols-outlined text-[18px]">attachment</span>
                  Ver Orden de Compra
@@ -173,7 +173,7 @@ const QuotationDetail = () => {
                 disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
                 title={quotation.archivedAt ? "Desarchive esta cotización para realizar cambios" : (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id) ? "No tienes permisos para editar esta cotización" : ""}
                 onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className={`flex items-center gap-2 bg-primary text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`flex items-center gap-2 bg-primary text-white px-5 py-2 rounded text-xs font-bold  tracking-wide hover:opacity-90 transition-all shadow-lg ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                >
                  <span className="material-symbols-outlined text-[18px]">edit_note</span>
                  Editar Cotización
@@ -185,7 +185,7 @@ const QuotationDetail = () => {
                 disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
                 title={quotation.archivedAt ? "Desarchive esta cotización para realizar cambios" : (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id) ? "No tienes permisos para editar esta cotización" : ""}
                 onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className={`flex items-center gap-2 bg-brand-alert text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-all shadow-lg ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`flex items-center gap-2 bg-brand-alert text-white px-5 py-2 rounded text-xs font-bold  tracking-wide hover:opacity-90 transition-all shadow-lg ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                >
                  <span className="material-symbols-outlined text-[18px]">edit_note</span>
                  Editar y Corregir
@@ -196,7 +196,7 @@ const QuotationDetail = () => {
                <button
                 onClick={handleGenerateLink}
                 disabled={updating}
-                className="bg-zinc-900 text-white px-5 py-2 rounded text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-all flex items-center gap-2"
+                className="bg-zinc-900 text-white px-5 py-2 rounded text-xs font-bold  tracking-wide hover:bg-zinc-800 transition-all flex items-center gap-2"
                >
                  <span className="material-symbols-outlined text-[18px]">send</span>
                  Enviar y Generar Link
@@ -209,7 +209,7 @@ const QuotationDetail = () => {
                   </div>
                   <button
                     onClick={() => window.open(linkData.url, '_blank')}
-                    className="bg-primary text-white px-4 py-2 rounded text-xs font-bold uppercase hover:opacity-90"
+                    className="bg-primary text-white px-4 py-2 rounded text-xs font-bold  hover:opacity-90"
                   >
                     Ver Portal
                   </button>
@@ -224,7 +224,7 @@ const QuotationDetail = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 pb-3 text-xs font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+              className={`flex items-center gap-2 pb-3 text-xs font-bold  tracking-widest transition-all border-b-2 ${activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
             >
               <span className={`material-symbols-outlined text-[18px]`}>{tab.icon}</span>
               {tab.label}
@@ -242,7 +242,7 @@ const QuotationDetail = () => {
                 <div className="bg-brand-alert/10 border-2 border-brand-alert border-dashed p-6 rounded">
                   <div className="flex items-center gap-3 text-brand-alert mb-2">
                     <span className="material-symbols-outlined font-black">warning</span>
-                    <h4 className="font-bold uppercase text-sm tracking-wider">Ajustes Solicitados por el Cliente</h4>
+                    <h4 className="font-bold  text-sm tracking-wider">Ajustes Solicitados por el Cliente</h4>
                   </div>
                   <p className="text-sm font-bold text-zinc-900 mb-1">Motivo: {quotation.rejectionType}</p>
                   <p className="text-sm text-zinc-600">"{quotation.rejectionReason}"</p>
@@ -250,7 +250,7 @@ const QuotationDetail = () => {
               )}
 
               <div className="bg-white border border-zinc-200 rounded p-8 shadow-sm">
-                <h3 className="font-display text-lg font-bold text-zinc-900 mb-8 flex items-center gap-2 uppercase tracking-widest border-b border-zinc-100 pb-4">
+                <h3 className="font-display text-lg font-bold text-zinc-900 mb-8 flex items-center gap-2  tracking-widest border-b border-zinc-100 pb-4">
                   <span className="material-symbols-outlined text-primary text-[22px]">inventory_2</span>
                   Equipos Solicitados
                 </h3>
@@ -258,10 +258,10 @@ const QuotationDetail = () => {
                   {quotation.items.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between py-2 border-b border-zinc-50 last:border-0">
                       <div className="flex flex-col">
-                        <span className="font-bold text-zinc-900 text-sm uppercase">{item.inventory.nombre}</span>
-                        <span className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">({item.cantidad} UNIDADES X {item.dias} DÍAS)</span>
+                        <span className="font-bold text-zinc-900 text-sm ">{item.inventory.nombre}</span>
+                        <span className="text-[10px] text-zinc-400 font-bold  mt-0.5">({item.cantidad} UNIDADES X {item.dias} DÍAS)</span>
                         <div className="flex items-center gap-3 mt-1.5">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${item.clase_asignada === 'A' ? 'bg-primary/10 text-primary' : 'bg-brand-alert/10 text-brand-alert'}`}>Clase {item.clase_asignada}</span>
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-black  ${item.clase_asignada === 'A' ? 'bg-primary/10 text-primary' : 'bg-brand-alert/10 text-brand-alert'}`}>Clase {item.clase_asignada}</span>
                         </div>
                       </div>
                       <div className="text-right">
@@ -277,7 +277,7 @@ const QuotationDetail = () => {
 
                 {quotation.services && quotation.services.length > 0 && (
                   <>
-                    <h3 className="font-display text-lg font-bold text-zinc-900 mt-12 mb-8 flex items-center gap-2 uppercase tracking-widest border-b border-zinc-100 pb-4">
+                    <h3 className="font-display text-lg font-bold text-zinc-900 mt-12 mb-8 flex items-center gap-2  tracking-widest border-b border-zinc-100 pb-4">
                       <span className="material-symbols-outlined text-zinc-400 text-[22px]">engineering</span>
                       Servicios y Logística
                     </h3>
@@ -285,9 +285,9 @@ const QuotationDetail = () => {
                       {quotation.services.map((svc, idx) => (
                         <div key={idx} className="flex items-center justify-between py-2 border-b border-zinc-50 last:border-0">
                           <div>
-                            <span className="text-[10px] font-black uppercase text-zinc-400 block mb-0.5">{svc.tipo}</span>
-                            <span className="font-bold text-zinc-900 text-sm uppercase">{svc.descripcion}</span>
-                            <span className="text-[10px] text-zinc-400 font-bold uppercase block mt-0.5">({svc.cantidad} UNIDADES X {svc.dias} DÍAS)</span>
+                            <span className="text-[10px] font-black  text-zinc-400 block mb-0.5">{svc.tipo}</span>
+                            <span className="font-bold text-zinc-900 text-sm ">{svc.descripcion}</span>
+                            <span className="text-[10px] text-zinc-400 font-bold  block mt-0.5">({svc.cantidad} UNIDADES X {svc.dias} DÍAS)</span>
                           </div>
                           <div className="text-right">
                             <span className="block text-sm font-black text-zinc-900">$ {calculateLineTotal(svc).toLocaleString()}</span>
@@ -306,50 +306,50 @@ const QuotationDetail = () => {
 
             <div className="space-y-8">
               <div className="bg-zinc-900 text-zinc-50 rounded p-8 shadow-lg border border-zinc-800">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-8">Estructura de Costos</h3>
+                <h3 className="text-[10px] font-black  tracking-[0.3em] text-zinc-500 mb-8">Estructura de Costos</h3>
                 <div className="space-y-5">
-                  <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
+                  <div className="flex justify-between items-center text-xs font-bold  tracking-wider">
                     <span className="text-zinc-500">Subtotal Neto</span>
                     <span className="text-zinc-200">$ {subtotal.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
+                  <div className="flex justify-between items-center text-xs font-bold  tracking-wider">
                     <span className="text-zinc-500">{quotation.client.isTaxExempt ? 'IVA (0% - Exento)' : 'IVA (19%)'}</span>
                     <span className="text-zinc-200">$ {iva.toLocaleString()}</span>
                   </div>
                   <div className="h-px bg-zinc-800 my-4"></div>
                   <div className="flex justify-between items-end">
-                    <span className="text-xs font-black uppercase text-primary tracking-[0.4em]">TOTAL</span>
+                    <span className="text-xs font-black  text-primary tracking-[0.4em]">TOTAL</span>
                     <span className="text-3xl font-black tracking-tighter text-white ml-10">$ {total.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
 
               <div className="bg-white border border-zinc-200 rounded p-6">
-                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
+                <h3 className="text-xs font-black  tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
                    <span className="material-symbols-outlined text-[18px]">location_on</span>
                    Detalles del Evento
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <span className="text-[10px] uppercase font-black text-zinc-400 block">Lugar</span>
+                    <span className="text-[10px]  font-black text-zinc-400 block">Lugar</span>
                     <span className="text-sm font-bold text-zinc-900">{quotation.ubicacion}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-black text-zinc-400 block">Contacto Cliente</span>
+                    <span className="text-[10px]  font-black text-zinc-400 block">Contacto Cliente</span>
                     <span className="text-sm font-bold text-zinc-900">{quotation.client.responsable}</span>
                     <span className="text-xs text-zinc-500 block">{quotation.client.ciudad}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-black text-zinc-400 block">Consultor Responsable</span>
+                    <span className="text-[10px]  font-black text-zinc-400 block">Consultor Responsable</span>
                     <div className="flex items-center gap-2 mt-1">
-                       <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 uppercase">
+                       <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 ">
                           {quotation.consultant?.nombre?.substring(0,2) || 'S'}
                        </div>
-                       <span className="text-sm font-bold text-zinc-900 uppercase">{quotation.consultant?.nombre || 'SISTEMA'}</span>
+                       <span className="text-sm font-bold text-zinc-900 ">{quotation.consultant?.nombre || 'SISTEMA'}</span>
                     </div>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-black text-zinc-400 block">Fecha Principal</span>
+                    <span className="text-[10px]  font-black text-zinc-400 block">Fecha Principal</span>
                     <span className="text-sm font-bold text-zinc-900">{new Date(quotation.evento_inicio).toLocaleDateString()}</span>
                   </div>
                 </div>
@@ -368,15 +368,15 @@ const QuotationDetail = () => {
                 <div key={i} className="bg-white border border-zinc-200 rounded p-6 shadow-sm">
                    <div className="flex items-center gap-2 mb-6 border-b border-zinc-50 pb-4">
                       <span className="material-symbols-outlined text-zinc-400">{f.icon}</span>
-                      <h4 className="text-xs font-black uppercase tracking-widest text-zinc-900">{f.label}</h4>
+                      <h4 className="text-xs font-black  tracking-widest text-zinc-900">{f.label}</h4>
                    </div>
                    <div className="space-y-6">
                       <div>
-                        <span className="text-[8px] font-black text-zinc-400 uppercase block mb-1 tracking-widest">Inicio Despliegue</span>
+                        <span className="text-[8px] font-black text-zinc-400  block mb-1 tracking-widest">Inicio Despliegue</span>
                         {formatHierarchyDate(f.start)}
                       </div>
                       <div>
-                        <span className="text-[8px] font-black text-zinc-400 uppercase block mb-1 tracking-widest">Cierre Fase</span>
+                        <span className="text-[8px] font-black text-zinc-400  block mb-1 tracking-widest">Cierre Fase</span>
                         {formatHierarchyDate(f.end)}
                       </div>
                    </div>
@@ -387,7 +387,7 @@ const QuotationDetail = () => {
 
         {activeTab === 'bitacora' && (
           <div className="max-w-3xl mx-auto bg-white border border-zinc-200 rounded p-8">
-             <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6">Notas de Operación</h3>
+             <h3 className="text-xs font-black  tracking-widest text-zinc-400 mb-6">Notas de Operación</h3>
              <p className="text-sm text-zinc-800 leading-relaxed whitespace-pre-wrap font-medium">
                {quotation.bitacora || "No hay notas internas registradas para este evento."}
              </p>
@@ -396,7 +396,7 @@ const QuotationDetail = () => {
 
         {activeTab === 'historial' && (
           <div className="max-w-2xl mx-auto space-y-6">
-            <h3 className="font-display text-lg font-bold text-zinc-900 uppercase tracking-widest mb-8 text-center">Línea de Tiempo del Evento</h3>
+            <h3 className="font-display text-lg font-bold text-zinc-900  tracking-widest mb-8 text-center">Línea de Tiempo del Evento</h3>
             <div className="space-y-8 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-zinc-100">
               {(quotation.logs || []).map((log, idx) => (
                 <div key={idx} className="relative pl-10">
@@ -405,8 +405,8 @@ const QuotationDetail = () => {
                   </div>
                   <div className="bg-white border border-zinc-100 p-5 rounded shadow-sm">
                     <div className="flex justify-between mb-3 border-b border-zinc-50 pb-2">
-                      <span className="text-[10px] text-zinc-400 font-black uppercase tracking-tighter">{new Date(log.createdAt).toLocaleString()}</span>
-                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 font-bold uppercase">
+                      <span className="text-[10px] text-zinc-400 font-black  tracking-tighter">{new Date(log.createdAt).toLocaleString()}</span>
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 font-bold ">
                         <span className="material-symbols-outlined text-[14px]">person</span>
                         {log.user?.nombre || "SISTEMA PORTAL"}
                       </div>

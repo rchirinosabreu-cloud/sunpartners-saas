@@ -40,7 +40,7 @@ const Events = () => {
         {/* Timeline Header (Time Axis) */}
         <div className="sticky top-0 z-20 flex border-b border-zinc-200 bg-zinc-50/95 backdrop-blur-sm">
           <div className="w-[140px] shrink-0 border-r border-zinc-200 p-4 flex items-end">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Octubre 2024</span>
+            <span className="text-xs font-semibold text-zinc-500  tracking-wider">Octubre 2024</span>
           </div>
           <div className="flex-1 flex min-w-[1200px]">
             {timeSlots.map((time, idx) => (
@@ -88,7 +88,7 @@ const Events = () => {
                     style={{ left: event.left, width: event.width }}
                   >
                     <div className="flex flex-col h-full justify-center">
-                      <span className={`text-[10px] font-semibold uppercase tracking-wider mb-0.5 ${
+                      <span className={`text-[10px] font-semibold  tracking-wider mb-0.5 ${
                         event.type === 'Confirmado' ? 'text-primary' : 'text-alert'
                       }`}>
                         {event.type}
