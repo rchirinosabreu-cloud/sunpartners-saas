@@ -1,6 +1,7 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 
-const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null, showFooter = true }) => {
+const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null, showFooter = true, zIndexClass = "z-[100]" }) => {
   if (!isOpen) return null;
 
   const typeStyles = {
@@ -17,8 +18,8 @@ const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null,
     warning: 'warning'
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-body">
+  return createPortal(
+    <div className={`fixed inset-0 ${zIndexClass} flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-sm animate-in fade-in duration-200 font-body`}>
       <div className={`bg-white border-2 ${typeStyles[type]} w-full max-w-md rounded-[12px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200`}>
         <div className="p-8">
           <div className="flex items-center gap-4 mb-5">
@@ -62,7 +63,8 @@ const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null,
         </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
