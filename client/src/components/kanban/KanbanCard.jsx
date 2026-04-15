@@ -2,6 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { format, isBefore, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
+import { normalizeData, toTitleCase } from '../../utils/formatters';
 
 const COLOMBIA_TZ = 'America/Bogota';
 
@@ -45,16 +46,16 @@ const KanbanCard = ({ task, onClick }) => {
 
       <div className="flex flex-col gap-2">
         <div className="pr-6">
-          <h4 className="font-bold text-zinc-900 text-[13px] leading-tight uppercase line-clamp-2">{task.titulo}</h4>
+          <h4 className="font-bold text-zinc-900 text-[13px] leading-tight line-clamp-2">{normalizeData(task.titulo)}</h4>
           {task.client && (
-            <p className="text-[11px] font-black text-primary uppercase mt-1 tracking-tight">{task.client.razon_social}</p>
+            <p className="text-[11px] font-black text-primary mt-1 tracking-tight">{toTitleCase(task.client.razon_social)}</p>
           )}
         </div>
 
         <div className="flex items-center justify-between mt-2 pt-3 border-t border-zinc-50">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-zinc-900 flex items-center justify-center text-[10px] font-black text-white uppercase" title={task.user?.nombre}>
-              {task.user?.username?.substring(0, 2) || task.user?.nombre?.substring(0, 2) || '??'}
+            <div className="w-6 h-6 rounded-full bg-zinc-900 flex items-center justify-center text-[10px] font-black text-white" title={task.user?.nombre}>
+              {(task.user?.username?.substring(0, 2) || task.user?.nombre?.substring(0, 2) || '??').toUpperCase()}
             </div>
             {task.isPriority && (
               <span className="text-[9px] font-black bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase tracking-widest">ALTA</span>

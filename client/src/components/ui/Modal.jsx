@@ -27,7 +27,7 @@ const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null,
                 {iconMap[type]}
               </span>
             </div>
-            <h3 className="font-display text-xl font-black uppercase tracking-tight text-zinc-900 leading-tight">{title}</h3>
+            <h3 className="font-display text-xl font-black tracking-tight text-zinc-900 leading-tight">{title}</h3>
           </div>
           <div className="text-[13px] text-zinc-600 font-semibold leading-relaxed mb-2">
             {children}
@@ -39,13 +39,13 @@ const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null,
             <>
               <button
                 onClick={onClose}
-                className="px-6 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-all"
+                className="px-6 py-3 rounded-lg text-[11px] font-black tracking-widest text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-all"
               >
                 Cancelar
               </button>
               <button
                 onClick={action.onClick}
-                className={`px-8 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest text-white shadow-lg transition-all ${action.color === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-200' : 'bg-primary hover:opacity-90 shadow-primary/20'}`}
+                className={`px-8 py-3 rounded-lg text-[11px] font-black tracking-widest text-white shadow-lg transition-all ${action.color === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-200' : 'bg-primary hover:opacity-90 shadow-primary/20'}`}
               >
                 {action.label}
               </button>
@@ -53,7 +53,7 @@ const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null,
           ) : (
             <button
               onClick={onClose}
-              className="bg-zinc-900 text-white px-10 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-200"
+              className="bg-zinc-900 text-white px-10 py-3 rounded-lg text-[11px] font-black tracking-widest hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-200"
             >
               Entendido
             </button>
