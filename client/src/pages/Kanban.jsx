@@ -13,6 +13,7 @@ import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import KanbanColumn from '../components/kanban/KanbanColumn';
 import KanbanCard from '../components/kanban/KanbanCard';
 import TaskModal from '../components/modals/TaskModal';
+import Modal from '../components/ui/Modal';
 import { toSentenceCase, toTitleCase } from '../utils/formatters';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,6 +23,7 @@ const Kanban = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [isCemeteryOpen, setIsCemeteryOpen] = useState(false);
   const [activeId, setActiveId] = useState(null);
   const [initialStatus, setInitialStatus] = useState(null);
   const [snapshot, setSnapshot] = useState(null);
@@ -173,7 +175,18 @@ const Kanban = () => {
     }
   };
 
+  const isOverdueByMoreThan24h = (task) => {
+    if (!task.isImprorrogable || task.status === 'REALIZADO') return false;
+    const now = new Date();
+    const deadline = new Date(task.fechaLimite);
+    // 24 horas = 24 * 60 * 60 * 1000 ms
+    return (now - deadline) > (24 * 60 * 60 * 1000);
+  };
+
   const filteredTasks = tasks.filter(t => {
+    // Lógica de Ocultamiento (v11.0): Tareas improrrogables vencidas por > 24h
+    if (isOverdueByMoreThan24h(t)) return false;
+
     if (filters.userId && t.userId !== filters.userId) return false;
     if (filters.clientId && t.clientId !== filters.clientId) return false;
     if (filters.showToday) {
@@ -183,6 +196,8 @@ const Kanban = () => {
     }
     return true;
   });
+
+  const cemeteryTasks = tasks.filter(t => isOverdueByMoreThan24h(t));
 
   const columns = [
     { id: 'PENDIENTE', title: 'Pendiente' },
@@ -198,6 +213,33 @@ const Kanban = () => {
         onTaskCreated={fetchTasks}
         editingTask={editingTask}
       />
+
+      {/* Cemetery Modal */}
+      <Modal
+        isOpen={isCemeteryOpen}
+        onClose={() => setIsCemeteryOpen(false)}
+        title="Cementerio de tareas"
+        type="error"
+      >
+        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+          {cemeteryTasks.length === 0 ? (
+            <p className="text-center py-8 text-zinc-400 font-bold uppercase text-[10px] tracking-widest">No hay tareas muertas</p>
+          ) : (
+            cemeteryTasks.map(t => (
+              <div key={t.id} className="p-4 border-2 border-zinc-100 rounded-xl bg-zinc-50 flex flex-col gap-2 grayscale opacity-70">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-black text-zinc-900 text-xs">{t.titulo}</h4>
+                  <span className="text-xl">🪦</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-bold text-zinc-400">
+                   <span>Responsable: {toTitleCase(t.user?.nombre)}</span>
+                   <span className="text-red-600">Vencida: {new Date(t.fechaLimite).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </Modal>
 
       {/* Kanban Header */}
       <header className="h-20 border-b border-zinc-100 flex items-center justify-between px-8 bg-white shrink-0 shadow-sm z-20">
@@ -233,6 +275,16 @@ const Kanban = () => {
                Hoy
              </button>
           </div>
+
+          {cemeteryTasks.length > 0 && (
+             <button
+               onClick={() => setIsCemeteryOpen(true)}
+               className="h-10 w-10 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-100 shadow-sm"
+               title="Ver tareas muertas"
+             >
+               <span className="text-xl">🪦</span>
+             </button>
+          )}
 
           <button
             onClick={() => { setEditingTask(null); setIsModalOpen(true); }}
