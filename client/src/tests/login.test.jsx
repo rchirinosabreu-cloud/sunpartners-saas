@@ -14,7 +14,7 @@ describe('Login Page', () => {
       </AuthProvider>
     );
     expect(screen.getByText(/Ingresa tus credenciales para continuar/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Correo Electrónico/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Usuario o Correo/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
   });
 });
