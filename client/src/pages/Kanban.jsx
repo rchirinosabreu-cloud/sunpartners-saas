@@ -24,6 +24,7 @@ const Kanban = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [activeId, setActiveId] = useState(null);
   const [initialStatus, setInitialStatus] = useState(null);
+  const [snapshot, setSnapshot] = useState(null);
   const [filters, setFilters] = useState({ userId: '', clientId: '', showToday: false });
   const [users, setUsers] = useState([]);
   const [clients, setClients] = useState([]);
@@ -65,6 +66,7 @@ const Kanban = () => {
   const handleDragStart = (event) => {
     const task = tasks.find(t => t.id === event.active.id);
     if (task) setInitialStatus(task.status);
+    setSnapshot([...tasks]);
     setActiveId(event.active.id);
   };
 
@@ -106,8 +108,18 @@ const Kanban = () => {
 
     if (initialStatus !== newStatus) {
         try {
+            // Actualización optimista: El estado ya fue actualizado parcialmente por handleDragOver
+            // Pero nos aseguramos de que el reordenamiento final se mantenga
+            if (active.id !== over.id) {
+               const oldIndex = tasks.findIndex(t => t.id === active.id);
+               const newIndex = tasks.findIndex(t => t.id === over.id);
+               setTasks(prev => arrayMove(prev, oldIndex, newIndex));
+            }
+
+            // Llamada silenciosa al backend
             await axios.put(`/api/tasks/${activeTask.id}`, { status: newStatus });
 
+            // Efecto celebración
             if (newStatus === 'REALIZADO' && initialStatus !== 'REALIZADO') {
                 confetti({
                     particleCount: 150,
@@ -116,19 +128,19 @@ const Kanban = () => {
                     colors: ['#5486A1', '#FBAE17', '#ffffff']
                 });
             }
-
             setInitialStatus(null);
-            fetchTasks();
+            // NOTA: NO llamamos a fetchTasks() aquí para evitar el "salto" de recarga
         } catch (e) {
-            console.error(e);
+            console.error('API Error, rolling back state:', e);
+            if (snapshot) setTasks(snapshot); // Rollback exacto al inicio del drag
             setInitialStatus(null);
-            fetchTasks(); // Revert on error
         }
     } else if (active.id !== over.id) {
-        // Reordering within the same column (Frontend only for now)
+        // Reordenamiento en la misma columna
         const oldIndex = tasks.findIndex(t => t.id === active.id);
         const newIndex = tasks.findIndex(t => t.id === over.id);
         setTasks(prev => arrayMove(prev, oldIndex, newIndex));
+        // Opcional: Persistir el nuevo orden en la DB si el backend lo soporta
     }
   };
 
