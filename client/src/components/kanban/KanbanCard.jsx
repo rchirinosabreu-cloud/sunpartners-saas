@@ -3,6 +3,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { format, isBefore, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { normalizeData, toTitleCase } from '../../utils/formatters';
+import Avatar from "boring-avatars";
+import { CalendarDays } from 'lucide-react';
 
 const COLOMBIA_TZ = 'America/Bogota';
 
@@ -17,9 +19,10 @@ const KanbanCard = ({ task, onClick }) => {
   } = useSortable({ id: task.id });
 
   const style = {
-    transform: CSS.Translate.toString(transform),
+    transform: transform ? `${CSS.Translate.toString(transform)} ${isDragging ? 'rotate(2deg)' : ''}` : undefined,
     transition,
-    opacity: isDragging ? 0.5 : task.status === 'REALIZADO' ? 0.7 : 1,
+    opacity: isDragging ? 0.6 : task.status === 'REALIZADO' ? 0.7 : 1,
+    zIndex: isDragging ? 50 : undefined,
   };
 
   const nowColombia = toZonedTime(new Date(), COLOMBIA_TZ);
@@ -32,9 +35,9 @@ const KanbanCard = ({ task, onClick }) => {
       {...attributes}
       {...listeners}
       className={`
-        relative bg-white p-4 rounded-xl shadow-sm border-2 transition-all cursor-pointer group
-        ${task.isPriority ? 'border-l-[2px] border-l-red-500 border-zinc-100' : 'border-zinc-100 hover:border-primary/30'}
-        ${isDragging ? 'z-50 shadow-xl scale-105' : ''}
+        relative bg-white p-4 rounded-xl transition-all cursor-pointer group
+        ${task.isPriority ? 'border-l-[2px] border-l-red-500 border-2 border-zinc-100 shadow-sm' : 'border-2 border-zinc-100 shadow-sm hover:border-primary/30'}
+        ${isDragging ? 'shadow-2xl scale-105 border-primary/40' : ''}
       `}
       onClick={() => onClick(task)}
     >
@@ -54,8 +57,13 @@ const KanbanCard = ({ task, onClick }) => {
 
         <div className="flex items-center justify-between mt-2 pt-3 border-t border-zinc-50">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-zinc-900 flex items-center justify-center text-[10px] font-black text-white" title={task.user?.nombre}>
-              {(task.user?.username?.substring(0, 2) || task.user?.nombre?.substring(0, 2) || '??').toUpperCase()}
+            <div className="size-7 rounded-full overflow-hidden border border-zinc-100 flex items-center justify-center bg-zinc-50" title={task.user?.nombre || 'Sin asignar'}>
+              <Avatar
+                size={28}
+                name={task.user?.nombre || 'Guest'}
+                variant="beam"
+                colors={['#5486A1', '#FBAE17', '#222222', '#F2F2F2', '#EAEAEA']}
+              />
             </div>
             {task.isPriority && (
               <span className="text-[9px] font-black bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase tracking-widest">ALTA</span>
@@ -63,8 +71,8 @@ const KanbanCard = ({ task, onClick }) => {
           </div>
 
           <div className="flex items-center gap-1.5">
-             <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${isExpired ? 'bg-red-50 text-red-600' : 'bg-zinc-50 text-zinc-400'}`}>
-                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+             <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold ${isExpired ? 'bg-red-50 text-red-600' : 'bg-zinc-50 text-zinc-400'}`}>
+                <CalendarDays className={`w-3.5 h-3.5 ${isExpired ? 'text-red-500' : 'text-zinc-400'}`} />
                 {format(new Date(task.fechaLimite), 'dd/MM')}
              </div>
           </div>

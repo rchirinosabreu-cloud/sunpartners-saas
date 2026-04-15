@@ -3,6 +3,7 @@ import { NavLink, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import Avatar from "boring-avatars";
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -109,8 +110,13 @@ const AppLayout = () => {
             onClick={() => navigate('/perfil')}
             className="flex w-full items-center gap-3 rounded border border-transparent p-2 hover:bg-zinc-800/50 transition-colors group cursor-pointer"
           >
-            <div className="size-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-50 text-xs font-bold border border-zinc-700">
-              {(user?.nombre?.substring(0, 2) || 'OP').toUpperCase()}
+            <div className="size-9 rounded-lg overflow-hidden flex items-center justify-center border border-zinc-700" title={user?.nombre || 'Usuario'}>
+              <Avatar
+                size={36}
+                name={user?.nombre || 'Admin'}
+                variant="beam"
+                colors={['#5486A1', '#FBAE17', '#222222', '#F2F2F2', '#EAEAEA']}
+              />
             </div>
             <div className="flex flex-1 flex-col items-start min-w-0">
               <span className="text-sm font-medium text-zinc-50 truncate w-full">{user?.nombre || 'Operador'}</span>

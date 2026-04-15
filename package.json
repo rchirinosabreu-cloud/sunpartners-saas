@@ -12,6 +12,9 @@
     "test": "npm test --workspaces"
   },
   "dependencies": {
+    "boring-avatars": "^2.0.4",
+    "canvas-confetti": "^1.9.4",
+    "lucide-react": "^1.8.0",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
     "pg": "^8.20.0",
