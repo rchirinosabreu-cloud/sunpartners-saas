@@ -31,6 +31,12 @@ const KanbanCard = ({ task, onClick }) => {
   const isExpired = task.status !== 'REALIZADO' && isBefore(expirationDate, startOfDay(nowColombia));
   const daysOverdue = isExpired ? differenceInDays(nowColombia, expirationDate) : 0;
 
+  const cardBorderClass = task.isImprorrogable
+    ? 'border-2 border-red-500 shadow-md'
+    : task.isPriority
+      ? 'border-2 border-brand-alert shadow-md'
+      : 'border-2 border-zinc-100 shadow-sm hover:border-primary/30';
+
   return (
     <motion.div
       layout
@@ -48,7 +54,7 @@ const KanbanCard = ({ task, onClick }) => {
       }}
       className={`
         relative bg-white p-4 rounded-xl transition-all cursor-pointer group
-        ${task.isPriority ? 'border-l-[2px] border-l-brand-alert border-2 border-zinc-100 shadow-sm' : 'border-2 border-zinc-100 shadow-sm hover:border-primary/30'}
+        ${cardBorderClass}
         ${isDragging ? 'shadow-none border-dashed border-zinc-300' : ''}
         ${isExpired && task.isImprorrogable ? 'grayscale desaturate-[0.8] opacity-80 bg-zinc-50' : ''}
       `}
@@ -61,15 +67,29 @@ const KanbanCard = ({ task, onClick }) => {
       )}
 
       <div className="flex flex-col gap-2">
-        <div className="pr-6">
-          <h4 className="font-bold text-zinc-900 text-[13px] leading-tight line-clamp-2">{normalizeData(task.titulo)}</h4>
-          {task.client && (
-            <p className="text-[11px] font-black text-primary mt-1 tracking-tight">{toTitleCase(task.client.razon_social)}</p>
-          )}
+        <div className="flex justify-between items-start gap-2">
+          <h4 className="font-bold text-zinc-900 text-[13px] leading-tight line-clamp-2 flex-1">{normalizeData(task.titulo)}</h4>
+          <div className="flex gap-1 flex-wrap justify-end pt-0.5">
+              {task.isPriority && (
+                <span className="text-[7px] font-black bg-brand-alert text-white px-1.5 py-0.5 rounded flex items-center gap-0.5 tracking-wider">
+                  <Zap size={8} fill="currentColor" />
+                  PRIORITARIO
+                </span>
+              )}
+              {task.isImprorrogable && (
+                <span className="text-[7px] font-black bg-red-600 text-white px-1.5 py-0.5 rounded tracking-wider">
+                  IMPRORROGABLE
+                </span>
+              )}
+          </div>
         </div>
 
+        {task.client && (
+          <p className="text-[11px] font-black text-primary mt-1 tracking-tight">{toTitleCase(task.client.razon_social)}</p>
+        )}
+
         <div className="flex items-center justify-between mt-2 pt-3 border-t border-zinc-50">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
             <div className="size-7 rounded-full overflow-hidden border border-zinc-100 flex items-center justify-center bg-zinc-50 shrink-0" title={task.user?.nombre || 'Sin asignar'}>
               <Avatar
                 size={28}
@@ -78,19 +98,9 @@ const KanbanCard = ({ task, onClick }) => {
                 colors={['#5486A1', '#FBAE17', '#222222', '#F2F2F2', '#EAEAEA']}
               />
             </div>
-            <div className="flex gap-1.5 flex-wrap">
-              {task.isPriority && (
-                <span className="text-[8px] font-black bg-brand-alert text-white px-1.5 py-0.5 rounded flex items-center gap-0.5 tracking-wider">
-                  <Zap size={10} fill="currentColor" />
-                  PRIORITARIO
-                </span>
-              )}
-              {task.isImprorrogable && (
-                <span className="text-[8px] font-black bg-zinc-800 text-zinc-100 px-1.5 py-0.5 rounded tracking-wider">
-                  IMPRORROGABLE
-                </span>
-              )}
-            </div>
+            <span className="text-[10px] font-bold text-zinc-500">
+               {task.user?.nombre?.split(' ')[0]}
+            </span>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
