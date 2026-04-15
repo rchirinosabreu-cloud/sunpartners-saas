@@ -44,8 +44,9 @@ const Modal = ({ isOpen, onClose, title, children, type = 'info', action = null,
                 Cancelar
               </button>
               <button
+                disabled={action.disabled}
                 onClick={action.onClick}
-                className={`px-8 py-3 rounded-lg text-[11px] font-black tracking-widest text-white shadow-lg transition-all ${action.color === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-200' : 'bg-primary hover:opacity-90 shadow-primary/20'}`}
+                className={`px-8 py-3 rounded-lg text-[11px] font-black tracking-widest text-white shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${action.color === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-200' : 'bg-primary hover:opacity-90 shadow-primary/20'}`}
               >
                 {action.label}
               </button>
