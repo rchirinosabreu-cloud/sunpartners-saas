@@ -17,7 +17,7 @@ exports.getAll = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { titulo, clientId, userId, fechaLimite, isPriority, comentarios, status } = req.body;
+    const { titulo, clientId, userId, fechaLimite, isPriority, isImprorrogable, comentarios, status } = req.body;
 
     const task = await prisma.task.create({
       data: {
@@ -26,6 +26,7 @@ exports.create = async (req, res) => {
         userId,
         fechaLimite: new Date(fechaLimite),
         isPriority: isPriority || false,
+        isImprorrogable: isImprorrogable || false,
         comentarios,
         status: status || 'PENDIENTE'
       },
@@ -43,7 +44,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, clientId, userId, fechaLimite, isPriority, comentarios, status } = req.body;
+    const { titulo, clientId, userId, fechaLimite, isPriority, isImprorrogable, comentarios, status } = req.body;
 
     const data = {};
     if (titulo) data.titulo = titulo;
@@ -51,6 +52,7 @@ exports.update = async (req, res) => {
     if (userId) data.userId = userId;
     if (fechaLimite) data.fechaLimite = new Date(fechaLimite);
     if (isPriority !== undefined) data.isPriority = isPriority;
+    if (isImprorrogable !== undefined) data.isImprorrogable = isImprorrogable;
     if (comentarios !== undefined) data.comentarios = comentarios;
     if (status) data.status = status;
 

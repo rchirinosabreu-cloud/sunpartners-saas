@@ -13,7 +13,7 @@ import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import KanbanColumn from '../components/kanban/KanbanColumn';
 import KanbanCard from '../components/kanban/KanbanCard';
 import TaskModal from '../components/modals/TaskModal';
-import { toSentenceCase } from '../utils/formatters';
+import { toSentenceCase, toTitleCase } from '../utils/formatters';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -209,7 +209,7 @@ const Kanban = () => {
                onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
              >
                <option value="">Todos los responsables</option>
-               {users.map(u => <option key={u.id} value={u.id}>{u.nombre} (@{u.username})</option>)}
+               {users.map(u => <option key={u.id} value={u.id}>{toTitleCase(u.nombre)} (@{u.username})</option>)}
              </select>
 
              <select
@@ -218,7 +218,7 @@ const Kanban = () => {
                onChange={(e) => setFilters({ ...filters, clientId: e.target.value })}
              >
                <option value="">Todos los clientes</option>
-               {clients.map(c => <option key={c.id} value={c.id}>{c.razon_social}</option>)}
+               {clients.map(c => <option key={c.id} value={c.id}>{toTitleCase(c.razon_social)}</option>)}
              </select>
 
              <button

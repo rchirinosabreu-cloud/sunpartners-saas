@@ -14,6 +14,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
     userId: '',
     fechaLimite: getTodayColombia(),
     isPriority: false,
+    isImprorrogable: false,
     comentarios: '',
     status: 'PENDIENTE'
   });
@@ -50,7 +51,8 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
         fechaLimite: getTodayColombia(),
         isPriority: false,
         comentarios: '',
-        status: 'PENDIENTE'
+        status: 'PENDIENTE',
+        isImprorrogable: false
       });
     }
   }, [editingTask]);
@@ -174,15 +176,31 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
           />
         </div>
 
-        <div className="flex items-center gap-3 p-3 bg-zinc-50 rounded-lg border-2 border-zinc-100">
-           <input
-             type="checkbox"
-             id="isPriority"
-             className="w-4 h-4 rounded-sm border-2 border-zinc-200 text-primary accent-primary"
-             checked={formData.isPriority}
-             onChange={(e) => setFormData({ ...formData, isPriority: e.target.checked })}
-           />
-           <label htmlFor="isPriority" className="text-[11px] font-black tracking-widest text-zinc-600 cursor-pointer">Prioritario</label>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-3 p-3 bg-zinc-50 rounded-lg border-2 border-zinc-100">
+             <input
+               type="checkbox"
+               id="isPriority"
+               className="w-4 h-4 rounded-sm border-2 border-zinc-200 text-primary accent-primary"
+               checked={formData.isPriority}
+               onChange={(e) => setFormData({ ...formData, isPriority: e.target.checked })}
+             />
+             <label htmlFor="isPriority" className="text-[11px] font-black uppercase tracking-widest text-zinc-600 cursor-pointer">Prioritario</label>
+          </div>
+
+          <div
+            className="flex items-center gap-3 p-3 bg-zinc-50 rounded-lg border-2 border-zinc-100 group relative"
+            title="Si se vence, la tarea se marcará como incumplida y no podrá completarse"
+          >
+             <input
+               type="checkbox"
+               id="isImprorrogable"
+               className="w-4 h-4 rounded-sm border-2 border-zinc-200 text-primary accent-primary"
+               checked={formData.isImprorrogable}
+               onChange={(e) => setFormData({ ...formData, isImprorrogable: e.target.checked })}
+             />
+             <label htmlFor="isImprorrogable" className="text-[11px] font-black uppercase tracking-widest text-zinc-600 cursor-pointer">Improrrogable</label>
+          </div>
         </div>
 
         <div className="flex justify-end items-center gap-3 pt-6 border-t border-zinc-100 mt-4">
