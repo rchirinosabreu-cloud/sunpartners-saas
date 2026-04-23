@@ -98,7 +98,7 @@ const KanbanCard = ({ task, onClick }) => {
                 colors={['#5486A1', '#FBAE17', '#222222', '#F2F2F2', '#EAEAEA']}
               />
             </div>
-            <span className="text-[10px] font-bold text-zinc-500">
+            <span className="text-sm font-bold text-zinc-800">
                {task.user?.nombre?.split(' ')[0]}
             </span>
           </div>
