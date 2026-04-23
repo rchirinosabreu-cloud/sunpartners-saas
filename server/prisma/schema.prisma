@@ -35,6 +35,7 @@ model Announcement {
   authorId  String
   author    User             @relation(fields: [authorId], references: [id])
   createdAt DateTime         @default(now())
+  deletedAt DateTime?
 }
 
 model Client {
