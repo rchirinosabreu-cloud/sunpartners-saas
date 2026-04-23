@@ -164,8 +164,16 @@ const AppLayout = () => {
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto">
-          <Outlet />
+        <div className="flex-1 overflow-y-auto flex flex-col">
+          <div className="flex-1">
+            <Outlet />
+          </div>
+          {/* Corporate Footer (v15.0) */}
+          <footer className="py-8 text-center border-t border-zinc-100 bg-white/30 shrink-0">
+             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">BY PROCAMPO DEL CARIBE S.A.S.</p>
+             <p className="text-[9px] text-zinc-400 font-medium mt-1">Cra. 15 No. 15-25, Local 2, Cartagena de Indias.</p>
+             <p className="text-[9px] text-zinc-400 font-medium">Móvil: +57 301 400 4743 | sunpartnersco@gmail.com</p>
+          </footer>
         </div>
       </main>
     </div>

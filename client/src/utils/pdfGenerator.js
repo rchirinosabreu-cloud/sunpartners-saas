@@ -183,14 +183,18 @@ export const generateQuotationPDF = (quotation) => {
     doc.text(term, 15, finalY + 6 + (i * 4));
   });
 
-  // 7. Footer (On every page)
+  // 7. Footer (On every page) - Corporate Style
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(7);
-    doc.setTextColor(161, 161, 170);
-    doc.text('SUNPARTNERS PREMIUM LOGISTICS • EXCELLENCE AS STANDARD', 105, 285, { align: 'center' });
-    doc.text(`Página ${i} de ${pageCount}`, 195, 285, { align: 'right' });
+    doc.setTextColor(161, 161, 170); // Zinc-500
+    doc.setFont('helvetica', 'bold');
+    doc.text('BY PROCAMPO DEL CARIBE S.A.S.', 15, 280);
+
+    doc.setFont('helvetica', 'normal');
+    doc.text('Cra. 15 No. 15-25, Local 2, Cartagena de Indias.', 15, 284);
+    doc.text('Móvil: +57 301 400 4743 | sunpartnersco@gmail.com', 15, 288);
   }
 
   const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');

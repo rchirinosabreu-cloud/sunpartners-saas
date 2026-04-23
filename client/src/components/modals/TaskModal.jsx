@@ -12,6 +12,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
     titulo: '',
     clientId: '',
     userId: '',
+    collaboratorId: '',
     fechaLimite: getTodayColombia(),
     isPriority: false,
     isImprorrogable: false,
@@ -45,6 +46,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
       setFormData({
         ...editingTask,
         clientId: editingTask.clientId || '',
+        collaboratorId: editingTask.collaboratorId || '',
         fechaLimite: formatInTimeZone(new Date(editingTask.fechaLimite), COLOMBIA_TZ, 'yyyy-MM-dd')
       });
     } else {
@@ -52,6 +54,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
         titulo: '',
         clientId: '',
         userId: '',
+        collaboratorId: '',
         fechaLimite: getTodayColombia(),
         isPriority: false,
         comentarios: '',
@@ -227,15 +230,14 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="block text-[10px] font-black tracking-widest text-zinc-400">Estado inicial</label>
+            <label className="block text-[10px] font-black tracking-widest text-zinc-400">Colaborador</label>
             <select
               className="w-full h-11 border-2 border-zinc-100 rounded-lg px-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              value={formData.collaboratorId || ''}
+              onChange={(e) => setFormData({ ...formData, collaboratorId: e.target.value || null })}
             >
-              <option value="PENDIENTE">PENDIENTE</option>
-              <option value="EN_PROCESO">EN PROCESO</option>
-              <option value="REALIZADO">REALIZADO</option>
+              <option value="">Ninguno / No aplica</option>
+              {users.map(u => <option key={u.id} value={u.id}>{u.nombre}</option>)}
             </select>
           </div>
         </div>

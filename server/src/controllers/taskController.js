@@ -5,7 +5,8 @@ exports.getAll = async (req, res) => {
     const tasks = await prisma.task.findMany({
       include: {
         client: { select: { id: true, razon_social: true } },
-        user: { select: { id: true, nombre: true, username: true } }
+        user: { select: { id: true, nombre: true, username: true } },
+        collaborator: { select: { id: true, nombre: true, username: true } }
       },
       orderBy: [
         { status: 'asc' },
@@ -137,13 +138,14 @@ exports.getHistory = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { titulo, clientId, userId, fechaLimite, isPriority, isImprorrogable, order, comentarios, status } = req.body;
+    const { titulo, clientId, userId, collaboratorId, fechaLimite, isPriority, isImprorrogable, order, comentarios, status } = req.body;
 
     const task = await prisma.task.create({
       data: {
         titulo,
         clientId: clientId || null,
         userId,
+        collaboratorId: collaboratorId || null,
         fechaLimite: new Date(fechaLimite),
         isPriority: isPriority || false,
         isImprorrogable: isImprorrogable || false,
@@ -153,7 +155,8 @@ exports.create = async (req, res) => {
       },
       include: {
         client: { select: { id: true, razon_social: true } },
-        user: { select: { id: true, nombre: true, username: true } }
+        user: { select: { id: true, nombre: true, username: true } },
+        collaborator: { select: { id: true, nombre: true, username: true } }
       }
     });
     res.status(201).json(task);
@@ -165,12 +168,13 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, clientId, userId, fechaLimite, isPriority, isImprorrogable, order, comentarios, status, reason } = req.body;
+    const { titulo, clientId, userId, collaboratorId, fechaLimite, isPriority, isImprorrogable, order, comentarios, status, reason } = req.body;
 
     const data = {};
     if (titulo) data.titulo = titulo;
     if (clientId !== undefined) data.clientId = clientId || null;
     if (userId) data.userId = userId;
+    if (collaboratorId !== undefined) data.collaboratorId = collaboratorId || null;
     if (fechaLimite) data.fechaLimite = new Date(fechaLimite);
     if (isPriority !== undefined) data.isPriority = isPriority;
     if (isImprorrogable !== undefined) data.isImprorrogable = isImprorrogable;
@@ -183,7 +187,8 @@ exports.update = async (req, res) => {
       data,
       include: {
         client: { select: { id: true, razon_social: true } },
-        user: { select: { id: true, nombre: true, username: true } }
+        user: { select: { id: true, nombre: true, username: true } },
+        collaborator: { select: { id: true, nombre: true, username: true } }
       }
     });
     res.json(task);
