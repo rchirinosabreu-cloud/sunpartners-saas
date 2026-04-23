@@ -24,6 +24,7 @@ model User {
   logs                 EventLog[]
   quotations           Quotation[]
   tasks                Task[]
+  collaboratedTasks    Task[]         @relation("TaskCollaborator")
   announcements        Announcement[]
 }
 
@@ -189,12 +190,14 @@ model Task {
   comentarios          String?
   clientId             String?
   userId               String
+  collaboratorId       String?
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
   deletedAt            DateTime?
   deletedJustification String?
-  client               Client?     @relation(fields: [clientId], references: [id])
-  user                 User        @relation(fields: [userId], references: [id])
+  client               Client?      @relation(fields: [clientId], references: [id])
+  user                 User         @relation(fields: [userId], references: [id])
+  collaborator         User?        @relation("TaskCollaborator", fields: [collaboratorId], references: [id])
 }
 
 enum Role {

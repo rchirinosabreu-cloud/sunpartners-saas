@@ -298,13 +298,10 @@ const PublicQuotation = () => {
         </div>
       </div>
 
-      <div className="mt-16 text-center space-y-4">
-         <p className="text-[9px] font-black text-zinc-400  tracking-[0.8em]">Sunpartners Premium Logistics • BTL Excellence</p>
-         <div className="flex justify-center gap-4 opacity-20 grayscale">
-            <div className="size-2 rounded-full bg-zinc-900"></div>
-            <div className="size-2 rounded-full bg-zinc-900"></div>
-            <div className="size-2 rounded-full bg-zinc-900"></div>
-         </div>
+      <div className="mt-16 text-center space-y-2">
+         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">BY PROCAMPO DEL CARIBE S.A.S.</p>
+         <p className="text-[9px] text-zinc-400 font-medium">Cra. 15 No. 15-25, Local 2, Cartagena de Indias.</p>
+         <p className="text-[9px] text-zinc-400 font-medium">Móvil: +57 301 400 4743 | sunpartnersco@gmail.com</p>
       </div>
 
       {/* Approve Modal - Premium Style */}
