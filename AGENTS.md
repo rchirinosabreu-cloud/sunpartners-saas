@@ -18,6 +18,10 @@ Sincronización: Cualquier cambio en existencia_total o estado en Bodega debe im
 ## 2. Desarrollo y Calidad (Regla de Oro)
 Validación Obligatoria: PROHIBIDO realizar un Pull Request (PR) o dar por terminada una tarea sin adjuntar video o captura de pantalla del funcionamiento real.
 
+TDD Estricto: El agente debe aplicar TDD para toda la lógica de datos y cálculos antes de la implementación de la interfaz.
+
+Aprobación Visual: Instrucción obligatoria: El agente debe aplicar TDD y enviar capturas de pantalla de la UI para aprobación del usuario antes de realizar cualquier PR.
+
 Pruebas de Independencia: Para campos de fecha, se debe demostrar en video que el cambio en un input no afecta a los otros 5.
 
 Testing: Usar Vitest y Playwright para verificar la lógica de cálculo y la independencia de estados.

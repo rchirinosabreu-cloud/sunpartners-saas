@@ -1,10 +1,45 @@
 import { useState } from 'react';
-import { NavLink, useNavigate, Outlet } from 'react-router-dom';
+import { NavLink, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import Avatar from "boring-avatars";
 import { toTitleCase } from '../utils/formatters';
+
+const daysOfWeek = [
+  'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+];
+
+const dayPhrases = {
+  'Lunes': '¡A darle con toda!',
+  'Martes': '¡Mantengamos el ritmo!',
+  'Miércoles': '¡Ya pasamos la cima! Ahora a cerrar con fuerza',
+  'Jueves': '¡Ya estamos en la recta final!',
+  'Viernes': 'A dejar el tablero impecable y celebrar los logros',
+  'Sábado': 'Seguimos construyendo experiencias increíbles',
+  'Domingo': '¡Disfruta el descanso para volver mañana al 100!'
+};
+
+function getGreetingInfo(userName) {
+  const date = new Date();
+  const firstName = userName ? userName.split(' ')[0] : 'Operador';
+  const dayName = daysOfWeek[date.getDay()];
+  const phrase = dayPhrases[dayName];
+  return { firstName, dayName, phrase };
+}
+
+function getDynamicTitle(pathname) {
+  if (pathname === '/' || pathname === '/dashboard') return 'Dashboard';
+  if (pathname.startsWith('/tasks')) return 'Tasks';
+  if (pathname.startsWith('/inventario')) return 'Bodega';
+  if (pathname.startsWith('/comercial')) return 'Catálogo';
+  if (pathname.startsWith('/cotizaciones')) return 'Cotizaciones';
+  if (pathname.startsWith('/clientes')) return 'Clientes';
+  if (pathname.startsWith('/eventos')) return 'Eventos';
+  if (pathname.startsWith('/equipo')) return 'Equipo';
+  if (pathname.startsWith('/perfil')) return 'Perfil';
+  return 'Sunpartners';
+}
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -37,6 +72,10 @@ const SidebarItem = ({ to, icon, label, fillIcon = false }) => (
 const AppLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { firstName, dayName, phrase } = getGreetingInfo(user?.nombre);
+  const dynamicTitle = getDynamicTitle(location.pathname);
 
   const handleLogout = async () => {
     await logout();
@@ -46,7 +85,7 @@ const AppLayout = () => {
   const menuItems = [
     { to: '/', icon: 'dashboard', label: 'Dashboard' },
     { to: '/cotizaciones', icon: 'receipt_long', label: 'Cotizaciones' },
-    { to: '/tareas', icon: 'view_kanban', label: 'Kanban pendientes' },
+    { to: '/tasks', icon: 'view_kanban', label: 'Tasks' },
     { to: '/inventario', icon: 'warehouse', label: 'Bodega', roles: ['ADMIN', 'EDITOR'] },
     { to: '/comercial', icon: 'shopping_cart', label: 'Catálogo', roles: ['ADMIN', 'EDITOR'] },
     { to: '/eventos', icon: 'event', label: 'Eventos' },
@@ -137,9 +176,14 @@ const AppLayout = () => {
       <main className="flex flex-1 flex-col overflow-hidden bg-background-light">
         {/* Header (64px) */}
         <header className="flex h-[64px] shrink-0 items-center justify-between border-b border-zinc-200 px-8 bg-background-light">
-          <h1 className="font-display text-xl font-semibold tracking-tight text-zinc-900">
-            Dashboard - Resumen operativo
-          </h1>
+          <div className="flex flex-col">
+            <h1 className="font-display text-xl font-semibold tracking-tight text-zinc-900 leading-tight">
+              {dynamicTitle}
+            </h1>
+            <p className="text-[11px] text-zinc-500 font-medium">
+              ¡Hola, {firstName}! ¡Ya es {dayName}! {phrase}
+            </p>
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-zinc-500 font-medium">
               {new Date().toLocaleDateString('es-ES', {

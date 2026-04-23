@@ -244,7 +244,7 @@ const Kanban = () => {
       {/* Kanban Header */}
       <header className="h-20 border-b border-zinc-100 flex items-center justify-between px-8 bg-white shrink-0 shadow-sm z-20">
         <div className="flex flex-col">
-          <h2 className="font-display font-black text-2xl text-zinc-900 tracking-tighter">Tablero Kanban</h2>
+          <h2 className="font-display font-black text-2xl text-zinc-900 tracking-tighter">Tasks</h2>
           <p className="text-[10px] font-black text-zinc-400 tracking-widest leading-none mt-1">Gestión operativa y seguimiento de pendientes</p>
         </div>
 
