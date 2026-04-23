@@ -91,8 +91,16 @@ exports.getHistory = async (req, res) => {
 
     if (startDate || endDate) {
       where.updatedAt = {};
-      if (startDate) where.updatedAt.gte = new Date(startDate);
-      if (endDate) where.updatedAt.lte = new Date(endDate);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        where.updatedAt.gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.updatedAt.lte = end;
+      }
     }
 
     if (userId) {

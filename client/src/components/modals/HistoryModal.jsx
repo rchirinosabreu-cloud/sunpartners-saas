@@ -8,8 +8,7 @@ const HistoryModal = ({ isOpen, onClose }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
+    date: '',
     userId: ''
   });
 
@@ -17,8 +16,10 @@ const HistoryModal = ({ isOpen, onClose }) => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      if (filters.startDate) queryParams.append('startDate', filters.startDate);
-      if (filters.endDate) queryParams.append('endDate', filters.endDate);
+      if (filters.date) {
+        queryParams.append('startDate', filters.date);
+        queryParams.append('endDate', filters.date);
+      }
       if (filters.userId) queryParams.append('userId', filters.userId);
 
       const [historyRes, usersRes] = await Promise.all([
@@ -46,26 +47,18 @@ const HistoryModal = ({ isOpen, onClose }) => {
       title="Historial de Tareas"
       showFooter={false}
       zIndexClass="z-[100]"
+      maxWidthClass="max-w-5xl"
     >
-      <div className="space-y-6 min-w-[500px] max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+      <div className="space-y-6 w-full max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
         {/* Filters */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Desde</label>
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Filtrar por Día</label>
             <input
               type="date"
-              className="w-full text-xs p-2 rounded-lg border border-zinc-100 bg-zinc-50"
-              value={filters.startDate}
-              onChange={(e) => setFilters(f => ({ ...f, startDate: e.target.value }))}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Hasta</label>
-            <input
-              type="date"
-              className="w-full text-xs p-2 rounded-lg border border-zinc-100 bg-zinc-50"
-              value={filters.endDate}
-              onChange={(e) => setFilters(f => ({ ...f, endDate: e.target.value }))}
+              className="w-full text-xs p-2 rounded-lg border border-zinc-100 bg-zinc-50 focus:border-primary transition-all"
+              value={filters.date}
+              onChange={(e) => setFilters(f => ({ ...f, date: e.target.value }))}
             />
           </div>
           <div className="space-y-1">
