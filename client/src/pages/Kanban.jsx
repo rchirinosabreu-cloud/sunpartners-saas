@@ -259,14 +259,6 @@ const Kanban = () => {
                {users.map(u => <option key={u.id} value={u.id}>{toTitleCase(u.nombre)} (@{u.username})</option>)}
              </select>
 
-             <select
-               className="h-9 px-3 bg-white border border-zinc-200 rounded-md text-[11px] font-bold text-zinc-600 outline-none focus:border-primary transition-all min-w-[160px]"
-               value={filters.clientId}
-               onChange={(e) => setFilters({ ...filters, clientId: e.target.value })}
-             >
-               <option value="">Todos los clientes</option>
-               {clients.map(c => <option key={c.id} value={c.id}>{toTitleCase(c.razon_social)}</option>)}
-             </select>
 
              <button
                onClick={() => setFilters({ ...filters, showToday: !filters.showToday })}
@@ -297,7 +289,7 @@ const Kanban = () => {
       </header>
 
       {/* Kanban Board */}
-      <div className="flex-1 overflow-auto p-8 bg-white flex gap-6 items-start">
+      <div className="flex-1 overflow-auto p-8 bg-white flex gap-6 items-start justify-center">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
