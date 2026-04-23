@@ -56,7 +56,7 @@ const App = () => {
             <Route path="cotizaciones/nueva" element={<NewQuotation />} />
             <Route path="cotizaciones/editar/:id" element={<NewQuotation />} />
             <Route path="cotizaciones/:id" element={<QuotationDetail />} />
-            <Route path="tareas" element={<Kanban />} />
+            <Route path="tasks" element={<Kanban />} />
             <Route path="perfil" element={<Profile />} />
             <Route
               path="equipo"

@@ -24,6 +24,16 @@ model User {
   logs                 EventLog[]
   quotations           Quotation[]
   tasks                Task[]
+  announcements        Announcement[]
+}
+
+model Announcement {
+  id        String           @id @default(uuid())
+  contenido String
+  tipo      AnnouncementType @default(INFO)
+  authorId  String
+  author    User             @relation(fields: [authorId], references: [id])
+  createdAt DateTime         @default(now())
 }
 
 model Client {
@@ -268,4 +278,10 @@ enum TaskStatus {
   PENDIENTE
   EN_PROCESO
   REALIZADO
+}
+
+enum AnnouncementType {
+  URGENTE
+  LOGRO
+  INFO
 }
