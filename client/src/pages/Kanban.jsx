@@ -184,10 +184,10 @@ const Kanban = () => {
   };
 
   const filteredTasks = tasks.filter(t => {
-    // Lógica de Ocultamiento (v11.0): Tareas improrrogables vencidas por > 24h
+    // Lógica de Ocultamiento (v16.0): Permanecen 24h con lápida antes de ir al cementerio
     if (isOverdueByMoreThan24h(t)) return false;
 
-    if (filters.userId && t.userId !== filters.userId) return false;
+    if (filters.userId && t.userId !== filters.userId && t.collaboratorId !== filters.userId) return false;
     if (filters.clientId && t.clientId !== filters.clientId) return false;
     if (filters.showToday) {
         const today = new Date().toISOString().split('T')[0];

@@ -40,7 +40,7 @@ const MetricCard = ({ label, value, unit, icon, alert = false, progress = null }
   </div>
 );
 
-const AnnouncementItem = ({ content, type, author, date }) => {
+const AnnouncementItem = ({ id, content, type, author, date, onDelete, canDelete }) => {
   const typeColors = {
     URGENTE: 'border-red-100 bg-red-50/30 text-red-700',
     LOGRO: 'border-green-100 bg-green-50/30 text-green-700',
@@ -48,16 +48,26 @@ const AnnouncementItem = ({ content, type, author, date }) => {
   };
 
   return (
-    <div className={`p-4 rounded-xl border ${typeColors[type] || typeColors.INFO} flex items-start gap-4 animate-in slide-in-from-right-4 duration-300`}>
+    <div className={`p-4 rounded-xl border ${typeColors[type] || typeColors.INFO} flex items-start gap-4 animate-in slide-in-from-right-4 duration-300 relative group`}>
       <div className="size-10 rounded-lg overflow-hidden shrink-0 border border-white shadow-sm">
         <Avatar size={40} name={author.nombre} variant="beam" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
           <span className="text-xs font-bold text-zinc-900 truncate">{toTitleCase(author.nombre)}</span>
-          <span className="text-[10px] font-medium opacity-60">
-            {new Date(date).toLocaleDateString()}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-medium opacity-60">
+              {new Date(date).toLocaleDateString()}
+            </span>
+            {canDelete && (
+              <button
+                onClick={() => onDelete(id)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-zinc-400 hover:text-red-500 rounded-md hover:bg-white"
+              >
+                <span className="material-symbols-outlined text-[16px]">delete</span>
+              </button>
+            )}
+          </div>
         </div>
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
         <span className="inline-block mt-2 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-white/50 border border-current opacity-40">
@@ -83,8 +93,15 @@ const Dashboard = () => {
         fetch('/api/announcements')
       ]);
 
-      if (statsRes.ok) setStats(await statsRes.json());
-      if (annRes.ok) setAnnouncements(await annRes.json());
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setStats(statsData);
+      }
+
+      if (annRes.ok) {
+        const annData = await annRes.json();
+        setAnnouncements(annData);
+      }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -95,6 +112,18 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
+
+  const handleDeleteAnnouncement = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar este anuncio?')) return;
+    try {
+      const response = await fetch(`/api/announcements/${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        fetchDashboardData();
+      }
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -155,16 +184,19 @@ const Dashboard = () => {
               {announcements.length === 0 ? (
                 <div className="py-20 text-center rounded-2xl border-2 border-dashed border-zinc-100 bg-white">
                   <span className="material-symbols-outlined text-zinc-200 text-[48px] mb-4">notifications_off</span>
-                  <p className="text-sm text-zinc-400 font-medium">No hay anuncios activos</p>
+                  <p className="text-sm text-zinc-400 font-medium italic">No hay anuncios recientes</p>
                 </div>
               ) : (
                 announcements.map(ann => (
                   <AnnouncementItem
                     key={ann.id}
+                    id={ann.id}
                     content={ann.contenido}
                     type={ann.tipo}
                     author={ann.author}
                     date={ann.createdAt}
+                    onDelete={handleDeleteAnnouncement}
+                    canDelete={user?.role === 'ADMIN' || user?.id === ann.authorId}
                   />
                 ))
               )}
