@@ -258,8 +258,14 @@ const QuotationDetail = () => {
                   {quotation.items.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between py-2 border-b border-zinc-50 last:border-0">
                       <div className="flex flex-col">
-                        <span className="font-bold text-zinc-900 text-sm ">{item.inventory.nombre}</span>
+                        <span className="font-bold text-zinc-900 text-sm ">{item.customName || item.inventory?.nombre_comercial || 'Ítem no identificado'}</span>
                         <span className="text-[10px] text-zinc-400 font-bold  mt-0.5">({item.cantidad} UNIDADES X {item.dias} DÍAS)</span>
+                        {/* Composition breakdown */}
+                        {(item.compositions?.length > 0 || item.inventory?.compositions?.length > 0) && (
+                          <span className="text-[10px] text-zinc-500 font-medium italic mt-1 max-w-md">
+                            (Incluye: {(item.compositions || item.inventory.compositions).map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ')})
+                          </span>
+                        )}
                         <div className="flex items-center gap-3 mt-1.5">
                           <span className={`px-2 py-0.5 rounded text-[9px] font-black  ${item.clase_asignada === 'A' ? 'bg-primary/10 text-primary' : 'bg-brand-alert/10 text-brand-alert'}`}>Clase {item.clase_asignada}</span>
                         </div>

@@ -798,9 +798,9 @@ const NewQuotation = () => {
                                        {(it.inventoryId || it.customName) && (
                                           <div className="px-1 flex flex-col gap-0.5">
                                              <span className="text-[9px] text-zinc-400 font-bold ">({it.cantidad || 0} UNIDADES X {it.dias || 1} DÍAS)</span>
-                                             {it.compositions && (
+                                             {it.compositions?.length > 0 && (
                                                 <span className="text-[10px] text-zinc-500 font-medium italic">
-                                                   (Incluye: {it.compositions.map(c => `${c.quantity} ${c.nombre}`).join(', ')})
+                                                   (Incluye: {it.compositions.map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem no encontrado'}`).join(', ')})
                                                 </span>
                                              )}
                                           </div>
