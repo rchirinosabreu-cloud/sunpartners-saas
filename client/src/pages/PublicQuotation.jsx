@@ -142,7 +142,7 @@ const PublicQuotation = () => {
         <div className="p-12 md:p-20 border-b border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
            <div>
               <div className="flex items-center gap-6 mb-12">
-                 <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
+                 <img src="/logo_sp.png" alt="Sunpartners" className="w-[280px] h-auto object-contain" />
               </div>
               <div className="space-y-4">
                  <h2 className="text-4xl font-black tracking-tighter text-zinc-900  leading-none">{quotation.nombre_evento}</h2>
