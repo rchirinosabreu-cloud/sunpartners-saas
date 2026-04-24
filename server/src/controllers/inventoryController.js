@@ -70,7 +70,10 @@ exports.updateBodega = async (req, res) => {
 exports.getAllCommercial = async (req, res) => {
   try {
     const items = await prisma.inventory_Commercial.findMany({
-      include: { bodega: true }
+      include: {
+        bodega: true,
+        compositions: { include: { warehouseItem: true } }
+      }
     });
     const processed = items.map(item => {
       const claseA = parseInt(item.claseA || 0);
@@ -89,15 +92,51 @@ exports.getAllCommercial = async (req, res) => {
   }
 };
 
+exports.createCommercial = async (req, res) => {
+  try {
+    const { nombre_comercial, valor_alquiler, compositions, bodegaId } = req.body;
+    const newItem = await prisma.inventory_Commercial.create({
+      data: {
+        nombre_comercial,
+        valor_alquiler: parseFloat(valor_alquiler || 0),
+        bodegaId: bodegaId || null,
+        compositions: compositions ? {
+          create: compositions.map(c => ({
+            warehouseItemId: c.warehouseItemId,
+            quantity: parseInt(c.quantity)
+          }))
+        } : undefined
+      },
+      include: { compositions: true }
+    });
+    res.status(201).json(newItem);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.updateCommercial = async (req, res) => {
   try {
-    const data = { ...req.body };
-    if (data.valor_alquiler !== undefined) data.valor_alquiler = parseFloat(data.valor_alquiler || 0);
+    const { id } = req.params;
+    const { nombre_comercial, valor_alquiler, compositions } = req.body;
 
-    // Note: Quantities sync back to Bodega via Prisma extension
+    // If updating compositions, clear old ones first
+    if (compositions) {
+      await prisma.composition.deleteMany({ where: { catalogItemId: id } });
+    }
+
     const updated = await prisma.inventory_Commercial.update({
-      where: { id: req.params.id },
-      data
+      where: { id },
+      data: {
+        nombre_comercial,
+        valor_alquiler: valor_alquiler !== undefined ? parseFloat(valor_alquiler) : undefined,
+        compositions: compositions ? {
+          create: compositions.map(c => ({
+            warehouseItemId: c.warehouseItemId,
+            quantity: parseInt(c.quantity)
+          }))
+        } : undefined
+      }
     });
     res.json(updated);
   } catch (error) {
