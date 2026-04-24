@@ -138,16 +138,11 @@ const PublicQuotation = () => {
         {/* Aesthetic Stripe */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-primary shadow-[0_2px_10px_rgba(84,134,161,0.3)]"></div>
 
-        {/* Public Header - Ultra Clean */}
+        {/* Public Header - Ultra Clean (v18.0) */}
         <div className="p-12 md:p-20 border-b border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
            <div>
               <div className="flex items-center gap-6 mb-12">
-                 <img src="/logo_sp.png" alt="Sunpartners" className="h-12 w-auto" />
-                 <div className="h-12 w-px bg-zinc-100 hidden md:block"></div>
-                 <div className="hidden md:block">
-                    <h1 className="text-xl font-black  tracking-[0.3em] text-zinc-900 leading-none mb-1">SUNPARTNERS</h1>
-                    <p className="text-[9px] font-black text-primary  tracking-[0.4em]">Estándar de Excelencia</p>
-                 </div>
+                 <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
               </div>
               <div className="space-y-4">
                  <h2 className="text-5xl font-black tracking-tighter text-zinc-900  leading-none">{quotation.nombre_evento}</h2>
@@ -204,13 +199,12 @@ const PublicQuotation = () => {
                     <td className="py-8">
                        <p className="font-black text-base text-zinc-900  tracking-tight group-hover:text-primary transition-colors">{item.customName || item.inventory?.nombre_comercial || 'Ítem no identificado'}</p>
                        <span className="text-[10px] font-bold text-zinc-400  mt-0.5">({item.cantidad} UNIDADES X {item.dias} DÍAS)</span>
-                       {/* Composition breakdown */}
+                       {/* Composition breakdown (v18.0: Clean) */}
                        {(item.compositions?.length > 0 || item.inventory?.compositions?.length > 0) && (
                           <span className="text-[10px] text-zinc-500 font-medium italic mt-1 block max-w-md">
                             (Incluye: {(item.compositions || item.inventory.compositions).map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ')})
                           </span>
                        )}
-                       <span className="text-[9px] font-black text-zinc-400  tracking-widest mt-1 block">Estándar de Calidad: Clase {item.clase_asignada}</span>
                     </td>
                     <td className="py-8 text-center font-black text-zinc-600">{item.cantidad}</td>
                     <td className="py-8 text-center font-black text-zinc-600">{item.dias}</td>
@@ -280,7 +274,7 @@ const PublicQuotation = () => {
               </div>
               <div className="pt-8 border-t border-zinc-200 flex justify-between items-end">
                 <span className="text-[11px] font-black  tracking-[0.4em] text-primary">TOTAL</span>
-                <span className="text-5xl font-black tracking-tighter text-zinc-900 ml-12">$ {total.toLocaleString()}</span>
+                <span className="text-4xl font-black tracking-tighter text-zinc-900 ml-12">$ {total.toLocaleString()}</span>
               </div>
            </div>
         </div>
