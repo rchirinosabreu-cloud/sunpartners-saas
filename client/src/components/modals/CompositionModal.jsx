@@ -3,8 +3,8 @@ import Modal from '../ui/Modal';
 import axios from 'axios';
 
 const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
-  const [nombre, setNombre] = useState(initialData?.nombre || '');
-  const [items, setItems] = useState(initialData?.items || []);
+  const [nombre, setNombre] = useState('');
+  const [items, setItems] = useState([]);
   const [saveToCatalog, setSaveToCatalog] = useState(false);
   const [precio1erDia, setPrecio1erDia] = useState(0);
   const [precioDiaAdic, setPrecioDiaAdic] = useState(0);
@@ -25,13 +25,32 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   }, [isOpen]);
 
   useEffect(() => {
-    if (initialData) {
-      setNombre(initialData.customName || initialData.nombre_comercial || '');
-      setPrecio1erDia(initialData.precio_pactado || 0);
-      setPrecioDiaAdic(initialData.precio_dia_adicional || 0);
-      // Items are handled if they are compositions
+    if (isOpen) {
+      if (initialData) {
+        setNombre(initialData.customName || initialData.nombre_comercial || '');
+        setPrecio1erDia(initialData.precio_pactado || 0);
+        setPrecioDiaAdic(initialData.precio_dia_adicional || 0);
+
+        // Handle items if they are compositions (catalog or dynamic)
+        const rawItems = initialData.compositions || [];
+        setItems(rawItems.map(it => ({
+          warehouseItemId: it.warehouseItemId,
+          nombre: it.warehouseItem?.nombre || it.nombre || 'Item',
+          quantity: it.quantity,
+          vlrUnitario: it.warehouseItem?.vlrUnitario || it.vlrUnitario || 0
+        })));
+        setSaveToCatalog(false);
+      } else {
+        // Reset for new creation
+        setNombre('');
+        setItems([]);
+        setPrecio1erDia(0);
+        setPrecioDiaAdic(0);
+        setSaveToCatalog(false);
+        setSearch('');
+      }
     }
-  }, [initialData]);
+  }, [isOpen, initialData]);
 
   const filteredWarehouse = useMemo(() => {
     if (!search) return [];
@@ -87,12 +106,14 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Constructor de Composiciones"
+      title="Crear composición"
       zIndexClass="z-[100]"
+      maxWidthClass="max-w-4xl"
+      showFooter={false}
     >
-      <div className="space-y-6">
+      <div className="space-y-8 my-4">
         <div>
-          <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2 uppercase">Nombre del Set / Combo</label>
+          <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2 uppercase">Nombre</label>
           <input
             type="text"
             value={nombre}
@@ -180,21 +201,21 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-zinc-900 p-4 rounded-xl text-white">
+        <div className="flex items-center gap-3 py-2">
            <input
              type="checkbox"
              id="saveToCatalog"
              checked={saveToCatalog}
              onChange={e => setSaveToCatalog(e.target.checked)}
-             className="size-4 accent-primary"
+             className="size-4 accent-primary rounded border-zinc-300"
            />
-           <label htmlFor="saveToCatalog" className="text-[10px] font-black tracking-widest uppercase cursor-pointer">¿Deseas guardar este ítem en el Catálogo Comercial?</label>
+           <label htmlFor="saveToCatalog" className="text-[11px] font-bold text-zinc-600 cursor-pointer">Guardar este ítem en el catálogo comercial</label>
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-4 pt-4">
           <button
             onClick={onClose}
-            className="flex-1 py-4 border-2 border-zinc-100 rounded-xl text-[11px] font-black tracking-widest uppercase hover:bg-zinc-50 transition-all"
+            className="flex-1 py-4 border-2 border-zinc-200 rounded-xl text-[11px] font-black tracking-widest uppercase hover:bg-zinc-50 text-zinc-500 transition-all"
           >
             Cancelar
           </button>

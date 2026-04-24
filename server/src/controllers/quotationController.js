@@ -126,7 +126,9 @@ exports.create = async (req, res) => {
       let inventoryId = item.inventoryId || null;
       let compositions = item.compositions;
 
-      if (item.saveToCatalog && !inventoryId && item.customName) {
+      if (item.saveToCatalog && item.customName) {
+        // If it was already a catalog item, we create a NEW one (versioning by creation)
+        // to avoid breaking historical quotations that used the previous version.
         const newItem = await prisma.inventory_Commercial.create({
           data: {
             nombre_comercial: item.customName,
@@ -140,7 +142,7 @@ exports.create = async (req, res) => {
           }
         });
         inventoryId = newItem.id;
-        compositions = null; // Once in catalog, the QuotationItem links to the catalog item
+        compositions = null; // Links to the new catalog entry
       }
 
       return {
@@ -244,7 +246,7 @@ exports.update = async (req, res) => {
       let inventoryId = item.inventoryId || null;
       let compositions = item.compositions;
 
-      if (item.saveToCatalog && !inventoryId && item.customName) {
+      if (item.saveToCatalog && item.customName) {
         const newItem = await prisma.inventory_Commercial.create({
           data: {
             nombre_comercial: item.customName,

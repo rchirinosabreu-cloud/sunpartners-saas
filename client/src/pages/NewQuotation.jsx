@@ -227,6 +227,7 @@ const NewQuotation = () => {
   const [modal, setModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isCompositionModalOpen, setIsCompositionModalOpen] = useState(false);
+  const [editingComposition, setEditingComposition] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
 
   // 1. Core Metadata State
@@ -391,22 +392,41 @@ const NewQuotation = () => {
       />
       <CompositionModal
         isOpen={isCompositionModalOpen}
-        onClose={() => setIsCompositionModalOpen(false)}
+        onClose={() => {
+          setIsCompositionModalOpen(false);
+          setEditingComposition(null);
+        }}
+        initialData={editingComposition?.data}
         onSave={(comp) => {
-          setFormData(p => ({
-            ...p,
-            items: [...p.items, {
-              inventoryId: null,
+          if (editingComposition) {
+            // Update existing
+            const newItems = [...formData.items];
+            newItems[editingComposition.index] = {
+              ...newItems[editingComposition.index],
               customName: comp.customName,
-              cantidad: 1,
-              dias: 1,
               precio_pactado: comp.precio_pactado,
               precio_dia_adicional: comp.precio_dia_adicional,
-              clase_asignada: 'A',
-              compositions: comp.items, // Piezas de bodega
+              compositions: comp.items,
               saveToCatalog: comp.saveToCatalog
-            }]
-          }));
+            };
+            setFormData({ ...formData, items: newItems });
+          } else {
+            // Create new
+            setFormData(p => ({
+              ...p,
+              items: [...p.items, {
+                inventoryId: null,
+                customName: comp.customName,
+                cantidad: 1,
+                dias: 1,
+                precio_pactado: comp.precio_pactado,
+                precio_dia_adicional: comp.precio_dia_adicional,
+                clase_asignada: 'A',
+                compositions: comp.items,
+                saveToCatalog: comp.saveToCatalog
+              }]
+            }));
+          }
         }}
       />
 
@@ -656,9 +676,16 @@ const NewQuotation = () => {
                <div className="flex justify-between items-center mb-4">
                   <h3 className="text-[11px] font-black  tracking-widest text-zinc-400">Resumen de equipamiento y servicios</h3>
                   <div className="flex gap-2">
-                     <button type="button" onClick={() => setIsCompositionModalOpen(true)} className="bg-zinc-900 text-white px-6 py-2 rounded-lg text-[10px] font-black hover:opacity-90 transition-all shadow-md flex items-center gap-2">
+                     <button
+                        type="button"
+                        onClick={() => {
+                           setEditingComposition(null);
+                           setIsCompositionModalOpen(true);
+                        }}
+                        className="bg-[#2D4A5A] text-white px-6 py-2 rounded-lg text-[10px] font-black hover:opacity-90 transition-all shadow-md flex items-center gap-2"
+                     >
                         <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
-                        + Crear Set/Combo
+                        + Personalizado
                      </button>
                      <button type="button" onClick={() => setFormData(p => ({...p, items: [...p.items, {inventoryId: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-primary text-white px-6 py-2 rounded-lg text-[10px] font-black  hover:opacity-90 transition-all shadow-md">+ Equipo</button>
                      <button type="button" onClick={() => setFormData(p => ({...p, services: [...p.services, {tipo: 'Transporte', descripcion: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-white border border-zinc-200 text-zinc-900 px-6 py-2 rounded-lg text-[10px] font-black  hover:bg-zinc-50 transition-all shadow-sm">+ Personal</button>
@@ -740,10 +767,17 @@ const NewQuotation = () => {
                                  <td className="p-4">
                                     <div className="flex flex-col gap-1">
                                        <div className="flex items-center gap-2">
-                                          {it.customName ? (
-                                             <div className="flex-1 p-2.5 bg-zinc-50 border-2 border-primary/20 rounded-lg flex items-center gap-2">
+                                          {it.customName || (it.inventoryId && it.inventory?.compositions?.length > 0) ? (
+                                             <div
+                                                onClick={() => {
+                                                   setEditingComposition({ index: idx, data: it });
+                                                   setIsCompositionModalOpen(true);
+                                                }}
+                                                className="flex-1 p-2.5 bg-zinc-50 border-2 border-primary/20 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-zinc-100 transition-all"
+                                             >
                                                 <span className="material-symbols-outlined text-primary text-[18px]">auto_awesome</span>
-                                                <span className="text-xs font-black text-zinc-900 uppercase">{it.customName}</span>
+                                                <span className="text-xs font-black text-zinc-900 uppercase">{it.customName || it.inventory?.nombre_comercial}</span>
+                                                <span className="material-symbols-outlined text-[14px] text-zinc-300 ml-auto">edit</span>
                                              </div>
                                           ) : (
                                              <SearchableSelect
