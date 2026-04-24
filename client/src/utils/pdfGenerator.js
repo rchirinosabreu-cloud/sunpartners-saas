@@ -75,13 +75,13 @@ export const generateQuotationPDF = (quotation) => {
       let description = `${name}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)\nClase ${item.clase_asignada}`;
 
       // Dynamic Composition inclusions
-      if (item.compositions && item.compositions.length > 0) {
-        const inclusions = item.compositions.map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre}`).join(', ');
+      if (item.compositions?.length > 0) {
+        const inclusions = item.compositions.map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ');
         description += `\n(Incluye: ${inclusions})`;
       }
       // Catalog Item Composition inclusions
-      else if (item.inventory?.compositions && item.inventory.compositions.length > 0) {
-        const inclusions = item.inventory.compositions.map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre}`).join(', ');
+      else if (item.inventory?.compositions?.length > 0) {
+        const inclusions = item.inventory.compositions.map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ');
         description += `\n(Incluye: ${inclusions})`;
       }
 

@@ -32,7 +32,7 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
         setPrecioDiaAdic(initialData.precio_dia_adicional || 0);
 
         // Handle items if they are compositions (catalog or dynamic)
-        const rawItems = initialData.compositions || [];
+        const rawItems = initialData.compositions || initialData.inventory?.compositions || [];
         setItems(rawItems.map(it => ({
           warehouseItemId: it.warehouseItemId,
           nombre: it.warehouseItem?.nombre || it.nombre || 'Item',

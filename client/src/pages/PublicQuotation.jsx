@@ -202,8 +202,14 @@ const PublicQuotation = () => {
                 {(quotation.items || []).map((item, idx) => (
                   <tr key={idx} className="group">
                     <td className="py-8">
-                       <p className="font-black text-base text-zinc-900  tracking-tight group-hover:text-primary transition-colors">{item.inventory.nombre_comercial}</p>
+                       <p className="font-black text-base text-zinc-900  tracking-tight group-hover:text-primary transition-colors">{item.customName || item.inventory?.nombre_comercial || 'Ítem no identificado'}</p>
                        <span className="text-[10px] font-bold text-zinc-400  mt-0.5">({item.cantidad} UNIDADES X {item.dias} DÍAS)</span>
+                       {/* Composition breakdown */}
+                       {(item.compositions?.length > 0 || item.inventory?.compositions?.length > 0) && (
+                          <span className="text-[10px] text-zinc-500 font-medium italic mt-1 block max-w-md">
+                            (Incluye: {(item.compositions || item.inventory.compositions).map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ')})
+                          </span>
+                       )}
                        <span className="text-[9px] font-black text-zinc-400  tracking-widest mt-1 block">Estándar de Calidad: Clase {item.clase_asignada}</span>
                     </td>
                     <td className="py-8 text-center font-black text-zinc-600">{item.cantidad}</td>
