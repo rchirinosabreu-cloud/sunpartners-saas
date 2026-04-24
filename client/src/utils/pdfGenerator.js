@@ -60,7 +60,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(84, 134, 161); // Sunpartners Blue
   doc.text((quotation.ubicacion || 'POR DEFINIR').toUpperCase(), 133, currentY);
 
-  currentY += 5;
+  currentY += 8; // v22.0: Increased spacing (aire)
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
@@ -70,14 +70,14 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(84, 134, 161); // Data color
   doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), 133, currentY);
 
-  currentY += 5;
+  currentY += 8; // v22.0: Increased spacing (aire)
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
   doc.text('INICIO EVENTO: ', 110, currentY);
   doc.setTextColor(84, 134, 161);
   doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), 133, currentY);
 
-  currentY += 5;
+  currentY += 8; // v22.0: Increased spacing (aire)
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`CIUDAD: ${quotation.client.ciudad || 'BOGOTÁ, COL'}`, 15, currentY);
