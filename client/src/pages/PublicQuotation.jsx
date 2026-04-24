@@ -145,7 +145,7 @@ const PublicQuotation = () => {
                  <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
               </div>
               <div className="space-y-4">
-                 <h2 className="text-5xl font-black tracking-tighter text-zinc-900  leading-none">{quotation.nombre_evento}</h2>
+                 <h2 className="text-4xl font-black tracking-tighter text-zinc-900  leading-none">{quotation.nombre_evento}</h2>
                  <div className="inline-block bg-primary/5 text-primary border border-primary/10 px-4 py-1.5 rounded-full text-[10px] font-black  tracking-[0.3em]">
                    PROPUESTA #Q-{(quotation?.id || 'REF').substring(0,6).toUpperCase()}
                  </div>
@@ -153,7 +153,7 @@ const PublicQuotation = () => {
            </div>
            <div className="flex flex-col items-start md:items-end gap-10">
               <div className="text-left md:text-right space-y-4">
-                 <span className="text-[10px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2">Destinatario Corporativo</span>
+                 <span className="text-[10px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2 uppercase">Destinatario Corporativo</span>
                  <p className="text-xl font-black text-zinc-900  tracking-tight">{quotation.client.razon_social}</p>
                  <div className="text-[11px] font-bold text-zinc-500 space-y-1">
                     <p>{quotation.client.documentType || 'NIT'}: {quotation.client.nit_id || 'PENDIENTE'}</p>
@@ -274,7 +274,9 @@ const PublicQuotation = () => {
               </div>
               <div className="pt-8 border-t border-zinc-200 flex justify-between items-end">
                 <span className="text-[11px] font-black  tracking-[0.4em] text-primary">TOTAL</span>
-                <span className="text-4xl font-black tracking-tighter text-zinc-900 ml-12">$ {total.toLocaleString()}</span>
+                <div className="flex items-baseline gap-2">
+                   <span className="text-4xl font-black tracking-tighter text-zinc-900">$ {total.toLocaleString()}</span>
+                </div>
               </div>
            </div>
         </div>

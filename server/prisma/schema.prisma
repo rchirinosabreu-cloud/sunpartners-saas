@@ -49,6 +49,7 @@ model Client {
   email                String?      @unique
   telefono             String?
   ciudad               String?
+  referidoPor          String?
   observaciones        String?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt

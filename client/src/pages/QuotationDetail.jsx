@@ -108,110 +108,106 @@ const QuotationDetail = () => {
         {modal.content}
       </Modal>
 
-      {/* Detail Header (v18.0) */}
+      {/* Detail Header (v19.0: Symmetry & Consistency) */}
       <div className="bg-white border-b border-zinc-200 px-12 py-10">
-        {/* Fila 2: Event Details / Status / Back Button */}
-        <div className="flex items-center justify-between mb-10">
-          <div className="flex items-center gap-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-12">
             <button
               onClick={() => navigate('/cotizaciones')}
-              className="size-10 flex items-center justify-center rounded-lg border border-zinc-200 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 transition-all bg-white shadow-sm"
+              className="size-11 flex items-center justify-center rounded-xl border-2 border-zinc-100 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 transition-all bg-white"
             >
-              <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+              <span className="material-symbols-outlined text-[24px]">arrow_back</span>
             </button>
 
-            <div className="flex items-center gap-10">
-              <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
-              <div className="h-12 w-px bg-zinc-200"></div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-4">
+            <div className="flex items-center gap-12">
+              <img src="/logo_sp.png" alt="Sunpartners" className="h-20 w-auto" />
+              <div className="h-14 w-px bg-zinc-100"></div>
+              <div className="space-y-3">
+                <div className="flex flex-col gap-2">
                   <h2 className="font-display text-2xl font-black tracking-tighter text-zinc-900 leading-none">{quotation.nombre_evento}</h2>
-                  <span className={`px-2.5 py-1 rounded text-[10px] font-black tracking-widest border shadow-sm ${
-                    quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
-                    quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                    quotation.estado === 'REVISION_SOLICITADA' ? 'bg-brand-alert/10 border-brand-alert/30 text-brand-alert' :
-                    'bg-zinc-100 border-zinc-200 text-zinc-500'
-                  }`}>
-                    {quotation.estado}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-widest border shadow-sm ${
+                      quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
+                      quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                      quotation.estado === 'REVISION_SOLICITADA' ? 'bg-brand-alert/10 border-brand-alert/30 text-brand-alert' :
+                      'bg-zinc-100 border-zinc-200 text-zinc-500'
+                    }`}>
+                      {quotation.estado}
+                    </span>
+                    {quotation.client.isTaxExempt && (
+                      <span className="px-3 py-1 rounded-lg text-[10px] font-black tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1.5 shadow-sm">
+                        <span className="material-symbols-outlined text-[14px]">money_off</span>
+                        EXENTO
+                      </span>
+                    )}
+                    {quotation.archivedAt && (
+                      <span className="px-3 py-1 rounded-lg text-[10px] font-black tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1.5 shadow-sm">
+                        <span className="material-symbols-outlined text-[14px]">inventory_2</span>
+                        ARCHIVADA
+                      </span>
+                    )}
+                    {linkData && (
+                      <div className="px-3 py-1 bg-blue-50 border border-blue-100 rounded-lg text-[10px] font-black text-blue-700 flex items-center gap-2 shadow-sm">
+                        <span className="material-symbols-outlined text-[16px]">link</span>
+                        PORTAL ACTIVO
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="text-sm text-zinc-500 font-bold tracking-tight">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
+                <p className="text-sm text-zinc-400 font-bold tracking-tight">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-4">
-             {/* Grupo Documentos */}
-             <div className="flex items-center gap-2">
-                <span className="text-[9px] font-black text-zinc-400 tracking-widest mr-2">DOCUMENTOS:</span>
-                {quotation.client.isTaxExempt && (
-                  <span className="px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1.5 shadow-sm">
-                    <span className="material-symbols-outlined text-[14px]">money_off</span>
-                    EXENTO
-                  </span>
-                )}
-                {quotation.purchaseOrderUrl && (
-                  <button
-                    onClick={() => window.open(quotation.purchaseOrderUrl, '_blank')}
-                    className="flex items-center gap-1.5 border border-primary/20 bg-primary/5 px-3 py-1.5 rounded-lg text-[10px] font-black text-primary hover:bg-primary/10 transition-all shadow-sm"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">attachment</span>
-                    VER ORDEN
-                  </button>
-                )}
-                {quotation.archivedAt && (
-                  <span className="px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1.5 shadow-sm">
-                    <span className="material-symbols-outlined text-[14px]">inventory_2</span>
-                    ARCHIVADA
-                  </span>
-                )}
-             </div>
+          <div className="flex items-center gap-4">
+             {/* Unified Action Buttons Group */}
+             <button
+                onClick={() => generateQuotationPDF(quotation)}
+                className="h-11 flex items-center gap-2 border-2 border-zinc-100 px-6 rounded-xl text-xs font-black text-zinc-600 hover:bg-zinc-50 transition-all bg-white shadow-sm"
+             >
+               <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+               PDF INTERNO
+             </button>
 
-             {/* Grupo Portal & Acciones */}
-             <div className="flex items-center gap-4">
-                <button
-                    onClick={() => generateQuotationPDF(quotation)}
-                    className="flex items-center gap-2 border border-zinc-200 px-5 py-2.5 rounded-lg text-xs font-black text-zinc-600 hover:bg-zinc-50 transition-all bg-white shadow-sm"
-                >
-                  <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                  PDF INTERNO
-                </button>
+             {quotation.purchaseOrderUrl && (
+               <button
+                onClick={() => window.open(quotation.purchaseOrderUrl, '_blank')}
+                className="h-11 flex items-center gap-2 border-2 border-primary/10 bg-primary/5 px-6 rounded-xl text-xs font-black text-primary hover:bg-primary/20 transition-all"
+               >
+                 <span className="material-symbols-outlined text-[18px]">attachment</span>
+                 VER ORDEN
+               </button>
+             )}
 
-                {!linkData ? (
-                  <button
-                    onClick={handleGenerateLink}
-                    disabled={updating}
-                    className="bg-zinc-900 text-white px-6 py-2.5 rounded-lg text-xs font-black tracking-widest hover:bg-zinc-800 transition-all flex items-center gap-2 shadow-lg shadow-zinc-200"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">send</span>
-                    ENVIAR PORTAL
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2">
-                      <div className="px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-lg text-[10px] font-black text-blue-700 flex items-center gap-2 shadow-sm">
-                        <span className="material-symbols-outlined text-[16px]">link</span>
-                        PORTAL ACTIVO
-                      </div>
-                      <button
-                        onClick={() => window.open(linkData.url, '_blank')}
-                        className="bg-primary text-white px-6 py-2.5 rounded-lg text-xs font-black hover:opacity-90 shadow-lg shadow-primary/20 transition-all"
-                      >
-                        VER PORTAL
-                      </button>
-                  </div>
-                )}
+             {!linkData ? (
+               <button
+                onClick={handleGenerateLink}
+                disabled={updating}
+                className="h-11 bg-zinc-900 text-white px-8 rounded-xl text-xs font-black tracking-widest hover:bg-zinc-800 transition-all flex items-center gap-2 shadow-lg"
+               >
+                 <span className="material-symbols-outlined text-[18px]">send</span>
+                 ENVIAR PORTAL
+               </button>
+             ) : (
+               <button
+                onClick={() => window.open(linkData.url, '_blank')}
+                className="h-11 bg-primary text-white px-8 rounded-xl text-xs font-black tracking-widest hover:opacity-90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2"
+               >
+                 <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                 VER PORTAL
+               </button>
+             )}
 
-                {(quotation.estado === 'BORRADOR' || quotation.estado === 'REVISION_SOLICITADA') && (
-                  <button
-                    disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
-                    onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                    className={`flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg text-xs font-black tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">edit_note</span>
-                    EDITAR
-                  </button>
-                )}
-             </div>
+             {(quotation.estado === 'BORRADOR' || quotation.estado === 'REVISION_SOLICITADA') && (
+               <button
+                disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
+                onClick={() => navigate(`/cotizaciones/editar/${id}`)}
+                className={`h-11 flex items-center gap-2 bg-primary text-white px-8 rounded-xl text-xs font-black tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+               >
+                 <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                 EDITAR
+               </button>
+             )}
           </div>
         </div>
 

@@ -28,12 +28,12 @@ export const generateQuotationPDF = (quotation) => {
   doc.text(`REF: #Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`, 130, 25);
   doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 130, 29);
 
-  // 2. Event Title (v18.0: Normal & Legible)
+  // 2. Event Title (v19.0: Normal, Legible & Generous Margins)
   doc.setTextColor(24, 24, 27);
-  doc.setFontSize(16);
+  doc.setFontSize(14); // Slightly smaller for v19.0 sophistication
   doc.setFont('helvetica', 'bold');
   const eventName = (quotation?.nombre_evento || 'Propuesta Comercial').toUpperCase();
-  doc.text(eventName, 15, 42, { maxWidth: 180 });
+  doc.text(eventName, 15, 42, { maxWidth: 170 }); // Max width reduced for lateral margins
 
   // 3. Client & Logistics Grid
   let currentY = 50;
@@ -204,18 +204,21 @@ export const generateQuotationPDF = (quotation) => {
     doc.text(term, 15 + (col * colWidth), finalY + 6 + (row * 4));
   });
 
-  // 7. Footer (On every page) - Corporate Style
+  // 7. Footer (v19.0: Two-column symmetry)
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    doc.setFontSize(7);
+    doc.setFontSize(6);
     doc.setTextColor(161, 161, 170); // Zinc-500
-    doc.setFont('helvetica', 'bold');
-    doc.text('BY PROCAMPO DEL CARIBE S.A.S.', 15, 280);
 
+    // Column Left: Company Name
+    doc.setFont('helvetica', 'bold');
+    doc.text('BY PROCAMPO DEL CARIBE S.A.S.', 15, 285);
+
+    // Column Right: Contact Details (Aligned right)
     doc.setFont('helvetica', 'normal');
-    doc.text('Cra. 15 No. 15-25, Local 2, Cartagena de Indias.', 15, 284);
-    doc.text('Móvil: +57 301 400 4743 | sunpartnersco@gmail.com', 15, 288);
+    const contactText = 'Cra. 15 No. 15-25, Local 2, Cartagena de Indias. | Móvil: +57 301 400 4743 | sunpartnersco@gmail.com';
+    doc.text(contactText, 195, 285, { align: 'right' });
   }
 
   const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');

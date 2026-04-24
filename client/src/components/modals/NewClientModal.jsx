@@ -12,6 +12,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
     email: '',
     telefono: '',
     ciudad: '',
+    referidoPor: '',
     observaciones: ''
   });
   const [isDuplicate, setIsDuplicate] = useState({ nit: false, email: false });
@@ -32,6 +33,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
         email: '',
         telefono: '',
         ciudad: '',
+        referidoPor: '',
         observaciones: ''
       });
     }
@@ -227,6 +229,16 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
                     className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Referido por</label>
+                <input
+                  type="text"
+                  placeholder="Persona o empresa que refirió"
+                  value={clientData.referidoPor}
+                  onChange={e => setClientData({ ...clientData, referidoPor: e.target.value })}
+                  className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
+                />
               </div>
             </div>
             <div>

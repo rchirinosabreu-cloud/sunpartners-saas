@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import Avatar from 'boring-avatars';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -221,6 +222,7 @@ const NewQuotation = () => {
 
   const [activeTab, setActiveTab] = useState(1);
   const [clients, setClients] = useState([]);
+  const [users, setUsers] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -242,6 +244,7 @@ const NewQuotation = () => {
     // Technical Sheet - Event
     evento_nombre: '',
     evento_venue: '',
+    consultantId: '',
     evento_tipo: 'Privado',
     evento_servicio: 'Directo',
     evento_duracion: '',
@@ -270,12 +273,14 @@ const NewQuotation = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [cRes, iRes] = await Promise.all([
+        const [cRes, iRes, uRes] = await Promise.all([
           axios.get('/api/clients', { withCredentials: true }),
-          axios.get('/api/inventory/commercial', { withCredentials: true })
+          axios.get('/api/inventory/commercial', { withCredentials: true }),
+          axios.get('/api/users', { withCredentials: true })
         ]);
         setClients(Array.isArray(cRes.data) ? cRes.data : []);
         setInventory(Array.isArray(iRes.data) ? iRes.data : []);
+        setUsers(Array.isArray(uRes.data) ? uRes.data : []);
 
         if (isEditing) {
           const qRes = await axios.get(`/api/quotations/${id}`, { withCredentials: true });
@@ -292,6 +297,7 @@ const NewQuotation = () => {
             evento_venue: q.ubicacion || '',
             evento_tipo: q.tipo_evento || 'Privado',
             evento_servicio: q.evento_servicio || 'Directo',
+            consultantId: q.consultantId || '',
             evento_duracion: q.evento_duracion || '',
             pago_metodo: q.pago_metodo || 'Contado',
             bitacora: q.bitacora || '',
@@ -318,8 +324,11 @@ const NewQuotation = () => {
           if (q.evento_fin) setEF(new Date(q.evento_fin));
           if (q.desmontaje_inicio) setDI(new Date(q.desmontaje_inicio));
           if (q.desmontaje_fin) setDF(new Date(q.desmontaje_fin));
-        }
-      } catch (err) {
+          } else {
+            // New quotation, default to current user
+            setFormData(prev => ({ ...prev, consultantId: currentUser?.id || '' }));
+          }
+        } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
@@ -596,12 +605,26 @@ const NewQuotation = () => {
                      </div>
 
                      <div>
-                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Consultor responsable</label>
-                        <div className="w-full border-2 border-zinc-100 rounded-lg p-3 bg-zinc-50 flex items-center gap-2">
-                           <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 ">
-                              {currentUser?.nombre?.substring(0,2)}
+                        <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2">Consultor responsable</label>
+                        <div className="relative">
+                           <select
+                              value={formData.consultantId}
+                              onChange={e => setFormData({ ...formData, consultantId: e.target.value })}
+                              className="w-full border-2 border-zinc-100 rounded-lg p-3 pl-12 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs appearance-none"
+                           >
+                              {users.map(u => (
+                                 <option key={u.id} value={u.id}>{u.nombre}</option>
+                              ))}
+                           </select>
+                           <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                              <Avatar
+                                 size={24}
+                                 name={users.find(u => u.id === formData.consultantId)?.nombre || 'S'}
+                                 variant="beam"
+                                 colors={['#5486A1', '#FBAE17', '#2D4A5A', '#E5E7EB']}
+                              />
                            </div>
-                           <span className="text-xs font-bold text-zinc-900 ">{currentUser?.nombre}</span>
+                           <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">expand_more</span>
                         </div>
                      </div>
                      <div className="lg:col-span-2">

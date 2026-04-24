@@ -113,6 +113,7 @@ exports.create = async (req, res) => {
         bitacora,
         items,
         services,
+        consultantId,
         estado = 'BORRADOR'
     } = req.body;
 
@@ -165,7 +166,7 @@ exports.create = async (req, res) => {
     const quotation = await prisma.quotation.create({
       data: {
         clientId,
-        consultantId: req.userId,
+        consultantId: consultantId || req.userId,
         nombre_evento: nombre_evento || 'Evento sin nombre',
         tipo_evento: tipo_evento || 'Corporativo',
         ubicacion: ubicacion || 'Por definir',
@@ -233,7 +234,8 @@ exports.update = async (req, res) => {
         desmontaje_fin,
         bitacora,
         items,
-        services
+        services,
+        consultantId
     } = req.body;
 
     const client = await prisma.client.findUnique({ where: { id: clientId } });
@@ -288,6 +290,7 @@ exports.update = async (req, res) => {
       where: { id },
       data: {
         clientId,
+        consultantId: consultantId || undefined,
         nombre_evento: nombre_evento || 'Evento sin nombre',
         tipo_evento: tipo_evento || 'Corporativo',
         ubicacion: ubicacion || 'Por definir',
