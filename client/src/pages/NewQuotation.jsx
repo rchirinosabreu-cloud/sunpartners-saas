@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import NewClientModal from '../components/modals/NewClientModal';
+import CompositionModal from '../components/modals/CompositionModal';
 import { calculateLineTotal, calculateTotals } from '../utils/quotationUtils';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.css';
@@ -225,6 +226,7 @@ const NewQuotation = () => {
   const [saving, setSaving] = useState(false);
   const [modal, setModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [isCompositionModalOpen, setIsCompositionModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
 
   // 1. Core Metadata State
@@ -386,6 +388,26 @@ const NewQuotation = () => {
         onClose={() => { setIsClientModalOpen(false); setEditingClient(null); }}
         onClientCreated={handleClientCreated}
         initialData={editingClient}
+      />
+      <CompositionModal
+        isOpen={isCompositionModalOpen}
+        onClose={() => setIsCompositionModalOpen(false)}
+        onSave={(comp) => {
+          setFormData(p => ({
+            ...p,
+            items: [...p.items, {
+              inventoryId: null,
+              customName: comp.customName,
+              cantidad: 1,
+              dias: 1,
+              precio_pactado: comp.precio_pactado,
+              precio_dia_adicional: comp.precio_dia_adicional,
+              clase_asignada: 'A',
+              compositions: comp.items, // Piezas de bodega
+              saveToCatalog: comp.saveToCatalog
+            }]
+          }));
+        }}
       />
 
       <div className="flex justify-between items-center mb-12 bg-white p-10 rounded-lg shadow-sm border border-zinc-100">
@@ -634,6 +656,10 @@ const NewQuotation = () => {
                <div className="flex justify-between items-center mb-4">
                   <h3 className="text-[11px] font-black  tracking-widest text-zinc-400">Resumen de equipamiento y servicios</h3>
                   <div className="flex gap-2">
+                     <button type="button" onClick={() => setIsCompositionModalOpen(true)} className="bg-zinc-900 text-white px-6 py-2 rounded-lg text-[10px] font-black hover:opacity-90 transition-all shadow-md flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+                        + Crear Set/Combo
+                     </button>
                      <button type="button" onClick={() => setFormData(p => ({...p, items: [...p.items, {inventoryId: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-primary text-white px-6 py-2 rounded-lg text-[10px] font-black  hover:opacity-90 transition-all shadow-md">+ Equipo</button>
                      <button type="button" onClick={() => setFormData(p => ({...p, services: [...p.services, {tipo: 'Transporte', descripcion: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-white border border-zinc-200 text-zinc-900 px-6 py-2 rounded-lg text-[10px] font-black  hover:bg-zinc-50 transition-all shadow-sm">+ Personal</button>
                   </div>
@@ -714,11 +740,18 @@ const NewQuotation = () => {
                                  <td className="p-4">
                                     <div className="flex flex-col gap-1">
                                        <div className="flex items-center gap-2">
-                                          <SearchableSelect
-                                             value={it.inventoryId}
-                                             options={inventory}
-                                             onChange={val => update('inventoryId', val)}
-                                          />
+                                          {it.customName ? (
+                                             <div className="flex-1 p-2.5 bg-zinc-50 border-2 border-primary/20 rounded-lg flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-primary text-[18px]">auto_awesome</span>
+                                                <span className="text-xs font-black text-zinc-900 uppercase">{it.customName}</span>
+                                             </div>
+                                          ) : (
+                                             <SearchableSelect
+                                                value={it.inventoryId}
+                                                options={inventory}
+                                                onChange={val => update('inventoryId', val)}
+                                             />
+                                          )}
                                           {hasStockWarning && (
                                              <div className="group relative">
                                                 <span className="material-symbols-outlined text-[#FBAE17] font-black cursor-help">warning</span>
@@ -728,9 +761,14 @@ const NewQuotation = () => {
                                              </div>
                                           )}
                                        </div>
-                                       {it.inventoryId && (
-                                          <div className="px-1">
+                                       {(it.inventoryId || it.customName) && (
+                                          <div className="px-1 flex flex-col gap-0.5">
                                              <span className="text-[9px] text-zinc-400 font-bold ">({it.cantidad || 0} UNIDADES X {it.dias || 1} DÍAS)</span>
+                                             {it.compositions && (
+                                                <span className="text-[10px] text-zinc-500 font-medium italic">
+                                                   (Incluye: {it.compositions.map(c => `${c.quantity} ${c.nombre}`).join(', ')})
+                                                </span>
+                                             )}
                                           </div>
                                        )}
                                     </div>

@@ -5,7 +5,7 @@ const { calculateLineTotal, calculateTotals } = require('../utils/quotationUtils
 const includeAll = {
   client: true,
   consultant: { select: { id: true, nombre: true, email: true } },
-  items: { include: { inventory: true } },
+  items: { include: { inventory: { include: { compositions: { include: { warehouseItem: true } } } }, compositions: { include: { warehouseItem: true } } } },
   services: true,
   planning: true,
   logs: { include: { user: true }, orderBy: { createdAt: 'desc' } }
@@ -121,6 +121,45 @@ exports.create = async (req, res) => {
 
     const { subtotal: vlrNeto, total: vlrTotal } = calculateTotals(items, services, isTaxExempt);
 
+    // Handle Save to Catalog for dynamic compositions
+    const processedItems = await Promise.all((items || []).map(async (item) => {
+      let inventoryId = item.inventoryId || null;
+      let compositions = item.compositions;
+
+      if (item.saveToCatalog && !inventoryId && item.customName) {
+        const newItem = await prisma.inventory_Commercial.create({
+          data: {
+            nombre_comercial: item.customName,
+            valor_alquiler: parseFloat(item.precio_pactado),
+            compositions: {
+              create: (item.compositions || []).map(c => ({
+                warehouseItemId: c.warehouseItemId,
+                quantity: parseInt(c.quantity)
+              }))
+            }
+          }
+        });
+        inventoryId = newItem.id;
+        compositions = null; // Once in catalog, the QuotationItem links to the catalog item
+      }
+
+      return {
+        inventoryId,
+        customName: inventoryId ? null : (item.customName || null),
+        cantidad: parseInt(item.cantidad),
+        dias: parseInt(item.dias || 1),
+        precio_pactado: parseFloat(item.precio_pactado),
+        precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
+        clase_asignada: item.clase_asignada || 'A',
+        compositions: compositions ? {
+          create: compositions.map(c => ({
+            warehouseItemId: c.warehouseItemId,
+            quantity: parseInt(c.quantity)
+          }))
+        } : undefined
+      };
+    }));
+
     const quotation = await prisma.quotation.create({
       data: {
         clientId,
@@ -139,14 +178,7 @@ exports.create = async (req, res) => {
         vlrNeto,
         vlrTotal,
         items: {
-          create: (items || []).map(item => ({
-            inventoryId: item.inventoryId,
-            cantidad: parseInt(item.cantidad),
-            dias: parseInt(item.dias || 1),
-            precio_pactado: parseFloat(item.precio_pactado),
-            precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
-            clase_asignada: item.clase_asignada || 'A'
-          }))
+          create: processedItems
         },
         services: {
           create: (services || []).map(svc => ({
@@ -207,6 +239,45 @@ exports.update = async (req, res) => {
 
     const { subtotal: vlrNeto, total: vlrTotal } = calculateTotals(items, services, isTaxExempt);
 
+    // Handle Save to Catalog for dynamic compositions
+    const processedItems = await Promise.all((items || []).map(async (item) => {
+      let inventoryId = item.inventoryId || null;
+      let compositions = item.compositions;
+
+      if (item.saveToCatalog && !inventoryId && item.customName) {
+        const newItem = await prisma.inventory_Commercial.create({
+          data: {
+            nombre_comercial: item.customName,
+            valor_alquiler: parseFloat(item.precio_pactado),
+            compositions: {
+              create: (item.compositions || []).map(c => ({
+                warehouseItemId: c.warehouseItemId,
+                quantity: parseInt(c.quantity)
+              }))
+            }
+          }
+        });
+        inventoryId = newItem.id;
+        compositions = null;
+      }
+
+      return {
+        inventoryId,
+        customName: inventoryId ? null : (item.customName || null),
+        cantidad: parseInt(item.cantidad),
+        dias: parseInt(item.dias || 1),
+        precio_pactado: parseFloat(item.precio_pactado),
+        precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
+        clase_asignada: item.clase_asignada || 'A',
+        compositions: compositions ? {
+          create: compositions.map(c => ({
+            warehouseItemId: c.warehouseItemId,
+            quantity: parseInt(c.quantity)
+          }))
+        } : undefined
+      };
+    }));
+
     // Delete existing items and services to replace them
     await prisma.quotationItem.deleteMany({ where: { quotationId: id } });
     await prisma.quotationService.deleteMany({ where: { quotationId: id } });
@@ -228,14 +299,7 @@ exports.update = async (req, res) => {
         vlrNeto,
         vlrTotal,
         items: {
-          create: (items || []).map(item => ({
-            inventoryId: item.inventoryId,
-            cantidad: parseInt(item.cantidad),
-            dias: parseInt(item.dias || 1),
-            precio_pactado: parseFloat(item.precio_pactado),
-            precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
-            clase_asignada: item.clase_asignada || 'A'
-          }))
+          create: processedItems
         },
         services: {
           create: (services || []).map(svc => ({
@@ -419,7 +483,14 @@ exports.upsertPlanning = async (req, res) => {
 async function checkAvailability(quotationId) {
   const q = await prisma.quotation.findUnique({
     where: { id: quotationId },
-    include: { items: true }
+    include: {
+      items: {
+        include: {
+          compositions: true,
+          inventory: { include: { compositions: true } }
+        }
+      }
+    }
   });
 
   const start = q.montaje_inicio;
@@ -428,32 +499,68 @@ async function checkAvailability(quotationId) {
   const overlaps = await prisma.quotation.findMany({
     where: {
       id: { not: quotationId },
-      estado: { in: ['APROBADA', 'EJECUCION'] },
-      archivedAt: null, // Only non-archived quotations consume stock
+      estado: { in: ['APROBADA', 'EJECUCION', 'CONFIRMED'] },
+      archivedAt: null,
       OR: [
         { montaje_inicio: { lte: end }, desmontaje_fin: { gte: start } }
       ]
     },
-    include: { items: true }
+    include: {
+      items: {
+        include: {
+          compositions: true,
+          inventory: { include: { compositions: true } }
+        }
+      }
+    }
   });
 
-  const committed = {};
+  // Calculate committed stock by Warehouse Item (Universal key)
+  const committed = {}; // warehouseItemId -> quantity
   overlaps.forEach(overlap => {
     overlap.items.forEach(item => {
-      committed[item.inventoryId] = (committed[item.inventoryId] || 0) + item.cantidad;
+      // 1. If it's a dynamic composition
+      if (item.compositions && item.compositions.length > 0) {
+        item.compositions.forEach(comp => {
+          committed[comp.warehouseItemId] = (committed[comp.warehouseItemId] || 0) + (comp.quantity * item.cantidad);
+        });
+      }
+      // 2. If it's a catalog item that is a composition
+      else if (item.inventory?.compositions && item.inventory.compositions.length > 0) {
+        item.inventory.compositions.forEach(comp => {
+          committed[comp.warehouseItemId] = (committed[comp.warehouseItemId] || 0) + (comp.quantity * item.cantidad);
+        });
+      }
+      // 3. If it's a simple catalog item (1-to-1)
+      else if (item.inventory?.bodegaId) {
+        committed[item.inventory.bodegaId] = (committed[item.inventory.bodegaId] || 0) + item.cantidad;
+      }
     });
   });
 
+  // Check availability for current quotation items
   for (const item of q.items) {
-    const inv = await prisma.inventory_Commercial.findUnique({
-      where: { id: item.inventoryId },
-      include: { bodega: true }
-    });
-    const totalAvailable = (inv.claseA || 0) + (inv.claseB || 0);
-    const alreadyCommitted = committed[item.inventoryId] || 0;
+    const components = [];
 
-    if (alreadyCommitted + item.cantidad > totalAvailable) {
-      return `Stock insuficiente para "${inv.nombre_comercial}". Disponible total (A+B): ${totalAvailable}, Comprometido en otras fechas: ${alreadyCommitted}, Solicitado: ${item.cantidad}`;
+    if (item.compositions && item.compositions.length > 0) {
+      components.push(...item.compositions);
+    } else if (item.inventory?.compositions && item.inventory.compositions.length > 0) {
+      components.push(...item.inventory.compositions);
+    } else if (item.inventory?.bodegaId) {
+      components.push({ warehouseItemId: item.inventory.bodegaId, quantity: 1, name: item.inventory.nombre_comercial });
+    }
+
+    for (const comp of components) {
+      const warehouseId = comp.warehouseItemId;
+      const needed = comp.quantity * item.cantidad;
+      const alreadyCommitted = committed[warehouseId] || 0;
+
+      const warehouseItem = await prisma.inventory_Bodega.findUnique({ where: { id: warehouseId } });
+      const totalStock = (warehouseItem.claseA || 0) + (warehouseItem.claseB || 0);
+
+      if (alreadyCommitted + needed > totalStock) {
+        return `Stock insuficiente para "${warehouseItem.nombre}". Disponible (A+B): ${totalStock}, Comprometido: ${alreadyCommitted}, Requerido para este set: ${needed}`;
+      }
     }
   }
 

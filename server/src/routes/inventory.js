@@ -9,6 +9,7 @@ router.put('/bodega/:id', inventoryController.updateBodega);
 
 // Commercial routes
 router.get('/commercial', inventoryController.getAllCommercial);
+router.post('/commercial', inventoryController.createCommercial);
 router.put('/commercial/:id', inventoryController.updateCommercial);
 
 // Legacy/Common

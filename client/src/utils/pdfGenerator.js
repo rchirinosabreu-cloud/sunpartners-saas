@@ -70,16 +70,32 @@ export const generateQuotationPDF = (quotation) => {
 
   // 4. Items Table - WYSIWYG mapping
   const tableData = [
-    ...(quotation?.items || []).map(item => [
-      {
-        content: `${item.inventory.nombre_comercial}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)\nClase ${item.clase_asignada}`,
-        styles: { fontStyle: 'bold' }
-      },
-      item.cantidad,
-      item.dias,
-      `$ ${item.precio_pactado.toLocaleString()}${item.dias > 1 ? `\nAdic: $ ${item.precio_dia_adicional.toLocaleString()}` : ''}`,
-      `$ ${calculateLineTotal(item).toLocaleString()}`
-    ]),
+    ...(quotation?.items || []).map(item => {
+      const name = item.customName || item.inventory?.nombre_comercial || 'Ítem Personalizado';
+      let description = `${name}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)\nClase ${item.clase_asignada}`;
+
+      // Dynamic Composition inclusions
+      if (item.compositions && item.compositions.length > 0) {
+        const inclusions = item.compositions.map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre}`).join(', ');
+        description += `\n(Incluye: ${inclusions})`;
+      }
+      // Catalog Item Composition inclusions
+      else if (item.inventory?.compositions && item.inventory.compositions.length > 0) {
+        const inclusions = item.inventory.compositions.map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre}`).join(', ');
+        description += `\n(Incluye: ${inclusions})`;
+      }
+
+      return [
+        {
+          content: description,
+          styles: { fontStyle: 'bold' }
+        },
+        item.cantidad,
+        item.dias,
+        `$ ${item.precio_pactado.toLocaleString()}${item.dias > 1 ? `\nAdic: $ ${item.precio_dia_adicional.toLocaleString()}` : ''}`,
+        `$ ${calculateLineTotal(item).toLocaleString()}`
+      ];
+    }),
     ...(quotation?.services || []).map(svc => [
       {
         content: `${svc.descripcion}\n(${svc.cantidad} UNIDADES X ${svc.dias} DÍAS)\n${svc.tipo} Especializado`,
