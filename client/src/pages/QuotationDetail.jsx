@@ -108,73 +108,80 @@ const QuotationDetail = () => {
         {modal.content}
       </Modal>
 
-      {/* Detail Header (v19.0: Symmetry & Consistency) */}
-      <div className="bg-white border-b border-zinc-200 px-12 py-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-12">
+      {/* Detail Header (v20.0: Absolute Normalization) */}
+      <div className="bg-white border-b border-zinc-100 px-12 py-10 shadow-sm">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-10">
             <button
               onClick={() => navigate('/cotizaciones')}
-              className="size-11 flex items-center justify-center rounded-xl border-2 border-zinc-100 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 transition-all bg-white"
+              className="size-10 flex items-center justify-center rounded-lg border border-zinc-200 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 transition-all bg-white"
             >
-              <span className="material-symbols-outlined text-[24px]">arrow_back</span>
+              <span className="material-symbols-outlined text-[20px]">arrow_back</span>
             </button>
 
-            <div className="flex items-center gap-12">
-              <img src="/logo_sp.png" alt="Sunpartners" className="h-20 w-auto" />
+            <div className="flex items-start gap-10">
+              <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
               <div className="h-14 w-px bg-zinc-100"></div>
               <div className="space-y-3">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1.5">
                   <h2 className="font-display text-2xl font-black tracking-tighter text-zinc-900 leading-none">{quotation.nombre_evento}</h2>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-widest border shadow-sm ${
-                      quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
-                      quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                      quotation.estado === 'REVISION_SOLICITADA' ? 'bg-brand-alert/10 border-brand-alert/30 text-brand-alert' :
-                      'bg-zinc-100 border-zinc-200 text-zinc-500'
-                    }`}>
-                      {quotation.estado}
-                    </span>
-                    {quotation.client.isTaxExempt && (
-                      <span className="px-3 py-1 rounded-lg text-[10px] font-black tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1.5 shadow-sm">
-                        <span className="material-symbols-outlined text-[14px]">money_off</span>
-                        EXENTO
-                      </span>
-                    )}
-                    {quotation.archivedAt && (
-                      <span className="px-3 py-1 rounded-lg text-[10px] font-black tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1.5 shadow-sm">
-                        <span className="material-symbols-outlined text-[14px]">inventory_2</span>
-                        ARCHIVADA
-                      </span>
-                    )}
-                    {linkData && (
-                      <div className="px-3 py-1 bg-blue-50 border border-blue-100 rounded-lg text-[10px] font-black text-blue-700 flex items-center gap-2 shadow-sm">
-                        <span className="material-symbols-outlined text-[16px]">link</span>
-                        PORTAL ACTIVO
-                      </div>
-                    )}
+                  <div className="flex flex-col gap-1">
+                     <p className="text-[11px] text-zinc-500 font-bold tracking-tight uppercase">
+                        {quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}
+                     </p>
+                     <p className="text-[10px] text-zinc-400 font-medium flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">location_on</span>
+                        {quotation.ubicacion || 'Lugar por definir'}
+                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-zinc-400 font-bold tracking-tight">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
+
+                {/* Status Badges Group (LEFT SIDE) */}
+                <div className="flex items-center gap-2 pt-1">
+                  <span className={`badge-status ${
+                    quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
+                    quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                    quotation.estado === 'REVISION_SOLICITADA' ? 'bg-brand-alert/10 border-brand-alert/30 text-brand-alert' :
+                    'bg-zinc-50 border-zinc-200 text-zinc-500'
+                  }`}>
+                    {quotation.estado}
+                  </span>
+                  {quotation.client.isTaxExempt && (
+                    <span className="badge-status bg-zinc-50 text-zinc-500 border-zinc-200">
+                      EXENTO
+                    </span>
+                  )}
+                  {quotation.archivedAt && (
+                    <span className="badge-status bg-amber-50 text-amber-700 border-amber-200">
+                      ARCHIVADA
+                    </span>
+                  )}
+                  {linkData && (
+                    <div className="badge-status bg-blue-50 border-blue-100 text-blue-700">
+                      PORTAL ACTIVO
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-             {/* Unified Action Buttons Group */}
+          {/* Unified Action Buttons (RIGHT SIDE) */}
+          <div className="flex items-center gap-3">
              <button
                 onClick={() => generateQuotationPDF(quotation)}
-                className="h-11 flex items-center gap-2 border-2 border-zinc-100 px-6 rounded-xl text-xs font-black text-zinc-600 hover:bg-zinc-50 transition-all bg-white shadow-sm"
+                className="btn-action border border-zinc-200 text-zinc-600 bg-white hover:bg-zinc-50"
              >
-               <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+               <span className="material-symbols-outlined">picture_as_pdf</span>
                PDF INTERNO
              </button>
 
              {quotation.purchaseOrderUrl && (
                <button
                 onClick={() => window.open(quotation.purchaseOrderUrl, '_blank')}
-                className="h-11 flex items-center gap-2 border-2 border-primary/10 bg-primary/5 px-6 rounded-xl text-xs font-black text-primary hover:bg-primary/20 transition-all"
+                className="btn-action border border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
                >
-                 <span className="material-symbols-outlined text-[18px]">attachment</span>
+                 <span className="material-symbols-outlined">attachment</span>
                  VER ORDEN
                </button>
              )}
@@ -183,17 +190,17 @@ const QuotationDetail = () => {
                <button
                 onClick={handleGenerateLink}
                 disabled={updating}
-                className="h-11 bg-zinc-900 text-white px-8 rounded-xl text-xs font-black tracking-widest hover:bg-zinc-800 transition-all flex items-center gap-2 shadow-lg"
+                className="btn-action bg-zinc-900 text-white hover:bg-zinc-800"
                >
-                 <span className="material-symbols-outlined text-[18px]">send</span>
+                 <span className="material-symbols-outlined">send</span>
                  ENVIAR PORTAL
                </button>
              ) : (
                <button
                 onClick={() => window.open(linkData.url, '_blank')}
-                className="h-11 bg-primary text-white px-8 rounded-xl text-xs font-black tracking-widest hover:opacity-90 shadow-lg shadow-primary/20 transition-all flex items-center gap-2"
+                className="btn-action bg-primary text-white hover:opacity-90"
                >
-                 <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                 <span className="material-symbols-outlined">open_in_new</span>
                  VER PORTAL
                </button>
              )}
@@ -202,9 +209,9 @@ const QuotationDetail = () => {
                <button
                 disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
                 onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className={`h-11 flex items-center gap-2 bg-primary text-white px-8 rounded-xl text-xs font-black tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`btn-action bg-primary text-white hover:opacity-90 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                >
-                 <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                 <span className="material-symbols-outlined">edit_note</span>
                  EDITAR
                </button>
              )}

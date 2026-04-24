@@ -43,7 +43,8 @@ export const generateQuotationPDF = (quotation) => {
   currentY += 10;
   doc.setFontSize(8);
   doc.setTextColor(113, 113, 122);
-  doc.text('DESTINATARIO CORPORATIVO', 15, currentY);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CLIENTE', 15, currentY);
   doc.text('CRONOGRAMA DETALLADO', 110, currentY);
 
   currentY += 6;
@@ -61,6 +62,11 @@ export const generateQuotationPDF = (quotation) => {
   doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(84, 134, 161); // Sunpartners Blue
+  doc.text(`LUGAR EVENTO: ${(quotation.ubicacion || 'POR DEFINIR').toUpperCase()}`, 110, currentY);
+
+  currentY += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(113, 113, 122);
   doc.text(`INICIO EVENTO: ${new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`, 110, currentY);
 
   currentY += 5;
@@ -112,7 +118,7 @@ export const generateQuotationPDF = (quotation) => {
 
   autoTable(doc, {
     startY: currentY + 10,
-    head: [['Descripción Técnica', 'Cant.', 'Días', 'Inversión Un.', 'Subtotal']],
+    head: [['Detalles del servicio', 'Cant.', 'Días', 'Inversión Un.', 'Subtotal']],
     body: tableData,
     headStyles: {
       fillColor: [255, 255, 255],
