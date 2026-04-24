@@ -8,18 +8,19 @@ export const generateQuotationPDF = (quotation) => {
   // Totals Calculation
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
-  // 1. Header - Clean Sunpartners Style
+  // 1. Header - Clean Sunpartners Style (v18.0)
   const logoUrl = '/logo_sp.png';
   try {
-    doc.addImage(logoUrl, 'PNG', 15, 12, 40, 16);
+    // Larger logo, solo icono (Assuming logo_sp.png is the logo/icon)
+    doc.addImage(logoUrl, 'PNG', 15, 10, 50, 20);
   } catch (e) {
     console.warn('Logo could not be loaded for PDF', e);
   }
 
   doc.setTextColor(24, 24, 27); // Zinc-900
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('PROPUESTA TÉCNICA Y COMERCIAL', 130, 20);
+  doc.text('PROPUESTA TÉCNICA Y COMERCIAL', 135, 18);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
@@ -27,15 +28,15 @@ export const generateQuotationPDF = (quotation) => {
   doc.text(`REF: #Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`, 130, 25);
   doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 130, 29);
 
-  // 2. Event Title (Large, Black, Bold)
+  // 2. Event Title (v18.0: Normal & Legible)
   doc.setTextColor(24, 24, 27);
-  doc.setFontSize(24);
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   const eventName = (quotation?.nombre_evento || 'Propuesta Comercial').toUpperCase();
-  doc.text(eventName, 15, 45, { maxWidth: 180 });
+  doc.text(eventName, 15, 42, { maxWidth: 180 });
 
   // 3. Client & Logistics Grid
-  let currentY = 55;
+  let currentY = 50;
   doc.setDrawColor(244, 244, 245);
   doc.line(15, currentY, 195, currentY);
 
@@ -46,7 +47,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.text('CRONOGRAMA DETALLADO', 110, currentY);
 
   currentY += 6;
-  doc.setFontSize(10);
+  doc.setFontSize(9); // v18.0: Smaller corporate name
   doc.setTextColor(24, 24, 27);
   doc.setFont('helvetica', 'bold');
   doc.text(quotation.client.razon_social, 15, currentY);
@@ -72,7 +73,8 @@ export const generateQuotationPDF = (quotation) => {
   const tableData = [
     ...(quotation?.items || []).map(item => {
       const name = item.customName || item.inventory?.nombre_comercial || 'Ítem Personalizado';
-      let description = `${name}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)\nClase ${item.clase_asignada}`;
+      // v18.0: Clean description (no classes, no quality standards)
+      let description = `${name}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)`;
 
       // Dynamic Composition inclusions
       if (item.compositions?.length > 0) {
@@ -162,15 +164,15 @@ export const generateQuotationPDF = (quotation) => {
   doc.line(summaryX, finalY, 195, finalY);
 
   finalY += 10;
-  doc.setFontSize(10);
+  doc.setFontSize(9); // v18.0: Smaller Total text
   doc.setTextColor(84, 134, 161); // Sunpartners Blue
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL', summaryX, finalY);
-  doc.setFontSize(16);
+  doc.setFontSize(14); // v18.0: Smaller total amount
   doc.setTextColor(24, 24, 27);
   doc.text(`$ ${total.toLocaleString()}`, 195, finalY, { align: 'right' });
 
-  // 6. Terms & Conditions
+  // 6. Terms & Conditions (v18.0: Two columns, smaller font)
   finalY += 20;
   if (finalY > 230) { doc.addPage(); finalY = 20; }
 
@@ -178,7 +180,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(84, 134, 161);
   doc.text('TÉRMINOS Y CONDICIONES LEGALES', 15, finalY);
 
-  doc.setFontSize(7);
+  doc.setFontSize(6); // v18.0: Sophisticated small font
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(161, 161, 170);
 
@@ -186,17 +188,20 @@ export const generateQuotationPDF = (quotation) => {
     "1. La reserva de equipos se confirma únicamente con el pago del 70% del valor total.",
     "2. Esta cotización tiene una vigencia de 24 horas a partir de su emisión.",
     "3. Precios sujetos a disponibilidad al momento de la formalización del pago.",
-    "4. El cliente es responsable por cualquier daño, pérdida o robo de los equipos contratados.",
-    "5. Sunpartners no se hace responsable por fallas eléctricas externas al equipamiento.",
-    "6. Cancelaciones con menos de 48 horas incurren en una penalidad del 50%.",
-    "7. Los horarios de montaje y desmontaje deben cumplirse estrictamente.",
-    "8. No se permite el subarriendo ni traslado de equipos sin autorización previa.",
-    "9. Personal técnico adicional será facturado según bitácora de obra.",
-    "10. El saldo restante (30%) debe cancelarse antes del inicio del montaje."
+    "4. El cliente es responsable por daños, pérdida o robo de equipos.",
+    "5. Sunpartners no responde por fallas eléctricas externas.",
+    "6. Cancelaciones < 48h incurren en penalidad del 50%.",
+    "7. Horarios de montaje y desmontaje deben cumplirse estrictamente.",
+    "8. Prohibido subarriendo o traslado de equipos sin autorización.",
+    "9. Personal técnico adicional facturado según bitácora.",
+    "10. El saldo restante (30%) se cancela antes del montaje."
   ];
 
+  const colWidth = 90;
   terms.forEach((term, i) => {
-    doc.text(term, 15, finalY + 6 + (i * 4));
+    const col = i < 5 ? 0 : 1;
+    const row = i % 5;
+    doc.text(term, 15 + (col * colWidth), finalY + 6 + (row * 4));
   });
 
   // 7. Footer (On every page) - Corporate Style

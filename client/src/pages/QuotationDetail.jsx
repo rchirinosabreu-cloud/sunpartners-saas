@@ -108,23 +108,25 @@ const QuotationDetail = () => {
         {modal.content}
       </Modal>
 
-      {/* Detail Header */}
-      <div className="bg-white border-b border-zinc-200 px-8 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+      {/* Detail Header (v18.0) */}
+      <div className="bg-white border-b border-zinc-200 px-12 py-10">
+        {/* Fila 2: Event Details / Status / Back Button */}
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-10">
             <button
               onClick={() => navigate('/cotizaciones')}
-              className="size-9 flex items-center justify-center rounded border border-zinc-200 text-zinc-400 hover:text-zinc-900 transition-colors bg-white"
+              className="size-10 flex items-center justify-center rounded-lg border border-zinc-200 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 transition-all bg-white shadow-sm"
             >
-              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+              <span className="material-symbols-outlined text-[20px]">arrow_back</span>
             </button>
-            <div className="flex items-start gap-6">
-              <img src="/logo_sp.png" alt="Sunpartners" className="h-12 w-auto" />
+
+            <div className="flex items-center gap-10">
+              <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
               <div className="h-12 w-px bg-zinc-200"></div>
-              <div>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h2 className="font-display text-xl font-bold tracking-tight text-zinc-900  leading-none">{quotation.nombre_evento}</h2>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-black  tracking-widest border ${
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-4">
+                  <h2 className="font-display text-2xl font-black tracking-tighter text-zinc-900 leading-none">{quotation.nombre_evento}</h2>
+                  <span className={`px-2.5 py-1 rounded text-[10px] font-black tracking-widest border shadow-sm ${
                     quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
                     quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
                     quotation.estado === 'REVISION_SOLICITADA' ? 'bg-brand-alert/10 border-brand-alert/30 text-brand-alert' :
@@ -132,89 +134,84 @@ const QuotationDetail = () => {
                   }`}>
                     {quotation.estado}
                   </span>
-                    {quotation.client.isTaxExempt && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black  tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[12px]">money_off</span>
-                        Exento de IVA
-                      </span>
-                    )}
-                    {quotation.archivedAt && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black  tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[12px]">inventory_2</span>
-                        Archivada
-                      </span>
-                    )}
                 </div>
-                <p className="text-xs text-zinc-500 font-body  tracking-wider font-bold">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
+                <p className="text-sm text-zinc-500 font-bold tracking-tight">{quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}</p>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-             <button
-                onClick={() => generateQuotationPDF(quotation)}
-                className="flex items-center gap-2 border border-zinc-200 px-4 py-2 rounded text-xs font-bold  text-zinc-600 hover:bg-zinc-50 transition-all bg-white"
-             >
-               <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-               PDF Interno
-             </button>
 
-             {quotation.purchaseOrderUrl && (
-               <button
-                onClick={() => window.open(quotation.purchaseOrderUrl, '_blank')}
-                className="flex items-center gap-2 border border-primary/20 bg-primary/5 px-4 py-2 rounded text-xs font-bold  text-primary hover:bg-primary/10 transition-all"
-               >
-                 <span className="material-symbols-outlined text-[18px]">attachment</span>
-                 Ver Orden de Compra
-               </button>
-             )}
-
-             {quotation.estado === 'BORRADOR' && (
-               <button
-                disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
-                title={quotation.archivedAt ? "Desarchive esta cotización para realizar cambios" : (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id) ? "No tienes permisos para editar esta cotización" : ""}
-                onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className={`flex items-center gap-2 bg-primary text-white px-5 py-2 rounded text-xs font-bold  tracking-wide hover:opacity-90 transition-all shadow-lg ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
-               >
-                 <span className="material-symbols-outlined text-[18px]">edit_note</span>
-                 Editar Cotización
-               </button>
-             )}
-
-             {quotation.estado === 'REVISION_SOLICITADA' && (
-               <button
-                disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
-                title={quotation.archivedAt ? "Desarchive esta cotización para realizar cambios" : (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id) ? "No tienes permisos para editar esta cotización" : ""}
-                onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className={`flex items-center gap-2 bg-brand-alert text-white px-5 py-2 rounded text-xs font-bold  tracking-wide hover:opacity-90 transition-all shadow-lg ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
-               >
-                 <span className="material-symbols-outlined text-[18px]">edit_note</span>
-                 Editar y Corregir
-               </button>
-             )}
-
-             {!linkData ? (
-               <button
-                onClick={handleGenerateLink}
-                disabled={updating}
-                className="bg-zinc-900 text-white px-5 py-2 rounded text-xs font-bold  tracking-wide hover:bg-zinc-800 transition-all flex items-center gap-2"
-               >
-                 <span className="material-symbols-outlined text-[18px]">send</span>
-                 Enviar y Generar Link
-               </button>
-             ) : (
-               <div className="flex items-center gap-2">
-                  <div className="px-3 py-2 bg-blue-50 border border-blue-100 rounded text-[10px] font-bold text-blue-700 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[14px]">link</span>
-                    PORTAL ACTIVO
-                  </div>
+          <div className="flex flex-col items-end gap-4">
+             {/* Grupo Documentos */}
+             <div className="flex items-center gap-2">
+                <span className="text-[9px] font-black text-zinc-400 tracking-widest mr-2">DOCUMENTOS:</span>
+                {quotation.client.isTaxExempt && (
+                  <span className="px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest bg-zinc-100 text-zinc-500 border border-zinc-200 flex items-center gap-1.5 shadow-sm">
+                    <span className="material-symbols-outlined text-[14px]">money_off</span>
+                    EXENTO
+                  </span>
+                )}
+                {quotation.purchaseOrderUrl && (
                   <button
-                    onClick={() => window.open(linkData.url, '_blank')}
-                    className="bg-primary text-white px-4 py-2 rounded text-xs font-bold  hover:opacity-90"
+                    onClick={() => window.open(quotation.purchaseOrderUrl, '_blank')}
+                    className="flex items-center gap-1.5 border border-primary/20 bg-primary/5 px-3 py-1.5 rounded-lg text-[10px] font-black text-primary hover:bg-primary/10 transition-all shadow-sm"
                   >
-                    Ver Portal
+                    <span className="material-symbols-outlined text-[14px]">attachment</span>
+                    VER ORDEN
                   </button>
-               </div>
-             )}
+                )}
+                {quotation.archivedAt && (
+                  <span className="px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1.5 shadow-sm">
+                    <span className="material-symbols-outlined text-[14px]">inventory_2</span>
+                    ARCHIVADA
+                  </span>
+                )}
+             </div>
+
+             {/* Grupo Portal & Acciones */}
+             <div className="flex items-center gap-4">
+                <button
+                    onClick={() => generateQuotationPDF(quotation)}
+                    className="flex items-center gap-2 border border-zinc-200 px-5 py-2.5 rounded-lg text-xs font-black text-zinc-600 hover:bg-zinc-50 transition-all bg-white shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                  PDF INTERNO
+                </button>
+
+                {!linkData ? (
+                  <button
+                    onClick={handleGenerateLink}
+                    disabled={updating}
+                    className="bg-zinc-900 text-white px-6 py-2.5 rounded-lg text-xs font-black tracking-widest hover:bg-zinc-800 transition-all flex items-center gap-2 shadow-lg shadow-zinc-200"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">send</span>
+                    ENVIAR PORTAL
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                      <div className="px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-lg text-[10px] font-black text-blue-700 flex items-center gap-2 shadow-sm">
+                        <span className="material-symbols-outlined text-[16px]">link</span>
+                        PORTAL ACTIVO
+                      </div>
+                      <button
+                        onClick={() => window.open(linkData.url, '_blank')}
+                        className="bg-primary text-white px-6 py-2.5 rounded-lg text-xs font-black hover:opacity-90 shadow-lg shadow-primary/20 transition-all"
+                      >
+                        VER PORTAL
+                      </button>
+                  </div>
+                )}
+
+                {(quotation.estado === 'BORRADOR' || quotation.estado === 'REVISION_SOLICITADA') && (
+                  <button
+                    disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
+                    onClick={() => navigate(`/cotizaciones/editar/${id}`)}
+                    className={`flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg text-xs font-black tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                    EDITAR
+                  </button>
+                )}
+             </div>
           </div>
         </div>
 
@@ -256,19 +253,16 @@ const QuotationDetail = () => {
                 </h3>
                 <div className="space-y-6">
                   {quotation.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between py-2 border-b border-zinc-50 last:border-0">
+                    <div key={idx} className="flex items-center justify-between py-4 border-b border-zinc-50 last:border-0">
                       <div className="flex flex-col">
                         <span className="font-bold text-zinc-900 text-sm ">{item.customName || item.inventory?.nombre_comercial || 'Ítem no identificado'}</span>
                         <span className="text-[10px] text-zinc-400 font-bold  mt-0.5">({item.cantidad} UNIDADES X {item.dias} DÍAS)</span>
-                        {/* Composition breakdown */}
+                        {/* Composition breakdown (v18.0: Clean) */}
                         {(item.compositions?.length > 0 || item.inventory?.compositions?.length > 0) && (
                           <span className="text-[10px] text-zinc-500 font-medium italic mt-1 max-w-md">
                             (Incluye: {(item.compositions || item.inventory.compositions).map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ')})
                           </span>
                         )}
-                        <div className="flex items-center gap-3 mt-1.5">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-black  ${item.clase_asignada === 'A' ? 'bg-primary/10 text-primary' : 'bg-brand-alert/10 text-brand-alert'}`}>Clase {item.clase_asignada}</span>
-                        </div>
                       </div>
                       <div className="text-right">
                         <span className="block text-sm font-black text-zinc-900">$ {calculateLineTotal(item).toLocaleString()}</span>
@@ -323,9 +317,9 @@ const QuotationDetail = () => {
                     <span className="text-zinc-200">$ {iva.toLocaleString()}</span>
                   </div>
                   <div className="h-px bg-zinc-800 my-4"></div>
-                  <div className="flex justify-between items-end">
-                    <span className="text-xs font-black  text-primary tracking-[0.4em]">TOTAL</span>
-                    <span className="text-3xl font-black tracking-tighter text-white ml-10">$ {total.toLocaleString()}</span>
+                  <div className="flex justify-between items-end pt-4">
+                    <span className="text-[10px] font-black  text-primary tracking-[0.4em]">TOTAL</span>
+                    <span className="text-2xl font-black tracking-tighter text-white ml-10">$ {total.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
