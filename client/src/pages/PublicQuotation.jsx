@@ -153,11 +153,14 @@ const PublicQuotation = () => {
            </div>
            <div className="flex flex-col items-start md:items-end gap-10">
               <div className="text-left md:text-right space-y-4">
-                 <span className="text-[10px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2 uppercase">Destinatario Corporativo</span>
+                 <span className="text-[10px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2 uppercase">Cliente</span>
                  <p className="text-xl font-black text-zinc-900  tracking-tight">{quotation.client.razon_social}</p>
                  <div className="text-[11px] font-bold text-zinc-500 space-y-1">
                     <p>{quotation.client.documentType || 'NIT'}: {quotation.client.nit_id || 'PENDIENTE'}</p>
-                    <p>CIUDAD: {quotation.client.ciudad || 'BOGOTÁ, COL'}</p>
+                    <p className="flex items-center md:justify-end gap-1">
+                       <span className="material-symbols-outlined text-[14px]">location_on</span>
+                       {quotation.ubicacion || 'Lugar por definir'}
+                    </p>
                  </div>
               </div>
               <div className="text-left md:text-right">
@@ -186,8 +189,8 @@ const PublicQuotation = () => {
            <table className="w-full text-left">
               <thead>
                 <tr className="border-b-2 border-zinc-100">
-                  <th className="pb-6 text-[10px] font-black  tracking-widest text-zinc-900">Descripción Técnica</th>
-                  <th className="pb-6 text-[10px] font-black  tracking-widest text-zinc-900 text-center">Cant.</th>
+                  <th className="pb-6 text-[10px] font-black  tracking-widest text-zinc-900 uppercase">Detalles del servicio</th>
+                  <th className="pb-6 text-[10px] font-black  tracking-widest text-zinc-900 text-center uppercase">Cant.</th>
                   <th className="pb-6 text-[10px] font-black  tracking-widest text-zinc-900 text-center">Días.</th>
                   <th className="pb-6 text-[10px] font-black  tracking-widest text-zinc-900 text-right">Inversión Un.</th>
                   <th className="pb-6 text-[10px] font-black  tracking-widest text-zinc-900 text-right">Subtotal</th>
