@@ -20,7 +20,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(24, 24, 27); // Zinc-900
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('PROPUESTA TÉCNICA Y COMERCIAL', 135, 18);
+  doc.text('COTIZACIÓN', 135, 18);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
@@ -45,7 +45,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(113, 113, 122);
   doc.setFont('helvetica', 'bold');
   doc.text('CLIENTE', 15, currentY);
-  doc.text('CRONOGRAMA DETALLADO', 110, currentY);
+  doc.text('CRONOGRAMA', 110, currentY);
 
   currentY += 6;
   doc.setFontSize(9); // v18.0: Smaller corporate name
@@ -54,26 +54,37 @@ export const generateQuotationPDF = (quotation) => {
   doc.text(quotation.client.razon_social, 15, currentY);
 
   doc.setFontSize(8);
-  doc.text(`INICIO MONTAJE: ${new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`, 110, currentY);
+  doc.setFont('helvetica', 'bold');
+  doc.text('LUGAR EVENTO: ', 110, currentY);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(84, 134, 161); // Sunpartners Blue
+  doc.text((quotation.ubicacion || 'POR DEFINIR').toUpperCase(), 133, currentY);
 
   currentY += 5;
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(84, 134, 161); // Sunpartners Blue
-  doc.text(`LUGAR EVENTO: ${(quotation.ubicacion || 'POR DEFINIR').toUpperCase()}`, 110, currentY);
+  doc.setTextColor(113, 113, 122); // Label color
+  doc.text('INICIO MONTAJE: ', 110, currentY);
+  doc.setTextColor(84, 134, 161); // Data color
+  doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), 133, currentY);
 
   currentY += 5;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text(`INICIO EVENTO: ${new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`, 110, currentY);
+  doc.text('INICIO EVENTO: ', 110, currentY);
+  doc.setTextColor(84, 134, 161);
+  doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), 133, currentY);
 
   currentY += 5;
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`CIUDAD: ${quotation.client.ciudad || 'BOGOTÁ, COL'}`, 15, currentY);
-  doc.text(`FIN DESMONTAJE: ${new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`, 110, currentY);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FIN DESMONTAJE: ', 110, currentY);
+  doc.setTextColor(84, 134, 161);
+  doc.text(new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), 136, currentY);
 
   // 4. Items Table - WYSIWYG mapping
   const tableData = [
@@ -221,10 +232,10 @@ export const generateQuotationPDF = (quotation) => {
     doc.setFont('helvetica', 'bold');
     doc.text('BY PROCAMPO DEL CARIBE S.A.S.', 15, 285);
 
-    // Column Right: Contact Details (Aligned right)
+    // Column Right: Contact Details (Aligned right, 2 lines)
     doc.setFont('helvetica', 'normal');
-    const contactText = 'Cra. 15 No. 15-25, Local 2, Cartagena de Indias. | Móvil: +57 301 400 4743 | sunpartnersco@gmail.com';
-    doc.text(contactText, 195, 285, { align: 'right' });
+    doc.text('Cra. 15 No. 15-25, Local 2, Cartagena de Indias', 195, 285, { align: 'right' });
+    doc.text('Cel: +57 301 400 4743 | sunpartnersco@gmail.com', 195, 289, { align: 'right' });
   }
 
   const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');
