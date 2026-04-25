@@ -53,38 +53,41 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFont('helvetica', 'bold');
   doc.text(quotation.client.razon_social, 15, currentY);
 
+  // Logistics Section Alignment v21.1
+  const labelX = 110;
+  const dataX = 135; // Consistent 25mm offset for all data
+
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
-  doc.text('LUGAR EVENTO: ', 110, currentY);
-  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(113, 113, 122);
+  doc.text('LUGAR EVENTO:', labelX, currentY);
   doc.setTextColor(84, 134, 161); // Sunpartners Blue
-  doc.text((quotation.ubicacion || 'POR DEFINIR').toUpperCase(), 133, currentY);
+  doc.text((quotation.ubicacion || 'POR DEFINIR').toUpperCase(), dataX, currentY);
 
-  currentY += 8; // v22.0: Increased spacing (aire)
+  currentY += 8; // v22.0 spacing
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(113, 113, 122); // Label color
-  doc.text('INICIO MONTAJE: ', 110, currentY);
-  doc.setTextColor(84, 134, 161); // Data color
-  doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), 133, currentY);
+  doc.text('INICIO MONTAJE:', labelX, currentY);
+  doc.setTextColor(84, 134, 161);
+  doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), dataX, currentY);
 
-  currentY += 8; // v22.0: Increased spacing (aire)
+  currentY += 8;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('INICIO EVENTO: ', 110, currentY);
+  doc.text('INICIO EVENTO:', labelX, currentY);
   doc.setTextColor(84, 134, 161);
-  doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), 133, currentY);
+  doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), dataX, currentY);
 
-  currentY += 8; // v22.0: Increased spacing (aire)
+  currentY += 8;
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`CIUDAD: ${quotation.client.ciudad || 'BOGOTÁ, COL'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
-  doc.text('FIN DESMONTAJE: ', 110, currentY);
+  doc.text('FIN DESMONTAJE:', labelX, currentY);
   doc.setTextColor(84, 134, 161);
-  doc.text(new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), 136, currentY);
+  doc.text(new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), dataX, currentY);
 
   // 4. Items Table - WYSIWYG mapping
   const tableData = [
@@ -189,15 +192,24 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(24, 24, 27);
   doc.text(`$ ${total.toLocaleString()}`, 195, finalY, { align: 'right' });
 
-  // 6. Terms & Conditions (v18.0: Two columns, smaller font)
-  finalY += 20;
-  if (finalY > 230) { doc.addPage(); finalY = 20; }
+  // 6. Terms & Conditions (v21.2: Fixed Anchor at bottom)
+  const pageHeight = doc.internal.pageSize.height;
+  const termsBlockHeight = 35; // Total space for terms
+  const footerReservedSpace = 15;
+  const anchorY = pageHeight - termsBlockHeight - footerReservedSpace;
+
+  // Page break logic: If current Y is too close to anchor, add page
+  if (finalY > anchorY - 10) {
+    doc.addPage();
+    // In new page, footer is still at the bottom
+  }
 
   doc.setFontSize(8);
   doc.setTextColor(84, 134, 161);
-  doc.text('TÉRMINOS Y CONDICIONES LEGALES', 15, finalY);
+  doc.setFont('helvetica', 'bold');
+  doc.text('TÉRMINOS Y CONDICIONES LEGALES', 15, anchorY);
 
-  doc.setFontSize(6); // v18.0: Sophisticated small font
+  doc.setFontSize(6);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(161, 161, 170);
 
@@ -218,7 +230,7 @@ export const generateQuotationPDF = (quotation) => {
   terms.forEach((term, i) => {
     const col = i < 5 ? 0 : 1;
     const row = i % 5;
-    doc.text(term, 15 + (col * colWidth), finalY + 6 + (row * 4));
+    doc.text(term, 15 + (col * colWidth), anchorY + 6 + (row * 4));
   });
 
   // 7. Footer (v19.0: Two-column symmetry)
