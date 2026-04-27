@@ -49,7 +49,10 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(113, 113, 122);
   doc.setFont('helvetica', 'bold');
   doc.text('CLIENTE', 15, currentY);
-  doc.text('Datos del evento', 110, currentY);
+
+  // v26.0: DATOS DEL EVENTO (Bold, 7pt)
+  doc.setFontSize(7);
+  doc.text('DATOS DEL EVENTO', 110, currentY);
 
   currentY += 5; // Reduced spacing v25.0
   doc.setFontSize(9);
@@ -57,21 +60,21 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFont('helvetica', 'bold');
   doc.text(quotation.client.razon_social, 15, currentY);
 
-  // Logistics Section Alignment v25.0 (Sentence case + Fixed X Coordinate)
+  // Logistics Section Alignment v26.0 (Miniaturized Swiss Watch Look)
   const labelX = 110;
-  const dataX = 145;
+  const dataX = 140; // Moved slightly to left to accommodate 7pt labels
 
-  doc.setFontSize(8);
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
   doc.text('Nombre del evento: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
 
   const eventName = (quotation.nombre_evento || 'PROYECTO');
-  const eventNameLines = doc.splitTextToSize(eventName, 50);
+  const eventNameLines = doc.splitTextToSize(eventName, 55);
   doc.text(eventNameLines, dataX, currentY);
 
-  currentY += (eventNameLines.length > 1 ? (eventNameLines.length * 4) : 6); // Reduced spacing
+  currentY += (eventNameLines.length > 1 ? (eventNameLines.length * 3.5) : 5); // Tightened spacing
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
@@ -80,7 +83,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(84, 134, 161);
   doc.text((quotation.ubicacion || 'POR DEFINIR'), dataX, currentY);
 
-  currentY += 6;
+  currentY += 5; // Tightened vertical spacing v26.0
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`Ciudad: ${quotation.client.ciudad || 'Cartagena, COL'}`, 15, currentY);
@@ -89,14 +92,14 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(84, 134, 161);
   doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
 
-  currentY += 6;
+  currentY += 5;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
   doc.text('Inicio evento: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
   doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
 
-  currentY += 6;
+  currentY += 5;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
   doc.text('Fin desmontaje: ', labelX, currentY);
