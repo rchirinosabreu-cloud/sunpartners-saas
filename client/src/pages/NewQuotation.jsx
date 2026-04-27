@@ -718,7 +718,7 @@ const NewQuotation = () => {
                   <table className="w-full text-left text-xs">
                      <thead className="bg-zinc-50 text-zinc-900  font-black tracking-widest border-b border-zinc-200">
                         <tr>
-                           <th className="p-6">Ítem / Descripción Técnica</th>
+                           <th className="p-6">Ítem / Detalles del servicio</th>
                            <th className="p-6 text-center">Cant</th>
                            <th className="p-6 text-center">Días</th>
                            <th className="p-6 text-right">Vr. 1er Día</th>

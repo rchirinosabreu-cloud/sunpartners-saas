@@ -8,35 +8,39 @@ export const generateQuotationPDF = (quotation) => {
   // Totals Calculation
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
-  // 1. Header - Clean Sunpartners Style (v18.0)
+  // 1. Header - Institutional Identity (v22.0)
   const logoUrl = '/logo_sp.png';
   try {
-    // Larger logo, solo icono (Assuming logo_sp.png is the logo/icon)
-    doc.addImage(logoUrl, 'PNG', 15, 10, 50, 20);
+    // Increased logo size
+    doc.addImage(logoUrl, 'PNG', 15, 10, 60, 24);
   } catch (e) {
     console.warn('Logo could not be loaded for PDF', e);
   }
 
-  doc.setTextColor(24, 24, 27); // Zinc-900
-  doc.setFontSize(9);
+  // Institutional Info (Top Left, under logo)
+  doc.setTextColor(113, 113, 122); // Zinc-500
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
-  doc.text('COTIZACIÓN', 135, 18);
+  doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 15, 40);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Cra. 15 No. 15-25, local 2, Cartagena de Indias.', 15, 43);
+  doc.text('Cel: +57 301 400 4743 | sunpartnersco@gmail.com', 15, 46);
+  doc.text('@sunpartners | www.sunpartners.com.co', 15, 49);
 
-  doc.setFontSize(8);
+  // Title Area (Top Right)
+  doc.setTextColor(24, 24, 27); // Zinc-900
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('COTIZACIÓN', 195, 18, { align: 'right' });
+
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122); // Zinc-500
-  doc.text(`REF: #Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`, 130, 25);
-  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 130, 29);
+  doc.text(`REF: #Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`, 195, 25, { align: 'right' });
+  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 195, 29, { align: 'right' });
 
-  // 2. Event Title (v19.0: Normal, Legible & Generous Margins)
-  doc.setTextColor(24, 24, 27);
-  doc.setFontSize(14); // Slightly smaller for v19.0 sophistication
-  doc.setFont('helvetica', 'bold');
-  const eventName = (quotation?.nombre_evento || 'Propuesta Comercial').toUpperCase();
-  doc.text(eventName, 15, 42, { maxWidth: 170 }); // Max width reduced for lateral margins
-
-  // 3. Client & Logistics Grid
-  let currentY = 50;
+  // 2. Client & Logistics Grid
+  let currentY = 58;
   doc.setDrawColor(244, 244, 245);
   doc.line(15, currentY, 195, currentY);
 
@@ -45,7 +49,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(113, 113, 122);
   doc.setFont('helvetica', 'bold');
   doc.text('CLIENTE', 15, currentY);
-  doc.text('CRONOGRAMA', 110, currentY);
+  doc.text('DATOS DEL EVENTO', 110, currentY);
 
   currentY += 6;
   doc.setFontSize(9); // v18.0: Smaller corporate name
@@ -53,39 +57,49 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFont('helvetica', 'bold');
   doc.text(quotation.client.razon_social, 15, currentY);
 
-  // Logistics Section Alignment v21.1
+  // Logistics Section Alignment v22.0 (Fixed X Coordinate at 50mm offset from labelX)
   const labelX = 110;
-  const dataX = 135; // Consistent 25mm offset for all data
+  const dataX = 145; // Fixed coordinate for data alignment
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('LUGAR EVENTO:', labelX, currentY);
+  doc.text('NOMBRE DEL EVENTO: ', labelX, currentY);
   doc.setTextColor(84, 134, 161); // Sunpartners Blue
-  doc.text((quotation.ubicacion || 'POR DEFINIR').toUpperCase(), dataX, currentY);
 
-  currentY += 8; // v22.0 spacing
+  const eventName = (quotation.nombre_evento || 'PROYECTO').toUpperCase();
+  const eventNameLines = doc.splitTextToSize(eventName, 50);
+  doc.text(eventNameLines, dataX, currentY);
+
+  currentY += (eventNameLines.length > 1 ? (eventNameLines.length * 4) : 8); // dynamic spacing
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
-  doc.text('INICIO MONTAJE:', labelX, currentY);
+  doc.text('LUGAR EVENTO: ', labelX, currentY);
+  doc.setTextColor(84, 134, 161);
+  doc.text((quotation.ubicacion || 'POR DEFINIR').toUpperCase(), dataX, currentY);
+
+  currentY += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(113, 113, 122);
+  doc.text(`CIUDAD: ${quotation.client.ciudad || 'CARTAGENA, COL'}`, 15, currentY);
+  doc.setFont('helvetica', 'bold');
+  doc.text('INICIO MONTAJE: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
   doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), dataX, currentY);
 
   currentY += 8;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('INICIO EVENTO:', labelX, currentY);
+  doc.text('INICIO EVENTO: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
   doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), dataX, currentY);
 
   currentY += 8;
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(113, 113, 122);
-  doc.text(`CIUDAD: ${quotation.client.ciudad || 'BOGOTÁ, COL'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
-  doc.text('FIN DESMONTAJE:', labelX, currentY);
+  doc.setTextColor(113, 113, 122);
+  doc.text('FIN DESMONTAJE: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
   doc.text(new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), dataX, currentY);
 
@@ -120,7 +134,7 @@ export const generateQuotationPDF = (quotation) => {
     }),
     ...(quotation?.services || []).map(svc => [
       {
-        content: `${svc.descripcion}\n(${svc.cantidad} UNIDADES X ${svc.dias} DÍAS)\n${svc.tipo} Especializado`,
+        content: `${svc.descripcion.replace('Transporte Especializado', 'Transporte').trim()}\n(${svc.cantidad} UNIDADES X ${svc.dias} DÍAS)\n${svc.tipo.replace('Transporte Especializado', 'Transporte').trim()} ${svc.tipo.includes('Transporte') ? '' : 'Especializado'}`,
         styles: { fontStyle: 'bold' }
       },
       svc.cantidad,
@@ -192,16 +206,15 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(24, 24, 27);
   doc.text(`$ ${total.toLocaleString()}`, 195, finalY, { align: 'right' });
 
-  // 6. Terms & Conditions (v21.2: Fixed Anchor at bottom)
+  // 6. Terms & Conditions (v22.0: Fixed Anchor at bottom with 2 clean columns)
   const pageHeight = doc.internal.pageSize.height;
-  const termsBlockHeight = 35; // Total space for terms
+  const termsBlockHeight = 25; // Compacted for v22.0
   const footerReservedSpace = 15;
   const anchorY = pageHeight - termsBlockHeight - footerReservedSpace;
 
   // Page break logic: If current Y is too close to anchor, add page
-  if (finalY > anchorY - 10) {
+  if (finalY > anchorY - 5) {
     doc.addPage();
-    // In new page, footer is still at the bottom
   }
 
   doc.setFontSize(8);
@@ -209,14 +222,14 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFont('helvetica', 'bold');
   doc.text('TÉRMINOS Y CONDICIONES LEGALES', 15, anchorY);
 
-  doc.setFontSize(6);
+  doc.setFontSize(6.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(161, 161, 170);
 
   const terms = [
-    "1. La reserva de equipos se confirma únicamente con el pago del 70% del valor total.",
+    "1. La reserva de equipos se confirma con el pago del 70% del valor total.",
     "2. Esta cotización tiene una vigencia de 24 horas a partir de su emisión.",
-    "3. Precios sujetos a disponibilidad al momento de la formalización del pago.",
+    "3. Precios sujetos a disponibilidad al momento de formalizar el pago.",
     "4. El cliente es responsable por daños, pérdida o robo de equipos.",
     "5. Sunpartners no responde por fallas eléctricas externas.",
     "6. Cancelaciones < 48h incurren en penalidad del 50%.",
@@ -226,11 +239,11 @@ export const generateQuotationPDF = (quotation) => {
     "10. El saldo restante (30%) se cancela antes del montaje."
   ];
 
-  const colWidth = 90;
+  const colWidth = 95;
   terms.forEach((term, i) => {
     const col = i < 5 ? 0 : 1;
     const row = i % 5;
-    doc.text(term, 15 + (col * colWidth), anchorY + 6 + (row * 4));
+    doc.text(term, 15 + (col * colWidth), anchorY + 6 + (row * 3.5));
   });
 
   // 7. Footer (v19.0: Two-column symmetry)
@@ -243,11 +256,6 @@ export const generateQuotationPDF = (quotation) => {
     // Column Left: Company Name
     doc.setFont('helvetica', 'bold');
     doc.text('BY PROCAMPO DEL CARIBE S.A.S.', 15, 285);
-
-    // Column Right: Contact Details (Aligned right, 2 lines)
-    doc.setFont('helvetica', 'normal');
-    doc.text('Cra. 15 No. 15-25, Local 2, Cartagena de Indias', 195, 285, { align: 'right' });
-    doc.text('Cel: +57 301 400 4743 | sunpartnersco@gmail.com', 195, 289, { align: 'right' });
   }
 
   const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');

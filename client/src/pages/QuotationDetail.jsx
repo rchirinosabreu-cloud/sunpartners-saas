@@ -126,7 +126,7 @@ const QuotationDetail = () => {
                 <div className="flex flex-col gap-1.5">
                   <h2 className="font-display text-2xl font-black tracking-tighter text-zinc-900 leading-none">{quotation.nombre_evento}</h2>
                   <div className="flex flex-col gap-1">
-                     <p className="text-[11px] text-zinc-500 font-bold tracking-tight uppercase">
+                     <p className="text-[12px] text-zinc-500 font-medium tracking-tight">
                         {quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}
                      </p>
                      <p className="text-[10px] text-zinc-400 font-medium flex items-center gap-1">
@@ -144,7 +144,7 @@ const QuotationDetail = () => {
                     quotation.estado === 'REVISION_SOLICITADA' ? 'bg-brand-alert/10 border-brand-alert/30 text-brand-alert' :
                     'bg-zinc-50 border-zinc-200 text-zinc-500'
                   }`}>
-                    {quotation.estado}
+                    {quotation.estado.replace('_', ' ')}
                   </span>
                   {quotation.client.isTaxExempt && (
                     <span className="badge-status bg-zinc-50 text-zinc-500 border-zinc-200">
@@ -211,7 +211,7 @@ const QuotationDetail = () => {
                 onClick={() => navigate(`/cotizaciones/editar/${id}`)}
                 className={`btn-action bg-primary text-white hover:opacity-90 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                >
-                 <span className="material-symbols-outlined">edit_note</span>
+                 <span className="material-symbols-outlined">edit</span>
                  EDITAR
                </button>
              )}

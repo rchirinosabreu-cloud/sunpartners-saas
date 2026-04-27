@@ -48,7 +48,7 @@ const AppLayout = () => {
   };
 
   const menuItems = [
-    { to: '/', icon: 'dashboard', label: 'Dashboard' },
+    { to: '/', icon: 'dashboard', label: 'Ojo al dato' },
     { to: '/cotizaciones', icon: 'receipt_long', label: 'Cotizaciones' },
     { to: '/tasks', icon: 'view_kanban', label: 'Tasks' },
     { to: '/inventario', icon: 'warehouse', label: 'Bodega', roles: ['ADMIN', 'EDITOR'] },
@@ -168,11 +168,9 @@ const AppLayout = () => {
           <div className="flex-1">
             <Outlet />
           </div>
-          {/* Corporate Footer (v15.0) */}
-          <footer className="py-8 text-center border-t border-zinc-100 bg-white/30 shrink-0">
-             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">BY PROCAMPO DEL CARIBE S.A.S.</p>
-             <p className="text-[9px] text-zinc-400 font-medium mt-1">Cra. 15 No. 15-25, Local 2, Cartagena de Indias.</p>
-             <p className="text-[9px] text-zinc-400 font-medium">Móvil: +57 301 400 4743 | sunpartnersco@gmail.com</p>
+          {/* Corporate Footer (v22.0: Ultra-minimalist) */}
+          <footer className="py-6 text-center border-t border-zinc-50 bg-white/10 shrink-0">
+             <p className="text-[8px] font-bold text-zinc-300 uppercase tracking-[0.3em] opacity-50">BY PROCAMPO DEL CARIBE S.A.S.</p>
           </footer>
         </div>
       </main>
