@@ -130,7 +130,7 @@ const Dashboard = () => {
       <div className="flex h-full items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <div className="size-12 bg-zinc-100 rounded-full"></div>
-          <span className="text-sm font-medium text-zinc-400">Sincronizando dashboard...</span>
+          <span className="text-sm font-medium text-zinc-400">Ojo al dato: Sincronizando...</span>
         </div>
       </div>
     );

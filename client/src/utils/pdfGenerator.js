@@ -8,36 +8,36 @@ export const generateQuotationPDF = (quotation) => {
   // Totals Calculation
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
-  // 1. Header - Institutional Identity (v22.0)
+  // 1. Header - Institutional Symmetry (v25.0)
   const logoUrl = '/logo_sp.png';
   try {
-    // Increased logo size
+    // Logo on the top left
     doc.addImage(logoUrl, 'PNG', 15, 10, 60, 24);
   } catch (e) {
     console.warn('Logo could not be loaded for PDF', e);
   }
 
-  // Institutional Info (Top Left, under logo)
+  // Institutional Info (Top Right, aligned with logo)
   doc.setTextColor(113, 113, 122); // Zinc-500
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
-  doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 15, 40);
+  doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 195, 13, { align: 'right' });
   doc.setFont('helvetica', 'normal');
-  doc.text('Cra. 15 No. 15-25, local 2, Cartagena de Indias.', 15, 43);
-  doc.text('Cel: +57 301 400 4743 | sunpartnersco@gmail.com', 15, 46);
-  doc.text('@sunpartners | www.sunpartners.com.co', 15, 49);
+  doc.text('Cra. 15 No. 15-25, local 2, Cartagena de Indias.', 195, 17, { align: 'right' });
+  doc.text('Cel: +57 301 400 4743 | sunpartnersco@gmail.com', 195, 21, { align: 'right' });
+  doc.text('@sunpartners | www.sunpartners.com.co', 195, 25, { align: 'right' });
 
-  // Title Area (Top Right)
+  // Title Area (Below Logo, Left Side)
   doc.setTextColor(24, 24, 27); // Zinc-900
-  doc.setFontSize(16);
+  doc.setFontSize(12); // Reduced size for elegance
   doc.setFont('helvetica', 'bold');
-  doc.text('COTIZACIÓN', 195, 18, { align: 'right' });
+  doc.text('COTIZACIÓN', 15, 45);
 
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(113, 113, 122); // Zinc-500
-  doc.text(`REF: #Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`, 195, 25, { align: 'right' });
-  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 195, 29, { align: 'right' });
+  doc.setTextColor(161, 161, 170); // Zinc-400 (Suttle grey)
+  doc.text(`REF: #Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`, 15, 50);
+  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 15, 54);
 
   // 2. Client & Logistics Grid
   let currentY = 58;
@@ -49,59 +49,59 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(113, 113, 122);
   doc.setFont('helvetica', 'bold');
   doc.text('CLIENTE', 15, currentY);
-  doc.text('DATOS DEL EVENTO', 110, currentY);
+  doc.text('Datos del evento', 110, currentY);
 
-  currentY += 6;
-  doc.setFontSize(9); // v18.0: Smaller corporate name
+  currentY += 5; // Reduced spacing v25.0
+  doc.setFontSize(9);
   doc.setTextColor(24, 24, 27);
   doc.setFont('helvetica', 'bold');
   doc.text(quotation.client.razon_social, 15, currentY);
 
-  // Logistics Section Alignment v22.0 (Fixed X Coordinate at 50mm offset from labelX)
+  // Logistics Section Alignment v25.0 (Sentence case + Fixed X Coordinate)
   const labelX = 110;
-  const dataX = 145; // Fixed coordinate for data alignment
+  const dataX = 145;
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('NOMBRE DEL EVENTO: ', labelX, currentY);
-  doc.setTextColor(84, 134, 161); // Sunpartners Blue
+  doc.text('Nombre del evento: ', labelX, currentY);
+  doc.setTextColor(84, 134, 161);
 
-  const eventName = (quotation.nombre_evento || 'PROYECTO').toUpperCase();
+  const eventName = (quotation.nombre_evento || 'PROYECTO');
   const eventNameLines = doc.splitTextToSize(eventName, 50);
   doc.text(eventNameLines, dataX, currentY);
 
-  currentY += (eventNameLines.length > 1 ? (eventNameLines.length * 4) : 8); // dynamic spacing
+  currentY += (eventNameLines.length > 1 ? (eventNameLines.length * 4) : 6); // Reduced spacing
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
   doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
-  doc.text('LUGAR EVENTO: ', labelX, currentY);
+  doc.text('Lugar evento: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
-  doc.text((quotation.ubicacion || 'POR DEFINIR').toUpperCase(), dataX, currentY);
+  doc.text((quotation.ubicacion || 'POR DEFINIR'), dataX, currentY);
 
-  currentY += 8;
+  currentY += 6;
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
-  doc.text(`CIUDAD: ${quotation.client.ciudad || 'CARTAGENA, COL'}`, 15, currentY);
+  doc.text(`Ciudad: ${quotation.client.ciudad || 'Cartagena, COL'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
-  doc.text('INICIO MONTAJE: ', labelX, currentY);
+  doc.text('Inicio montaje: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
-  doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), dataX, currentY);
+  doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
 
-  currentY += 8;
+  currentY += 6;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('INICIO EVENTO: ', labelX, currentY);
+  doc.text('Inicio evento: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
-  doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), dataX, currentY);
+  doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
 
-  currentY += 8;
+  currentY += 6;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('FIN DESMONTAJE: ', labelX, currentY);
+  doc.text('Fin desmontaje: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
-  doc.text(new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase(), dataX, currentY);
+  doc.text(new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
 
   // 4. Items Table - WYSIWYG mapping
   const tableData = [

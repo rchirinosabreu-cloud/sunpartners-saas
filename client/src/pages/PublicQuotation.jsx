@@ -138,65 +138,70 @@ const PublicQuotation = () => {
         {/* Aesthetic Stripe */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-primary shadow-[0_2px_10px_rgba(84,134,161,0.3)]"></div>
 
-        {/* Public Header - Institutional Identity (v22.0) */}
+        {/* Public Header - Institutional Symmetry (v25.0) */}
         <div className="p-12 md:p-20 border-b border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
            <div>
-              <div className="flex items-center gap-6 mb-8">
+              <div className="flex items-center gap-6 mb-12">
                  <img src="/logo_sp.png" alt="Sunpartners" className="w-[300px] h-auto object-contain" />
               </div>
-              <div className="space-y-2 mb-8">
-                 <p className="text-[10px] font-black text-zinc-400 tracking-[0.2em] uppercase">SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2</p>
-                 <p className="text-[10px] font-medium text-zinc-400">Cra. 15 No. 15-25, local 2, Cartagena de Indias.</p>
-                 <p className="text-[10px] font-medium text-zinc-400">Cel: +57 301 400 4743 | sunpartnersco@gmail.com</p>
-                 <p className="text-[10px] font-medium text-zinc-400">@sunpartners | www.sunpartners.com.co</p>
-              </div>
-              <div className="space-y-4 pt-4 border-t border-zinc-50">
-                 <h2 className="text-4xl font-black tracking-tighter text-zinc-900 leading-none">COTIZACIÓN</h2>
-                 <div className="flex flex-col gap-1">
-                    <span className="text-xs font-black text-zinc-500 tracking-widest uppercase">REF: #Q-{(quotation?.id || 'REF').substring(0,6).toUpperCase()}</span>
-                    <span className="text-xs font-medium text-zinc-400">EMISIÓN: {new Date().toLocaleDateString('es-CO')}</span>
+              <div className="space-y-3 pt-6 border-t border-zinc-50 max-w-xs">
+                 <h2 className="text-2xl font-black tracking-tighter text-zinc-900 leading-none">COTIZACIÓN</h2>
+                 <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] font-black text-zinc-400 tracking-widest uppercase">REF: #Q-{(quotation?.id || 'REF').substring(0,6).toUpperCase()}</span>
+                    <span className="text-[10px] font-medium text-zinc-300">EMISIÓN: {new Date().toLocaleDateString('es-CO')}</span>
                  </div>
               </div>
            </div>
-           <div className="flex flex-col items-start md:items-end gap-10">
-              <div className="text-left md:text-right space-y-4">
+           <div className="flex flex-col items-start md:items-end gap-2 text-left md:text-right">
+              <p className="text-[10px] font-black text-zinc-400 tracking-[0.2em] uppercase">SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2</p>
+              <p className="text-[10px] font-medium text-zinc-400">Cra. 15 No. 15-25, local 2, Cartagena de Indias.</p>
+              <p className="text-[10px] font-medium text-zinc-400">Cel: +57 301 400 4743 | sunpartnersco@gmail.com</p>
+              <p className="text-[10px] font-medium text-zinc-400">@sunpartners | www.sunpartners.com.co</p>
+           </div>
+        </div>
+           <div className="p-12 md:p-20 pt-0 md:pt-0 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+              <div className="text-left space-y-4">
                  <span className="text-[10px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2 uppercase">Cliente</span>
                  <p className="text-xl font-black text-zinc-900  tracking-tight">{quotation.client.razon_social}</p>
                  <div className="text-[11px] font-bold text-zinc-500 space-y-1">
                     <p>{quotation.client.documentType || 'NIT'}: {quotation.client.nit_id || 'PENDIENTE'}</p>
-                    <p className="flex items-center md:justify-end gap-1">
+                    <p className="flex items-center gap-1">
                        <span className="material-symbols-outlined text-[14px]">location_on</span>
                        {quotation.ubicacion || 'Lugar por definir'}
                     </p>
                  </div>
               </div>
               <div className="text-left md:text-right">
-                 <span className="text-[10px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2 mb-3">Datos del Evento</span>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                    <div className="md:col-span-2">
-                       <p className="text-[9px] font-black text-zinc-400  mb-1 uppercase tracking-wider">Nombre del Evento</p>
-                       <p className="text-[14px] font-black text-zinc-900">{quotation.nombre_evento}</p>
-                    </div>
-                    <div className="md:col-span-2">
-                       <p className="text-[9px] font-black text-zinc-400  mb-1 uppercase tracking-wider">Lugar Evento</p>
-                       <p className="text-[12px] font-black text-primary">{quotation.ubicacion || 'POR DEFINIR'}</p>
+                 <span className="text-[10px] font-black text-zinc-400 tracking-widest block border-b border-zinc-100 pb-2 mb-4">Datos del evento</span>
+                 <div className="space-y-4">
+                    <div>
+                       <p className="text-[9px] font-black text-zinc-300 mb-0.5 tracking-wider">Nombre del evento</p>
+                       <p className="text-[13px] font-black text-zinc-900 leading-tight">{quotation.nombre_evento}</p>
                     </div>
                     <div>
-                       <p className="text-[9px] font-black text-zinc-400  mb-1 uppercase tracking-wider">Inicio Montaje</p>
-                       <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.montaje_inicio)}</p>
+                       <p className="text-[9px] font-black text-zinc-300 mb-0.5 tracking-wider">Lugar evento</p>
+                       <p className="text-[12px] font-black text-primary leading-tight">{quotation.ubicacion || 'POR DEFINIR'}</p>
                     </div>
-                    <div>
-                       <p className="text-[9px] font-black text-primary  mb-1 uppercase tracking-wider">Inicio Evento</p>
-                       <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.evento_inicio)}</p>
+                    <div className="flex items-center md:justify-end gap-10 pt-2 border-t border-zinc-50">
+                       <div className="flex items-center gap-4">
+                          <div className="text-left md:text-right">
+                             <p className="text-[8px] font-black text-zinc-300 tracking-widest uppercase mb-0.5">Montaje</p>
+                             <p className="text-[11px] font-black text-zinc-800 whitespace-nowrap">{formatPublicDate(quotation.montaje_inicio)}</p>
+                          </div>
+                          <div className="w-px h-6 bg-zinc-100 hidden md:block"></div>
+                          <div className="text-left md:text-right">
+                             <p className="text-[8px] font-black text-primary tracking-widest uppercase mb-0.5">Inicio Evento</p>
+                             <p className="text-[11px] font-black text-zinc-800 whitespace-nowrap">{formatPublicDate(quotation.evento_inicio)}</p>
+                          </div>
+                       </div>
                     </div>
-                    <div>
-                       <p className="text-[9px] font-black text-zinc-400  mb-1 uppercase tracking-wider">Fin Desmontaje</p>
+                    <div className="text-left md:text-right pt-1">
+                       <p className="text-[8px] font-black text-zinc-300 tracking-widest uppercase mb-0.5">Fin Desmontaje</p>
                        <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.desmontaje_fin)}</p>
                     </div>
                  </div>
               </div>
            </div>
-        </div>
 
         {/* Breakdown Table */}
         <div className="px-12 md:px-20 py-16">

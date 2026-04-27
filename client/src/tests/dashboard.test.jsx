@@ -11,14 +11,39 @@ vi.mock('../context/AuthContext', () => ({
 }));
 
 describe('Dashboard Page', () => {
-  it('renders metrics and events table', () => {
+  it('renders metrics and announcements section', async () => {
+    // Mock global fetch
+    global.fetch = vi.fn().mockImplementation((url) => {
+      if (url === '/api/tasks/dashboard-stats') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            progresoMes: 50,
+            totalRealizados: 10,
+            completedInMonth: 5,
+            totalCreatedInMonth: 10,
+            logrosRecientes: []
+          })
+        });
+      }
+      if (url === '/api/announcements') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([])
+        });
+      }
+    });
+
     render(
       <MemoryRouter>
         <Dashboard />
       </MemoryRouter>
     );
-    expect(screen.getByText(/Eventos Activos/i)).toBeInTheDocument();
-    expect(screen.getByText(/Próximos Eventos/i)).toBeInTheDocument();
-    expect(screen.getByText(/Boda Martínez Silva/i)).toBeInTheDocument();
+
+    // Wait for loading to finish
+    expect(await screen.findByText(/Progreso del mes/i)).toBeInTheDocument();
+    expect(screen.getByText(/Total realizados/i)).toBeInTheDocument();
+    expect(screen.getByText(/Anuncios del Equipo/i)).toBeInTheDocument();
+    expect(screen.getByText(/Logros Recientes/i)).toBeInTheDocument();
   });
 });
