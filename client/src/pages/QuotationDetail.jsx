@@ -71,7 +71,7 @@ const QuotationDetail = () => {
     }
   };
 
-  if (loading) return <div className="p-8 font-body text-zinc-500 text-center mt-20 animate-pulse">Sincronizando con el motor de negocio...</div>;
+  if (loading) return <div className="p-8 font-body text-zinc-500 text-center mt-20 animate-pulse">Sincronizando propuesta...</div>;
   if (!quotation) return <div className="p-8 font-body text-red-500 text-center">Cotización no encontrada.</div>;
 
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
