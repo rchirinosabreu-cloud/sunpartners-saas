@@ -138,8 +138,8 @@ const PublicQuotation = () => {
         {/* Aesthetic Stripe */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-primary shadow-[0_2px_10px_rgba(84,134,161,0.3)]"></div>
 
-        {/* Public Header - Institutional Symmetry (v25.0) */}
-        <div className="p-12 md:p-20 border-b border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+        {/* Public Header - Institutional Symmetry (v26.0: Seamless Transition) */}
+        <div className="p-12 md:p-20 pb-0 md:pb-0 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
            <div>
               <div className="flex items-center gap-6 mb-12">
                  <img src="/logo_sp.png" alt="Sunpartners" className="w-[300px] h-auto object-contain" />
@@ -159,11 +159,11 @@ const PublicQuotation = () => {
               <p className="text-[10px] font-medium text-zinc-400">@sunpartners | www.sunpartners.com.co</p>
            </div>
         </div>
-           <div className="p-12 md:p-20 pt-0 md:pt-0 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+           <div className="p-12 md:p-20 pt-10 md:pt-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
               <div className="text-left space-y-4">
-                 <span className="text-[10px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2 uppercase">Cliente</span>
+                 <span className="text-[9px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2 uppercase">Cliente</span>
                  <p className="text-xl font-black text-zinc-900  tracking-tight">{quotation.client.razon_social}</p>
-                 <div className="text-[11px] font-bold text-zinc-500 space-y-1">
+                 <div className="text-[10px] font-bold text-zinc-500 space-y-1">
                     <p>{quotation.client.documentType || 'NIT'}: {quotation.client.nit_id || 'PENDIENTE'}</p>
                     <p className="flex items-center gap-1">
                        <span className="material-symbols-outlined text-[14px]">location_on</span>
@@ -172,8 +172,8 @@ const PublicQuotation = () => {
                  </div>
               </div>
               <div className="text-left md:text-right">
-                 <span className="text-[10px] font-black text-zinc-400 tracking-widest block border-b border-zinc-100 pb-2 mb-4">Datos del evento</span>
-                 <div className="space-y-4">
+                 <span className="text-[9px] font-black text-zinc-400 tracking-widest block border-b border-zinc-100 pb-2 mb-6 uppercase">DATOS DEL EVENTO</span>
+                 <div className="space-y-6">
                     <div>
                        <p className="text-[9px] font-black text-zinc-300 mb-0.5 tracking-wider">Nombre del evento</p>
                        <p className="text-[13px] font-black text-zinc-900 leading-tight">{quotation.nombre_evento}</p>
@@ -182,22 +182,20 @@ const PublicQuotation = () => {
                        <p className="text-[9px] font-black text-zinc-300 mb-0.5 tracking-wider">Lugar evento</p>
                        <p className="text-[12px] font-black text-primary leading-tight">{quotation.ubicacion || 'POR DEFINIR'}</p>
                     </div>
-                    <div className="flex items-center md:justify-end gap-10 pt-2 border-t border-zinc-50">
-                       <div className="flex items-center gap-4">
-                          <div className="text-left md:text-right">
-                             <p className="text-[8px] font-black text-zinc-300 tracking-widest uppercase mb-0.5">Montaje</p>
-                             <p className="text-[11px] font-black text-zinc-800 whitespace-nowrap">{formatPublicDate(quotation.montaje_inicio)}</p>
-                          </div>
-                          <div className="w-px h-6 bg-zinc-100 hidden md:block"></div>
-                          <div className="text-left md:text-right">
-                             <p className="text-[8px] font-black text-primary tracking-widest uppercase mb-0.5">Inicio Evento</p>
-                             <p className="text-[11px] font-black text-zinc-800 whitespace-nowrap">{formatPublicDate(quotation.evento_inicio)}</p>
-                          </div>
+                    {/* v26.0: Horizontal Date Grid (Flexbox) */}
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-10 lg:gap-14 pt-6 border-t border-zinc-50">
+                       <div className="text-left md:text-right">
+                          <p className="text-[9px] font-black text-zinc-300 tracking-widest uppercase mb-1">Montaje</p>
+                          <p className="text-[10px] font-black text-zinc-800 whitespace-nowrap">{formatPublicDate(quotation.montaje_inicio)}</p>
                        </div>
-                    </div>
-                    <div className="text-left md:text-right pt-1">
-                       <p className="text-[8px] font-black text-zinc-300 tracking-widest uppercase mb-0.5">Fin Desmontaje</p>
-                       <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.desmontaje_fin)}</p>
+                       <div className="text-left md:text-right">
+                          <p className="text-[9px] font-black text-primary tracking-widest uppercase mb-1">Inicio Evento</p>
+                          <p className="text-[10px] font-black text-zinc-800 whitespace-nowrap">{formatPublicDate(quotation.evento_inicio)}</p>
+                       </div>
+                       <div className="text-left md:text-right">
+                          <p className="text-[9px] font-black text-zinc-300 tracking-widest uppercase mb-1">Fin Desmontaje</p>
+                          <p className="text-[10px] font-black text-zinc-800 whitespace-nowrap">{formatPublicDate(quotation.desmontaje_fin)}</p>
+                       </div>
                     </div>
                  </div>
               </div>
