@@ -138,16 +138,23 @@ const PublicQuotation = () => {
         {/* Aesthetic Stripe */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-primary shadow-[0_2px_10px_rgba(84,134,161,0.3)]"></div>
 
-        {/* Public Header - Ultra Clean (v18.0) */}
+        {/* Public Header - Institutional Identity (v22.0) */}
         <div className="p-12 md:p-20 border-b border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
            <div>
-              <div className="flex items-center gap-6 mb-12">
-                 <img src="/logo_sp.png" alt="Sunpartners" className="w-[280px] h-auto object-contain" />
+              <div className="flex items-center gap-6 mb-8">
+                 <img src="/logo_sp.png" alt="Sunpartners" className="w-[300px] h-auto object-contain" />
               </div>
-              <div className="space-y-4">
-                 <h2 className="text-4xl font-black tracking-tighter text-zinc-900  leading-none">{quotation.nombre_evento}</h2>
-                 <div className="inline-block bg-primary/5 text-primary border border-primary/10 px-4 py-1.5 rounded-full text-[10px] font-black  tracking-[0.3em]">
-                   PROPUESTA #Q-{(quotation?.id || 'REF').substring(0,6).toUpperCase()}
+              <div className="space-y-2 mb-8">
+                 <p className="text-[10px] font-black text-zinc-400 tracking-[0.2em] uppercase">SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2</p>
+                 <p className="text-[10px] font-medium text-zinc-400">Cra. 15 No. 15-25, local 2, Cartagena de Indias.</p>
+                 <p className="text-[10px] font-medium text-zinc-400">Cel: +57 301 400 4743 | sunpartnersco@gmail.com</p>
+                 <p className="text-[10px] font-medium text-zinc-400">@sunpartners | www.sunpartners.com.co</p>
+              </div>
+              <div className="space-y-4 pt-4 border-t border-zinc-50">
+                 <h2 className="text-4xl font-black tracking-tighter text-zinc-900 leading-none">COTIZACIÓN</h2>
+                 <div className="flex flex-col gap-1">
+                    <span className="text-xs font-black text-zinc-500 tracking-widest uppercase">REF: #Q-{(quotation?.id || 'REF').substring(0,6).toUpperCase()}</span>
+                    <span className="text-xs font-medium text-zinc-400">EMISIÓN: {new Date().toLocaleDateString('es-CO')}</span>
                  </div>
               </div>
            </div>
@@ -164,18 +171,26 @@ const PublicQuotation = () => {
                  </div>
               </div>
               <div className="text-left md:text-right">
-                 <span className="text-[10px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2 mb-3">Cronograma Detallado</span>
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-6">
+                 <span className="text-[10px] font-black text-zinc-400  tracking-widest block border-b border-zinc-100 pb-2 mb-3">Datos del Evento</span>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                    <div className="md:col-span-2">
+                       <p className="text-[9px] font-black text-zinc-400  mb-1 uppercase tracking-wider">Nombre del Evento</p>
+                       <p className="text-[14px] font-black text-zinc-900">{quotation.nombre_evento}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                       <p className="text-[9px] font-black text-zinc-400  mb-1 uppercase tracking-wider">Lugar Evento</p>
+                       <p className="text-[12px] font-black text-primary">{quotation.ubicacion || 'POR DEFINIR'}</p>
+                    </div>
                     <div>
-                       <p className="text-[9px] font-black text-zinc-400  mb-1">Montaje (Inicio)</p>
+                       <p className="text-[9px] font-black text-zinc-400  mb-1 uppercase tracking-wider">Inicio Montaje</p>
                        <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.montaje_inicio)}</p>
                     </div>
                     <div>
-                       <p className="text-[9px] font-black text-primary  mb-1">Evento (Inicio)</p>
+                       <p className="text-[9px] font-black text-primary  mb-1 uppercase tracking-wider">Inicio Evento</p>
                        <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.evento_inicio)}</p>
                     </div>
                     <div>
-                       <p className="text-[9px] font-black text-zinc-400  mb-1">Desmontaje (Fin)</p>
+                       <p className="text-[9px] font-black text-zinc-400  mb-1 uppercase tracking-wider">Fin Desmontaje</p>
                        <p className="text-[11px] font-black text-zinc-800">{formatPublicDate(quotation.desmontaje_fin)}</p>
                     </div>
                  </div>
@@ -223,9 +238,9 @@ const PublicQuotation = () => {
                 {(quotation.services || []).map((svc, idx) => (
                   <tr key={idx}>
                     <td className="py-8 border-l-4 border-primary/20 pl-4 bg-primary/5">
-                       <p className="font-black text-base text-zinc-900  tracking-tight">{svc.descripcion}</p>
+                       <p className="font-black text-base text-zinc-900  tracking-tight">{svc.descripcion.replace('Transporte Especializado', 'Transporte').trim()}</p>
                        <span className="text-[10px] font-bold text-zinc-400  mt-0.5">({svc.cantidad} UNIDADES X {svc.dias} DÍAS)</span>
-                       <span className="text-[9px] font-black text-primary  tracking-widest mt-1 block">{svc.tipo} Especializado</span>
+                       <span className="text-[9px] font-black text-primary  tracking-widest mt-1 block">{svc.tipo.replace('Transporte Especializado', 'Transporte').trim()} {svc.tipo.includes('Transporte') ? '' : 'Especializado'}</span>
                     </td>
                     <td className="py-8 text-center font-black text-zinc-600 bg-primary/5">{svc.cantidad}</td>
                     <td className="py-8 text-center font-black text-zinc-600 bg-primary/5">{svc.dias}</td>
@@ -304,9 +319,7 @@ const PublicQuotation = () => {
       </div>
 
       <div className="mt-16 text-center space-y-2">
-         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">BY PROCAMPO DEL CARIBE S.A.S.</p>
-         <p className="text-[9px] text-zinc-400 font-medium">Cra. 15 No. 15-25, Local 2, Cartagena de Indias.</p>
-         <p className="text-[9px] text-zinc-400 font-medium">Móvil: +57 301 400 4743 | sunpartnersco@gmail.com</p>
+         <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-[0.3em] opacity-50">BY PROCAMPO DEL CARIBE S.A.S.</p>
       </div>
 
       {/* Approve Modal - Premium Style */}
