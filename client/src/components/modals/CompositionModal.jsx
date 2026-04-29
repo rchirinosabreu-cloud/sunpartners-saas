@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import axios from 'axios';
+import { matchesSearch } from '../../utils/formatters';
 
 const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   const [nombre, setNombre] = useState('');
@@ -10,7 +11,15 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   const [precioDiaAdic, setPrecioDiaAdic] = useState(0);
   const [warehouseInventory, setWarehouseInventory] = useState([]);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     const fetchWarehouse = async () => {
@@ -53,11 +62,11 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   }, [isOpen, initialData]);
 
   const filteredWarehouse = useMemo(() => {
-    if (!search) return [];
-    return warehouseInventory.filter(item =>
-      item.nombre.toLowerCase().includes(search.toLowerCase())
-    ).slice(0, 5);
-  }, [search, warehouseInventory]);
+    if (!debouncedSearch) return [];
+    return warehouseInventory
+      .filter(item => matchesSearch(item.nombre, debouncedSearch))
+      .slice(0, 15);
+  }, [debouncedSearch, warehouseInventory]);
 
   const addItem = (item) => {
     if (items.some(i => i.warehouseItemId === item.id)) return;
@@ -136,7 +145,7 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
              />
           </div>
           {filteredWarehouse.length > 0 && (
-            <div className="absolute top-full left-0 w-full mt-1 bg-white border-2 border-primary/20 rounded-lg shadow-xl z-50 overflow-hidden">
+            <div className="absolute top-full left-0 w-full mt-1 bg-white border-2 border-primary/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar">
               {filteredWarehouse.map(item => (
                 <div
                   key={item.id}

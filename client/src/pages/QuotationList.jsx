@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
-import { toTitleCase } from '../utils/formatters';
+import { toTitleCase, matchesSearch } from '../utils/formatters';
 import Avatar from "boring-avatars";
 
 const QuotationList = () => {
@@ -12,6 +12,14 @@ const QuotationList = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('active'); // 'active' | 'archived'
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [qToArchive, setQToArchive] = useState(null);
   const [messageModal, setMessageModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
   const navigate = useNavigate();
@@ -96,10 +104,12 @@ const QuotationList = () => {
     return <span className={`px-2 py-0.5 rounded text-[10px] font-bold  tracking-wider ${styles[status] || 'bg-zinc-100 text-zinc-600'}`}>{status}</span>;
   };
 
-  const filteredQuotations = quotations.filter(q =>
-    q.nombre_evento.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.client.razon_social.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredQuotations = useMemo(() => {
+    return quotations.filter(q =>
+      matchesSearch(q.nombre_evento, debouncedSearch) ||
+      matchesSearch(q.client.razon_social, debouncedSearch)
+    );
+  }, [quotations, debouncedSearch]);
 
   return (
     <div className="p-8 font-body">

@@ -1,14 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import NewClientModal from '../components/modals/NewClientModal';
-import { toTitleCase } from '../utils/formatters';
+import { toTitleCase, matchesSearch } from '../utils/formatters';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [uiModal, setUiModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
@@ -30,11 +38,13 @@ const Clients = () => {
     fetchClients();
   }, []);
 
-  const filteredClients = clients.filter(c =>
-    (c.razon_social || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.nit_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredClients = useMemo(() => {
+    return clients.filter(c =>
+      matchesSearch(c.razon_social || '', debouncedSearch) ||
+      matchesSearch(c.nit_id || '', debouncedSearch) ||
+      matchesSearch(c.email || '', debouncedSearch)
+    );
+  }, [clients, debouncedSearch]);
 
   const handleDelete = async (id) => {
     try {
