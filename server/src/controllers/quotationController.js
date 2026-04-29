@@ -134,6 +134,8 @@ exports.create = async (req, res) => {
           data: {
             nombre_comercial: item.customName,
             valor_alquiler: parseFloat(item.precio_pactado),
+            isExternal: !!item.isExternal,
+            vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
             compositions: {
               create: (item.compositions || []).map(c => ({
                 warehouseItemId: c.warehouseItemId,
@@ -153,6 +155,8 @@ exports.create = async (req, res) => {
         dias: parseInt(item.dias || 1),
         precio_pactado: parseFloat(item.precio_pactado),
         precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
+        isExternal: !!item.isExternal,
+        vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
           create: compositions.map(c => ({
@@ -253,6 +257,8 @@ exports.update = async (req, res) => {
           data: {
             nombre_comercial: item.customName,
             valor_alquiler: parseFloat(item.precio_pactado),
+            isExternal: !!item.isExternal,
+            vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
             compositions: {
               create: (item.compositions || []).map(c => ({
                 warehouseItemId: c.warehouseItemId,
@@ -272,6 +278,8 @@ exports.update = async (req, res) => {
         dias: parseInt(item.dias || 1),
         precio_pactado: parseFloat(item.precio_pactado),
         precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
+        isExternal: !!item.isExternal,
+        vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
           create: compositions.map(c => ({
@@ -545,6 +553,8 @@ async function checkAvailability(quotationId) {
 
   // Check availability for current quotation items
   for (const item of q.items) {
+    if (item.isExternal || item.inventory?.isExternal) continue;
+
     const components = [];
 
     if (item.compositions && item.compositions.length > 0) {

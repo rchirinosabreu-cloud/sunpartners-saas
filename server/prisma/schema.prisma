@@ -85,6 +85,8 @@ model Inventory_Commercial {
   claseB           Int              @default(0)
   claseC           Int              @default(0)
   valor_alquiler   Float            @default(0)
+  isExternal       Boolean          @default(false)
+  vendorCost       Float?
   estado           ItemStatus       @default(ACTIVO)
   bodegaId         String?          @unique
   createdAt        DateTime         @default(now())
@@ -136,6 +138,8 @@ model QuotationItem {
   customName           String?
   cantidad             Int
   precio_pactado       Float
+  isExternal           Boolean               @default(false)
+  vendorCost           Float?
   clase_asignada       String                @default("A")
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt

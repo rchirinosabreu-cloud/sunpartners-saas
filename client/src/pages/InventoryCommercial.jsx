@@ -29,6 +29,8 @@ const InventoryCommercial = () => {
     claseA: 0,
     claseB: 0,
     claseC: 0,
+    isExternal: false,
+    vendorCost: 0,
     estado: 'ACTIVO'
   });
 
@@ -84,6 +86,8 @@ const InventoryCommercial = () => {
       claseA: item.claseA,
       claseB: item.claseB,
       claseC: item.claseC,
+      isExternal: item.isExternal || false,
+      vendorCost: item.vendorCost || 0,
       estado: item.estado
     });
     setIsModalOpen(true);
@@ -134,6 +138,7 @@ const InventoryCommercial = () => {
             <thead>
               <tr className="bg-zinc-50 border-b border-zinc-200">
                 <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3">Nombre Comercial</th>
+                <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3 w-[120px]">Origen</th>
                 <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3 w-[180px]">Disponibilidad (A|B)</th>
                 <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3 w-[120px]">Estado</th>
                 <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3 w-[150px] text-right">Precio Alquiler</th>
@@ -148,7 +153,17 @@ const InventoryCommercial = () => {
                 <tr><td colSpan="6" className="p-8 text-center text-zinc-500 font-body">No hay ítems registrados en el catálogo.</td></tr>
               ) : filteredItems.map((item) => (
                 <tr key={item.id} className="border-b border-zinc-200 hover:bg-zinc-50 transition-colors">
-                  <td className="px-4 py-4 font-bold text-zinc-900 tracking-tight">{item.nombre_comercial}</td>
+                  <td className="px-4 py-4 font-bold text-zinc-900 tracking-tight">
+                    <div className="flex items-center gap-2">
+                       {item.nombre_comercial}
+                       {item.isExternal && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-500 text-[8px] font-black rounded border border-blue-100">EXTERNO</span>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <span className={`px-2 py-1 rounded-sm text-[9px] font-black tracking-widest border ${item.isExternal ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>
+                       {item.isExternal ? 'TERCEROS' : 'BODEGA PROPIA'}
+                    </span>
+                  </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
                        <span className="px-2 py-0.5 rounded-sm bg-emerald-100 text-emerald-700 text-[10px] font-black border border-emerald-200">A: {item.claseA}</span>
@@ -200,9 +215,29 @@ const InventoryCommercial = () => {
                 <input required name="nombre_comercial" value={formData.nombre_comercial} onChange={handleInputChange} className="h-11 px-4 border-2 border-zinc-100 rounded-sm focus:border-primary outline-none transition-all font-bold text-lg" />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black  tracking-widest text-zinc-400">Precio de Renta Sugerido ($)</label>
-                <input required type="number" name="valor_alquiler" value={formData.valor_alquiler} onChange={handleInputChange} className="h-11 px-4 border-2 border-zinc-100 rounded-sm focus:border-primary outline-none text-xl font-black text-primary font-display" />
+              <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-black  tracking-widest text-zinc-400">Precio Renta Sugerido</label>
+                    <input required type="number" name="valor_alquiler" value={formData.valor_alquiler} onChange={handleInputChange} className="h-11 px-4 border-2 border-zinc-100 rounded-sm focus:border-primary outline-none text-xl font-black text-primary font-display" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-black  tracking-widest text-zinc-400">Costo Base Proveedor</label>
+                    <input type="number" name="vendorCost" value={formData.vendorCost} onChange={handleInputChange} className="h-11 px-4 border-2 border-zinc-100 rounded-sm focus:border-primary outline-none text-xl font-black text-zinc-500 font-display bg-zinc-50" />
+                  </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 bg-zinc-50 rounded border-2 border-zinc-100">
+                  <input
+                    type="checkbox"
+                    id="isExternalEdit"
+                    checked={formData.isExternal}
+                    onChange={e => setFormData({...formData, isExternal: e.target.checked})}
+                    className="size-5 accent-blue-500 rounded border-zinc-300"
+                  />
+                  <div>
+                      <label htmlFor="isExternalEdit" className="text-[11px] font-black text-zinc-900 uppercase cursor-pointer">Servicio de Terceros (Externo)</label>
+                      <p className="text-[9px] font-bold text-zinc-500 italic mt-0.5">Activa este check para servicios que no requieren stock físico de bodega.</p>
+                  </div>
               </div>
 
               <div className="bg-zinc-50 p-6 rounded border-2 border-zinc-100 space-y-4">
