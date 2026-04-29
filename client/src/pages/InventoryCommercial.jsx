@@ -58,14 +58,18 @@ const InventoryCommercial = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API_URL}/inventory/commercial/${editingItem.id}`, formData, { withCredentials: true });
+      if (editingItem) {
+        await axios.put(`${API_URL}/inventory/commercial/${editingItem.id}`, formData, { withCredentials: true });
+      } else {
+        await axios.post(`${API_URL}/inventory/commercial`, formData, { withCredentials: true });
+      }
       setIsModalOpen(false);
       setEditingItem(null);
       fetchItems();
       setUiModal({
         isOpen: true,
         title: 'Operación Exitosa',
-        content: 'El catálogo comercial ha sido actualizado.',
+        content: editingItem ? 'El catálogo comercial ha sido actualizado.' : 'Nuevo ítem añadido al catálogo comercial.',
         type: 'success'
       });
     } catch (error) {
@@ -91,6 +95,45 @@ const InventoryCommercial = () => {
       estado: item.estado
     });
     setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setEditingItem(null);
+    setFormData({
+      nombre_comercial: '',
+      valor_alquiler: 0,
+      claseA: 0,
+      claseB: 0,
+      claseC: 0,
+      isExternal: true, // Focus on external services from this view
+      vendorCost: 0,
+      estado: 'ACTIVO'
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar este servicio del catálogo?')) return;
+    try {
+      await axios.post(`${API_URL}/inventory/soft-delete/${id}`, {
+        type: 'Commercial',
+        justification: 'Eliminado desde el gestor de catálogo comercial.'
+      }, { withCredentials: true });
+      fetchItems();
+      setUiModal({
+        isOpen: true,
+        title: 'Eliminado',
+        content: 'El ítem ha sido removido del catálogo comercial.',
+        type: 'success'
+      });
+    } catch (error) {
+      setUiModal({
+        isOpen: true,
+        title: 'Error',
+        content: 'No se pudo eliminar el ítem.',
+        type: 'error'
+      });
+    }
   };
 
   const filteredItems = useMemo(() => {
@@ -128,6 +171,13 @@ const InventoryCommercial = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <button
+            onClick={handleCreate}
+            className="h-9 px-4 bg-primary text-white text-[11px] font-black tracking-widest rounded shadow-lg shadow-primary/20 hover:opacity-90 transition-all flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            NUEVO
+          </button>
         </div>
       </header>
 
@@ -143,7 +193,7 @@ const InventoryCommercial = () => {
                 <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3 w-[120px]">Estado</th>
                 <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3 w-[150px] text-right">Precio Alquiler</th>
                 <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3 w-[150px]">Ref. Bodega</th>
-                <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3 w-[60px]"></th>
+                <th className="font-display font-medium text-[11px]  text-zinc-500 px-4 py-3 w-[100px]"></th>
               </tr>
             </thead>
             <tbody className="text-[13px]">
@@ -185,9 +235,14 @@ const InventoryCommercial = () => {
                     {item.bodega?.nombre}
                   </td>
                   <td className="px-4 py-4 text-right">
-                    <button onClick={() => handleEdit(item)} className="p-1.5 text-zinc-400 hover:text-primary hover:bg-zinc-100 rounded transition-all">
-                      <span className="material-symbols-outlined text-[20px]">settings_suggest</span>
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => handleEdit(item)} className="p-1.5 text-zinc-400 hover:text-primary hover:bg-zinc-100 rounded transition-all">
+                        <span className="material-symbols-outlined text-[20px]">settings_suggest</span>
+                      </button>
+                      <button onClick={() => handleDelete(item.id)} className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded transition-all">
+                        <span className="material-symbols-outlined text-[20px]">delete</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -240,42 +295,42 @@ const InventoryCommercial = () => {
                   </div>
               </div>
 
-              <div className="bg-zinc-50 p-6 rounded border-2 border-zinc-100 space-y-4">
-                 <h4 className="text-[10px] font-black  tracking-widest text-zinc-500 mb-4 border-b border-zinc-200 pb-2">Estado Operacional (Sincronizado con Bodega)</h4>
-                 <div className="grid grid-cols-3 gap-2">
-                    {['ACTIVO', 'MANTENIMIENTO', 'DANADO'].map(est => (
-                       <button
-                         key={est}
-                         type="button"
-                         onClick={() => setFormData({...formData, estado: est})}
-                         className={`py-2 text-[10px] font-black rounded-sm border-2 transition-all ${
-                           formData.estado === est ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg' : 'bg-white border-zinc-100 text-zinc-400 hover:border-zinc-300'
-                         }`}
-                       >
-                         {est}
-                       </button>
-                    ))}
-                 </div>
-              </div>
+              {!formData.isExternal && (
+                <>
+                  <div className="bg-zinc-50 p-6 rounded border-2 border-zinc-100 space-y-4">
+                    <h4 className="text-[10px] font-black  tracking-widest text-zinc-500 mb-4 border-b border-zinc-200 pb-2">Estado Operacional (Sincronizado con Bodega)</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                        {['ACTIVO', 'MANTENIMIENTO', 'DANADO'].map(est => (
+                          <button
+                            key={est}
+                            type="button"
+                            onClick={() => setFormData({...formData, estado: est})}
+                            className={`py-2 text-[10px] font-black rounded-sm border-2 transition-all ${
+                              formData.estado === est ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg' : 'bg-white border-zinc-100 text-zinc-400 hover:border-zinc-300'
+                            }`}
+                          >
+                            {est}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
 
-              <div className="bg-zinc-900 p-6 rounded flex flex-col gap-4 shadow-xl">
-                 <h4 className="text-[10px] font-black  tracking-widest text-zinc-500">Existencias Disponibles</h4>
-                 <div className="flex gap-4">
-                    <div className="flex-1 flex flex-col gap-1">
-                       <span className="text-[9px] font-black text-zinc-500 ">Clase A</span>
-                       <input type="number" name="claseA" value={formData.claseA} onChange={handleInputChange} className="bg-zinc-800 border-none text-white text-lg font-black px-3 py-1 rounded" />
+                  <div className="bg-zinc-900 p-6 rounded flex flex-col gap-4 shadow-xl">
+                    <h4 className="text-[10px] font-black  tracking-widest text-zinc-500">Existencias Disponibles</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[9px] font-black text-zinc-500 ">Clase A</span>
+                          <input type="number" name="claseA" value={formData.claseA} onChange={handleInputChange} className="bg-zinc-800 border-none text-white text-lg font-black px-3 py-1 rounded w-full" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[9px] font-black text-zinc-500 ">Clase B</span>
+                          <input type="number" name="claseB" value={formData.claseB} onChange={handleInputChange} className="bg-zinc-800 border-none text-white text-lg font-black px-3 py-1 rounded w-full" />
+                        </div>
                     </div>
-                    <div className="flex-1 flex flex-col gap-1">
-                       <span className="text-[9px] font-black text-zinc-500 ">Clase B</span>
-                       <input type="number" name="claseB" value={formData.claseB} onChange={handleInputChange} className="bg-zinc-800 border-none text-white text-lg font-black px-3 py-1 rounded" />
-                    </div>
-                    <div className="flex-1 flex flex-col gap-1">
-                       <span className="text-[9px] font-black text-zinc-500 ">Clase C</span>
-                       <input type="number" name="claseC" value={formData.claseC} onChange={handleInputChange} className="bg-zinc-800 border-none text-white text-lg font-black px-3 py-1 rounded" />
-                    </div>
-                 </div>
-                 <p className="text-[9px] text-zinc-500 font-bold italic">* Cualquier cambio en cantidades impactará el stock de Bodega.</p>
-              </div>
+                    <p className="text-[9px] text-zinc-500 font-bold italic">* Cualquier cambio en cantidades impactará el stock de Bodega.</p>
+                  </div>
+                </>
+              )}
 
               <div className="mt-auto flex gap-4 pt-10">
                 <button type="submit" className="flex-1 h-12 bg-primary text-white font-black  text-[11px] tracking-widest rounded-sm hover:opacity-90 shadow-xl transition-all">

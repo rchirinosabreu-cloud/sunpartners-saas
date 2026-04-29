@@ -94,7 +94,7 @@ exports.getAllCommercial = async (req, res) => {
 
 exports.createCommercial = async (req, res) => {
   try {
-    const { nombre_comercial, valor_alquiler, compositions, bodegaId, isExternal, vendorCost } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, bodegaId, isExternal, vendorCost, claseA, claseB, claseC, estado } = req.body;
     const newItem = await prisma.inventory_Commercial.create({
       data: {
         nombre_comercial,
@@ -102,6 +102,10 @@ exports.createCommercial = async (req, res) => {
         isExternal: !!isExternal,
         vendorCost: vendorCost !== undefined ? parseFloat(vendorCost) : null,
         bodegaId: bodegaId || null,
+        claseA: parseInt(claseA || 0),
+        claseB: parseInt(claseB || 0),
+        claseC: parseInt(claseC || 0),
+        estado: estado || 'ACTIVO',
         compositions: compositions ? {
           create: compositions.map(c => ({
             warehouseItemId: c.warehouseItemId,
@@ -120,7 +124,7 @@ exports.createCommercial = async (req, res) => {
 exports.updateCommercial = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre_comercial, valor_alquiler, compositions, isExternal, vendorCost } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, isExternal, vendorCost, claseA, claseB, claseC, estado } = req.body;
 
     // If updating compositions, clear old ones first
     if (compositions) {
@@ -134,6 +138,10 @@ exports.updateCommercial = async (req, res) => {
         valor_alquiler: valor_alquiler !== undefined ? parseFloat(valor_alquiler) : undefined,
         isExternal: isExternal !== undefined ? !!isExternal : undefined,
         vendorCost: vendorCost !== undefined ? parseFloat(vendorCost) : undefined,
+        claseA: claseA !== undefined ? parseInt(claseA) : undefined,
+        claseB: claseB !== undefined ? parseInt(claseB) : undefined,
+        claseC: claseC !== undefined ? parseInt(claseC) : undefined,
+        estado: estado !== undefined ? estado : undefined,
         compositions: compositions ? {
           create: compositions.map(c => ({
             warehouseItemId: c.warehouseItemId,
