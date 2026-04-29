@@ -320,7 +320,12 @@ const NewQuotation = () => {
               dias: it.dias,
               precio_pactado: it.precio_pactado,
               precio_dia_adicional: it.precio_dia_adicional,
-              clase_asignada: it.clase_asignada
+              clase_asignada: it.clase_asignada,
+              isExternal: it.isExternal,
+              vendorCost: it.vendorCost,
+              customName: it.customName,
+              compositions: it.compositions,
+              inventory: it.inventory
             })),
             services: (q.services || []).map(sv => ({
               tipo: sv.tipo,
@@ -749,7 +754,6 @@ const NewQuotation = () => {
                         }}
                         className="bg-blue-500 text-white px-6 py-2 rounded-lg text-[10px] font-black hover:opacity-90 transition-all shadow-md flex items-center gap-2"
                      >
-                        <span className="material-symbols-outlined text-[16px]">local_shipping</span>
                         + Externo
                      </button>
                      <button
@@ -760,7 +764,6 @@ const NewQuotation = () => {
                         }}
                         className="bg-[#2D4A5A] text-white px-6 py-2 rounded-lg text-[10px] font-black hover:opacity-90 transition-all shadow-md flex items-center gap-2"
                      >
-                        <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
                         + Personalizado
                      </button>
                      <button type="button" onClick={() => setFormData(p => ({...p, items: [...p.items, {inventoryId: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-primary text-white px-6 py-2 rounded-lg text-[10px] font-black  hover:opacity-90 transition-all shadow-md">+ Equipo</button>
@@ -856,8 +859,8 @@ const NewQuotation = () => {
                                                 }}
                                                 className={`flex-1 p-2.5 bg-zinc-50 border-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-zinc-100 transition-all ${it.isExternal || it.inventory?.isExternal ? 'border-blue-200' : 'border-primary/20'}`}
                                              >
-                                                <span className={`material-symbols-outlined text-[18px] ${it.isExternal || it.inventory?.isExternal ? 'text-blue-500' : 'text-primary'}`}>
-                                                   {it.isExternal || it.inventory?.isExternal ? 'local_shipping' : 'auto_awesome'}
+                                                <span className={`material-symbols-outlined text-[18px] ${it.isExternal || it.inventory?.isExternal ? 'hidden' : 'text-primary'}`}>
+                                                   {it.isExternal || it.inventory?.isExternal ? '' : 'auto_awesome'}
                                                 </span>
                                                 <span className="text-xs font-black text-zinc-900 uppercase">
                                                    {it.customName || it.inventory?.nombre_comercial}
