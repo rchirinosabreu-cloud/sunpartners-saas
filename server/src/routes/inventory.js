@@ -12,6 +12,9 @@ router.get('/commercial', inventoryController.getAllCommercial);
 router.post('/commercial', inventoryController.createCommercial);
 router.put('/commercial/:id', inventoryController.updateCommercial);
 
+// Soft Delete (Unified)
+router.post('/soft-delete/:id', inventoryController.softDelete);
+
 // Legacy/Common
 router.delete('/:id', inventoryController.softDelete);
 
