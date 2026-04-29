@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import Modal from '../components/ui/Modal';
+import { matchesSearch } from '../utils/formatters';
 
 const API_URL = '/api';
 
@@ -8,6 +9,15 @@ const InventoryCommercial = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [uiModal, setUiModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
@@ -79,10 +89,12 @@ const InventoryCommercial = () => {
     setIsModalOpen(true);
   };
 
-  const filteredItems = items.filter(item =>
-    item.nombre_comercial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.bodega?.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = useMemo(() => {
+    return items.filter(item =>
+      matchesSearch(item.nombre_comercial, debouncedSearch) ||
+      (item.bodega?.nombre && matchesSearch(item.bodega.nombre, debouncedSearch))
+    );
+  }, [items, debouncedSearch]);
 
   return (
     <main className="flex-1 flex flex-col h-full relative overflow-hidden font-body bg-white">

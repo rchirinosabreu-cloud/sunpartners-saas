@@ -8,6 +8,7 @@ import Modal from '../components/ui/Modal';
 import NewClientModal from '../components/modals/NewClientModal';
 import CompositionModal from '../components/modals/CompositionModal';
 import { calculateLineTotal, calculateTotals } from '../utils/quotationUtils';
+import { matchesSearch } from '../utils/formatters';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import 'flatpickr/dist/themes/light.css';
@@ -62,6 +63,15 @@ const ComboBox = ({ label, value, options, onChange }) => {
 const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar equipo..." }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const containerRef = useRef(null);
   const dropdownRef = useRef(null);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
@@ -70,9 +80,9 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
 
   const filteredOptions = useMemo(() => {
     return options.filter(opt =>
-      opt.nombre_comercial.toLowerCase().includes(search.toLowerCase())
+      matchesSearch(opt.nombre_comercial, debouncedSearch)
     );
-  }, [options, search]);
+  }, [options, debouncedSearch]);
 
   const updateCoords = () => {
     if (containerRef.current) {
