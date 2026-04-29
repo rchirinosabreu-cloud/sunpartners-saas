@@ -65,7 +65,7 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     if (!debouncedSearch) return [];
     return warehouseInventory
       .filter(item => matchesSearch(item.nombre, debouncedSearch))
-      .slice(0, 15);
+      .slice(0, 20);
   }, [debouncedSearch, warehouseInventory]);
 
   const addItem = (item) => {
