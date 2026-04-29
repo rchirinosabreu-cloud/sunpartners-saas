@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import NewClientModal from '../components/modals/NewClientModal';
 import CompositionModal from '../components/modals/CompositionModal';
+import CustomItemModal from '../components/modals/CustomItemModal';
 import { calculateLineTotal, calculateTotals } from '../utils/quotationUtils';
 import { matchesSearch } from '../utils/formatters';
 import Flatpickr from 'react-flatpickr';
@@ -239,7 +240,9 @@ const NewQuotation = () => {
   const [modal, setModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isCompositionModalOpen, setIsCompositionModalOpen] = useState(false);
+  const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
   const [editingComposition, setEditingComposition] = useState(null);
+  const [editingCustomItem, setEditingCustomItem] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
 
   // 1. Core Metadata State
@@ -443,6 +446,35 @@ const NewQuotation = () => {
                 clase_asignada: 'A',
                 compositions: comp.items,
                 saveToCatalog: comp.saveToCatalog
+              }]
+            }));
+          }
+        }}
+      />
+      <CustomItemModal
+        isOpen={isCustomItemModalOpen}
+        onClose={() => {
+          setIsCustomItemModalOpen(false);
+          setEditingCustomItem(null);
+        }}
+        initialData={editingCustomItem?.data}
+        onSave={(item) => {
+          if (editingCustomItem) {
+            const newItems = [...formData.items];
+            newItems[editingCustomItem.index] = {
+              ...newItems[editingCustomItem.index],
+              ...item
+            };
+            setFormData({ ...formData, items: newItems });
+          } else {
+            setFormData(p => ({
+              ...p,
+              items: [...p.items, {
+                inventoryId: null,
+                clase_asignada: 'A',
+                dias: 1,
+                precio_dia_adicional: 0,
+                ...item
               }]
             }));
           }
@@ -712,6 +744,17 @@ const NewQuotation = () => {
                      <button
                         type="button"
                         onClick={() => {
+                           setEditingCustomItem(null);
+                           setIsCustomItemModalOpen(true);
+                        }}
+                        className="bg-blue-500 text-white px-6 py-2 rounded-lg text-[10px] font-black hover:opacity-90 transition-all shadow-md flex items-center gap-2"
+                     >
+                        <span className="material-symbols-outlined text-[16px]">local_shipping</span>
+                        + Externo
+                     </button>
+                     <button
+                        type="button"
+                        onClick={() => {
                            setEditingComposition(null);
                            setIsCompositionModalOpen(true);
                         }}
@@ -800,16 +843,28 @@ const NewQuotation = () => {
                                  <td className="p-4">
                                     <div className="flex flex-col gap-1">
                                        <div className="flex items-center gap-2">
-                                          {it.customName || (it.inventoryId && it.inventory?.compositions?.length > 0) ? (
+                                          {(it.customName || (it.inventoryId && it.inventory?.compositions?.length > 0)) ? (
                                              <div
                                                 onClick={() => {
-                                                   setEditingComposition({ index: idx, data: it });
-                                                   setIsCompositionModalOpen(true);
+                                                   if (it.isExternal || it.inventory?.isExternal) {
+                                                      setEditingCustomItem({ index: idx, data: it });
+                                                      setIsCustomItemModalOpen(true);
+                                                   } else {
+                                                      setEditingComposition({ index: idx, data: it });
+                                                      setIsCompositionModalOpen(true);
+                                                   }
                                                 }}
-                                                className="flex-1 p-2.5 bg-zinc-50 border-2 border-primary/20 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-zinc-100 transition-all"
+                                                className={`flex-1 p-2.5 bg-zinc-50 border-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-zinc-100 transition-all ${it.isExternal || it.inventory?.isExternal ? 'border-blue-200' : 'border-primary/20'}`}
                                              >
-                                                <span className="material-symbols-outlined text-primary text-[18px]">auto_awesome</span>
-                                                <span className="text-xs font-black text-zinc-900 uppercase">{it.customName || it.inventory?.nombre_comercial}</span>
+                                                <span className={`material-symbols-outlined text-[18px] ${it.isExternal || it.inventory?.isExternal ? 'text-blue-500' : 'text-primary'}`}>
+                                                   {it.isExternal || it.inventory?.isExternal ? 'local_shipping' : 'auto_awesome'}
+                                                </span>
+                                                <span className="text-xs font-black text-zinc-900 uppercase">
+                                                   {it.customName || it.inventory?.nombre_comercial}
+                                                   {(it.isExternal || it.inventory?.isExternal) && (
+                                                      <span className="ml-2 px-1.5 py-0.5 bg-blue-50 text-blue-500 text-[8px] font-black rounded border border-blue-100">EXT</span>
+                                                   )}
+                                                </span>
                                                 <span className="material-symbols-outlined text-[14px] text-zinc-300 ml-auto">edit</span>
                                              </div>
                                           ) : (

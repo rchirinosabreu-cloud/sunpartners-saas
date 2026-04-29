@@ -94,11 +94,13 @@ exports.getAllCommercial = async (req, res) => {
 
 exports.createCommercial = async (req, res) => {
   try {
-    const { nombre_comercial, valor_alquiler, compositions, bodegaId } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, bodegaId, isExternal, vendorCost } = req.body;
     const newItem = await prisma.inventory_Commercial.create({
       data: {
         nombre_comercial,
         valor_alquiler: parseFloat(valor_alquiler || 0),
+        isExternal: !!isExternal,
+        vendorCost: vendorCost !== undefined ? parseFloat(vendorCost) : null,
         bodegaId: bodegaId || null,
         compositions: compositions ? {
           create: compositions.map(c => ({
@@ -118,7 +120,7 @@ exports.createCommercial = async (req, res) => {
 exports.updateCommercial = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre_comercial, valor_alquiler, compositions } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, isExternal, vendorCost } = req.body;
 
     // If updating compositions, clear old ones first
     if (compositions) {
@@ -130,6 +132,8 @@ exports.updateCommercial = async (req, res) => {
       data: {
         nombre_comercial,
         valor_alquiler: valor_alquiler !== undefined ? parseFloat(valor_alquiler) : undefined,
+        isExternal: isExternal !== undefined ? !!isExternal : undefined,
+        vendorCost: vendorCost !== undefined ? parseFloat(vendorCost) : undefined,
         compositions: compositions ? {
           create: compositions.map(c => ({
             warehouseItemId: c.warehouseItemId,
