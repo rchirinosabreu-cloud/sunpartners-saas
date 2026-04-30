@@ -29,13 +29,14 @@ model User {
 }
 
 model Announcement {
-  id        String           @id @default(uuid())
-  contenido String
-  tipo      AnnouncementType @default(INFO)
-  authorId  String
-  author    User             @relation(fields: [authorId], references: [id])
-  createdAt DateTime         @default(now())
-  deletedAt DateTime?
+  id                   String           @id @default(uuid())
+  contenido            String
+  tipo                 AnnouncementType @default(INFO)
+  authorId             String
+  author               User             @relation(fields: [authorId], references: [id])
+  createdAt            DateTime         @default(now())
+  deletedAt            DateTime?
+  deletedJustification String?
 }
 
 model Client {
@@ -79,20 +80,21 @@ model Inventory_Bodega {
 }
 
 model Inventory_Commercial {
-  id               String           @id @default(uuid())
-  nombre_comercial String
-  claseA           Int              @default(0)
-  claseB           Int              @default(0)
-  claseC           Int              @default(0)
-  valor_alquiler   Float            @default(0)
-  isExternal       Boolean          @default(false)
-  vendorCost       Float?
-  estado           ItemStatus       @default(ACTIVO)
-  bodegaId         String?          @unique
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  deletedAt        DateTime?
-  bodega           Inventory_Bodega? @relation(fields: [bodegaId], references: [id], onDelete: Cascade)
+  id                   String           @id @default(uuid())
+  nombre_comercial     String
+  claseA               Int              @default(0)
+  claseB               Int              @default(0)
+  claseC               Int              @default(0)
+  valor_alquiler       Float            @default(0)
+  isExternal           Boolean          @default(false)
+  vendorCost           Float?
+  estado               ItemStatus       @default(ACTIVO)
+  bodegaId             String?          @unique
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  deletedAt            DateTime?
+  deletedJustification String?
+  bodega               Inventory_Bodega? @relation(fields: [bodegaId], references: [id], onDelete: Cascade)
   quotationItems   QuotationItem[]
   compositions     Composition[]
 }
