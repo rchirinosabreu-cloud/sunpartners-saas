@@ -167,8 +167,9 @@ const PublicQuotation = () => {
                     <p>{quotation.client.documentType || 'NIT'}: {quotation.client.nit_id || 'PENDIENTE'}</p>
                     <p className="flex items-center gap-1">
                        <span className="material-symbols-outlined text-[14px]">location_on</span>
-                       {quotation.ubicacion || 'Lugar por definir'}
+                       {quotation.client.direccion_fiscal || 'DIRECCIÓN POR REGISTRAR'}
                     </p>
+                    <p className="pl-5 text-[9px] text-zinc-400">{quotation.client.ciudad || 'Ciudad no especificada'}</p>
                  </div>
               </div>
               <div className="text-left md:text-right">
@@ -263,6 +264,11 @@ const PublicQuotation = () => {
         {/* Totals & Legal Block - Sunpartners Premium Style */}
         <div className="bg-zinc-50 p-12 md:p-20 flex flex-col lg:flex-row justify-between gap-16 border-t border-zinc-100">
            <div className="max-w-2xl">
+              <div className="mb-10 bg-white border border-zinc-200 rounded-lg p-6 shadow-sm inline-block">
+                <span className="text-[9px] font-black text-zinc-400 tracking-widest block mb-2 uppercase">Forma de Pago</span>
+                <p className="text-sm font-black text-zinc-900 tracking-tight">FORMA DE PAGO: <span className="text-primary">{quotation.pago_metodo || 'CONTADO'}</span></p>
+              </div>
+
               <h4 className="text-[11px] font-black  tracking-[0.4em] text-primary mb-8 border-b border-zinc-200 pb-4">Términos y Condiciones Legales</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                 {[
@@ -322,7 +328,7 @@ const PublicQuotation = () => {
       </div>
 
       <div className="mt-16 text-center space-y-2">
-         <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-[0.3em] opacity-50">BY PROCAMPO DEL CARIBE S.A.S.</p>
+         {/* REMOVED: BY PROCAMPO DEL CARIBE S.A.S. (v32.0) */}
       </div>
 
       {/* Approve Modal - Premium Style */}

@@ -67,13 +67,10 @@ const AppLayout = () => {
       {/* Sidebar (Strict 240px, Zinc-900) */}
       <aside className="flex w-[240px] shrink-0 flex-col bg-zinc-900 text-zinc-400 border-r border-zinc-800">
         {/* Brand / Logo Area */}
-        <div className="flex items-center gap-3 border-b border-zinc-800 p-6 h-[64px] shrink-0">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded bg-primary text-white">
-            <span className="material-symbols-outlined text-lg fill">contrast</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-display text-sm font-semibold text-zinc-50 tracking-wide">SUNPARTNERS</span>
-            <span className="text-[11px] tracking-wider text-zinc-500">Contraste estructural</span>
+        <div className="flex items-center gap-3 border-b border-zinc-800 p-6 h-[80px] shrink-0 bg-zinc-900/50">
+          <div className="flex flex-col w-full">
+            <span className="font-display text-lg font-black text-white tracking-[0.2em] leading-tight">SUNPARTNERS</span>
+            <span className="text-[9px] font-black tracking-[0.4em] text-primary uppercase mt-0.5">Global Logistic</span>
           </div>
         </div>
 
@@ -170,7 +167,7 @@ const AppLayout = () => {
           </div>
           {/* Corporate Footer (v22.0: Ultra-minimalist) */}
           <footer className="py-6 text-center border-t border-zinc-50 bg-white/10 shrink-0">
-             <p className="text-[8px] font-bold text-zinc-300 uppercase tracking-[0.3em] opacity-50">BY PROCAMPO DEL CARIBE S.A.S.</p>
+             {/* REMOVED: BY PROCAMPO DEL CARIBE S.A.S. (v32.0 branding cleanup) */}
           </footer>
         </div>
       </main>

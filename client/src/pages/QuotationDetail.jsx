@@ -186,14 +186,14 @@ const QuotationDetail = () => {
                </button>
              )}
 
-             {!linkData ? (
+             {(!linkData || quotation.estado === 'REVISION_SOLICITADA') ? (
                <button
                 onClick={handleGenerateLink}
                 disabled={updating}
                 className="btn-action bg-zinc-900 text-white hover:bg-zinc-800"
                >
                  <span className="material-symbols-outlined">send</span>
-                 ENVIAR PORTAL
+                 {quotation.estado === 'REVISION_SOLICITADA' ? 'REENVIAR AJUSTES' : 'ENVIAR PORTAL'}
                </button>
              ) : (
                <button
