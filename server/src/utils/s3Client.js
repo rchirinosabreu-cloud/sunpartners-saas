@@ -12,6 +12,6 @@ const s3Client = new S3Client({
   forcePathStyle: true // Needed for many S3-compatible providers
 });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'spacious-basketcase-tyj2mc';
+const BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
 module.exports = { s3Client, BUCKET_NAME };
