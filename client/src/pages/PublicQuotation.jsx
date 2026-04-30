@@ -265,7 +265,6 @@ const PublicQuotation = () => {
         <div className="bg-zinc-50 p-12 md:p-20 flex flex-col lg:flex-row justify-between gap-16 border-t border-zinc-100">
            <div className="max-w-2xl">
               <div className="mb-10 bg-white border border-zinc-200 rounded-lg p-6 shadow-sm inline-block">
-                <span className="text-[9px] font-black text-zinc-400 tracking-widest block mb-2 uppercase">Forma de Pago</span>
                 <p className="text-sm font-black text-zinc-900 tracking-tight">FORMA DE PAGO: <span className="text-primary">{quotation.pago_metodo || 'CONTADO'}</span></p>
               </div>
 
