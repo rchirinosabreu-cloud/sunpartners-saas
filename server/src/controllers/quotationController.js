@@ -1,5 +1,7 @@
 const prisma = require('../db');
 const crypto = require('crypto');
+const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const { s3Client, BUCKET_NAME } = require('../utils/s3Client');
 const { calculateLineTotal, calculateTotals } = require('../utils/quotationUtils');
 
 const includeAll = {
@@ -54,9 +56,18 @@ exports.formalizeByHash = async (req, res) => {
 
     if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
 
-    // En un entorno real, aquí subiríamos a S3/Cloudinary y guardaríamos la URL resultante.
-    // Por ahora, guardamos la ruta relativa del servidor de archivos local.
-    const purchaseOrderUrl = `/uploads/purchase_orders/${file.filename}`;
+    // v34.1: Upload to Railway S3 Bucket (spacious-basketcase)
+    const key = `purchase_orders/${Date.now()}_${file.originalname}`;
+
+    await s3Client.send(new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: 'public-read'
+    }));
+
+    const purchaseOrderUrl = `${(process.env.S3_ENDPOINT || 'https://t3.storageapi.dev').replace(/\/$/, '')}/${BUCKET_NAME}/${key}`;
 
     const updated = await prisma.quotation.update({
       where: { id: quotation.id },

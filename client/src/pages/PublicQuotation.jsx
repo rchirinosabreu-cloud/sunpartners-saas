@@ -166,10 +166,9 @@ const PublicQuotation = () => {
                  <div className="text-[10px] font-bold text-zinc-500 space-y-1">
                     <p>{quotation.client.documentType || 'NIT'}: {quotation.client.nit_id || 'PENDIENTE'}</p>
                     <p className="flex items-center gap-1">
-                       <span className="material-symbols-outlined text-[14px]">location_on</span>
                        {quotation.client.direccion_fiscal || 'DIRECCIÓN POR REGISTRAR'}
                     </p>
-                    <p className="pl-5 text-[9px] text-zinc-400">{quotation.client.ciudad || 'Ciudad no especificada'}</p>
+                    <p className="text-[9px] text-zinc-400">{quotation.client.ciudad || 'Ciudad no especificada'}</p>
                  </div>
               </div>
               <div className="text-left md:text-right">
