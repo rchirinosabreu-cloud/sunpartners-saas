@@ -73,10 +73,11 @@ const InventoryCommercial = () => {
         type: 'success'
       });
     } catch (error) {
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message;
       setUiModal({
         isOpen: true,
         title: 'Error de Guardado',
-        content: error.response?.data?.error || error.message,
+        content: `No se pudo procesar la solicitud: ${errorMsg}`,
         type: 'error'
       });
     }
@@ -127,10 +128,11 @@ const InventoryCommercial = () => {
         type: 'success'
       });
     } catch (error) {
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message;
       setUiModal({
         isOpen: true,
         title: 'Error',
-        content: 'No se pudo eliminar el ítem.',
+        content: `Error al intentar eliminar: ${errorMsg}`,
         type: 'error'
       });
     }

@@ -48,16 +48,18 @@ const prisma = prismaClient.$extends({
       async update({ args, query }) {
         const result = await query(args);
         // Sync Commercial -> Bodega (Quantities, Status, and DeletedAt)
-        await prismaClient.inventory_Bodega.update({
-          where: { id: result.bodegaId },
-          data: {
-            claseA: result.claseA,
-            claseB: result.claseB,
-            claseC: result.claseC,
-            estado: result.estado,
-            deletedAt: result.deletedAt
-          }
-        }).catch(() => {});
+        if (result.bodegaId) {
+          await prismaClient.inventory_Bodega.update({
+            where: { id: result.bodegaId },
+            data: {
+              claseA: result.claseA,
+              claseB: result.claseB,
+              claseC: result.claseC,
+              estado: result.estado,
+              deletedAt: result.deletedAt
+            }
+          }).catch(() => {});
+        }
         return result;
       }
     },
