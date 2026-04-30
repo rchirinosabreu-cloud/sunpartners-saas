@@ -60,6 +60,24 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFont('helvetica', 'bold');
   doc.text(quotation.client.razon_social, 15, currentY);
 
+  currentY += 5;
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(113, 113, 122);
+  doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
+
+  currentY += 4;
+  const clientAddress = quotation.client.direccion_fiscal || 'DIRECCIÓN POR REGISTRAR';
+  const addressLines = doc.splitTextToSize(clientAddress, 85);
+  doc.text(addressLines, 15, currentY);
+
+  currentY += (addressLines.length * 3.5);
+  doc.text(`Ciudad: ${quotation.client.ciudad || 'PENDIENTE'}`, 15, currentY);
+
+  // Reset currentY for logistics alignement if address was long
+  const logisticsStartY = 68; // Resetting to align with CLIENTE title + 10
+  currentY = logisticsStartY;
+
   // Logistics Section Alignment v26.0 (Miniaturized Swiss Watch Look)
   const labelX = 110;
   const dataX = 140; // Moved slightly to left to accommodate 7pt labels
@@ -75,18 +93,12 @@ export const generateQuotationPDF = (quotation) => {
   doc.text(eventNameLines, dataX, currentY);
 
   currentY += (eventNameLines.length > 1 ? (eventNameLines.length * 3.5) : 5); // Tightened spacing
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(113, 113, 122);
-  doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
   doc.text('Lugar evento: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
   doc.text((quotation.ubicacion || 'POR DEFINIR'), dataX, currentY);
 
   currentY += 5; // Tightened vertical spacing v26.0
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(113, 113, 122);
-  doc.text(`Ciudad: ${quotation.client.ciudad || 'Cartagena, COL'}`, 15, currentY);
   doc.setFont('helvetica', 'bold');
   doc.text('Inicio montaje: ', labelX, currentY);
   doc.setTextColor(84, 134, 161);
@@ -209,6 +221,19 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(24, 24, 27);
   doc.text(`$ ${total.toLocaleString()}`, 195, finalY, { align: 'right' });
 
+  // Forma de Pago Box (v32.0)
+  const paymentY = finalY - 15;
+  doc.setDrawColor(244, 244, 245);
+  doc.setFillColor(250, 250, 251);
+  doc.roundedRect(15, paymentY, 80, 15, 2, 2, 'FD');
+
+  doc.setFontSize(7);
+  doc.setTextColor(113, 113, 122);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FORMA DE PAGO:', 20, paymentY + 6);
+  doc.setTextColor(24, 24, 27);
+  doc.text((quotation.pago_metodo || 'CONTADO').toUpperCase(), 20, paymentY + 11);
+
   // 6. Terms & Conditions (v22.0: Fixed Anchor at bottom with 2 clean columns)
   const pageHeight = doc.internal.pageSize.height;
   const termsBlockHeight = 25; // Compacted for v22.0
@@ -258,7 +283,7 @@ export const generateQuotationPDF = (quotation) => {
 
     // Column Left: Company Name
     doc.setFont('helvetica', 'bold');
-    doc.text('BY PROCAMPO DEL CARIBE S.A.S.', 15, 285);
+    // REMOVED: BY PROCAMPO DEL CARIBE S.A.S. (v32.0 branding cleanup)
   }
 
   const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');
