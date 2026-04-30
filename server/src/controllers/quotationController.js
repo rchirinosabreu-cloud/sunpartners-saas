@@ -357,7 +357,10 @@ exports.update = async (req, res) => {
 exports.generateSecureLink = async (req, res) => {
   try {
     const { id } = req.params;
-    const secureHash = crypto.randomBytes(32).toString('hex');
+
+    // v32.0: Reuse hash if it exists to maintain same link for resending adjustments
+    const current = await prisma.quotation.findUnique({ where: { id } });
+    const secureHash = current.secureHash || crypto.randomBytes(32).toString('hex');
 
     const updated = await prisma.quotation.update({
       where: { id },
@@ -366,7 +369,9 @@ exports.generateSecureLink = async (req, res) => {
         estado: 'ENVIADA',
         logs: {
           create: {
-            message: 'Link seguro generado y cotización marcada como ENVIADA',
+            message: current.secureHash
+              ? 'Ajustes reenviados al cliente. Estado restablecido a ENVIADA.'
+              : 'Link seguro generado y cotización marcada como ENVIADA',
             userId: req.userId
           }
         }

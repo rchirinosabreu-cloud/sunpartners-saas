@@ -238,7 +238,7 @@ const QuotationDetail = () => {
         {activeTab === 'cotizador' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             <div className="lg:col-span-2 space-y-8">
-              {quotation.rejectionType && (
+              {quotation.estado === 'REVISION_SOLICITADA' && quotation.rejectionType && (
                 <div className="bg-brand-alert/10 border-2 border-brand-alert border-dashed p-6 rounded">
                   <div className="flex items-center gap-3 text-brand-alert mb-2">
                     <span className="material-symbols-outlined font-black">warning</span>

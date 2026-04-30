@@ -54,7 +54,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFontSize(7);
   doc.text('DATOS DEL EVENTO', 110, currentY);
 
-  currentY += 5; // Reduced spacing v25.0
+  currentY += 8; // Increased spacing to prevent overlap with field titles (v33.0)
   doc.setFontSize(9);
   doc.setTextColor(24, 24, 27);
   doc.setFont('helvetica', 'bold');
