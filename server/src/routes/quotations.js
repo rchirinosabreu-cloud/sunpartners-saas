@@ -18,6 +18,7 @@ router.put('/:id', authMiddleware, (req, res) => quotationController.update(req,
 router.patch('/:id/archive', authMiddleware, adminMiddleware, (req, res) => quotationController.archive(req, res));
 router.patch('/:id/unarchive', authMiddleware, adminMiddleware, (req, res) => quotationController.unarchive(req, res));
 router.post('/:id/secure-link', authMiddleware, (req, res) => quotationController.generateSecureLink(req, res));
+router.get('/:id/purchase-order-link', authMiddleware, (req, res) => quotationController.getPurchaseOrderSignedUrl(req, res));
 router.put('/:id/status', authMiddleware, (req, res) => quotationController.updateStatus(req, res));
 router.put('/:id/planning', authMiddleware, (req, res) => quotationController.upsertPlanning(req, res));
 router.get('/:id/availability', authMiddleware, (req, res) => quotationController.checkAvailabilityEndpoint(req, res));
