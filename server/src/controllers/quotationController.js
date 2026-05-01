@@ -1,7 +1,7 @@
 const prisma = require('../db');
 const crypto = require('crypto');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
-const { s3Client, BUCKET_NAME } = require('../utils/s3Client');
+const { s3Client, BUCKET_NAME, getSignedUrlHelper } = require('../utils/s3Client');
 const { calculateLineTotal, calculateTotals } = require('../utils/quotationUtils');
 
 const includeAll = {
@@ -63,8 +63,8 @@ exports.formalizeByHash = async (req, res) => {
       Bucket: BUCKET_NAME,
       Key: key,
       Body: file.buffer,
-      ContentType: file.mimetype,
-      ACL: 'public-read'
+      ContentType: file.mimetype
+      // ACL: 'public-read' - REMOVED for Signed URL Strategy (v38.0)
     }));
 
     const purchaseOrderUrl = `${(process.env.AWS_ENDPOINT_URL || 'https://t3.storageapi.dev').replace(/\/$/, '')}/${BUCKET_NAME}/${key}`;
@@ -74,6 +74,7 @@ exports.formalizeByHash = async (req, res) => {
       data: {
         estado: 'ACCEPTED_PENDING_OC',
         purchaseOrderUrl,
+        purchaseOrderKey: key,
         logs: {
           create: {
             message: 'El cliente aceptó la propuesta y cargó la Orden de Compra.'
@@ -90,6 +91,20 @@ exports.formalizeByHash = async (req, res) => {
       status: 'ACCEPTED_PENDING_OC',
       purchaseOrderUrl
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getPurchaseOrderSignedUrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const quotation = await prisma.quotation.findUnique({ where: { id } });
+    if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
+    if (!quotation.purchaseOrderKey) return res.status(404).json({ error: 'Esta cotización no tiene una Orden de Compra cargada.' });
+
+    const signedUrl = await getSignedUrlHelper(quotation.purchaseOrderKey);
+    res.json({ url: signedUrl });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

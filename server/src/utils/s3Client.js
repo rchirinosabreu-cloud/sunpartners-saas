@@ -1,4 +1,5 @@
-const { S3Client } = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 require('dotenv').config();
 
 // Railway Bucket Credentials (v36.3 definitive mapping)
@@ -14,4 +15,18 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
 
-module.exports = { s3Client, BUCKET_NAME };
+/**
+ * Generates a temporary signed URL for a private S3 object (v38.0)
+ * @param {string} key - The object key in the bucket
+ * @param {number} expiresIn - Expiration time in seconds (default 24h)
+ */
+const getSignedUrlHelper = async (key, expiresIn = 86400) => {
+  if (!key) return null;
+  const command = new GetObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+  });
+  return await getSignedUrl(s3Client, command, { expiresIn });
+};
+
+module.exports = { s3Client, BUCKET_NAME, getSignedUrlHelper };

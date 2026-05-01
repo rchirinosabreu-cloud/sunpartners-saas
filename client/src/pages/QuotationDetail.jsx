@@ -176,9 +176,16 @@ const QuotationDetail = () => {
                PDF INTERNO
              </button>
 
-             {quotation.purchaseOrderUrl && (
+             {(quotation.purchaseOrderUrl || quotation.purchaseOrderKey) && (
                <button
-                onClick={() => window.open(quotation.purchaseOrderUrl, '_blank')}
+                onClick={async () => {
+                  try {
+                    const res = await axios.get(`/api/quotations/${id}/purchase-order-link`, { withCredentials: true });
+                    window.open(res.data.url, '_blank');
+                  } catch (err) {
+                    setModal({ isOpen: true, title: 'Error', content: 'No se pudo generar el acceso temporal a la orden.', type: 'error' });
+                  }
+                }}
                 className="btn-action border border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
                >
                  <span className="material-symbols-outlined">attachment</span>

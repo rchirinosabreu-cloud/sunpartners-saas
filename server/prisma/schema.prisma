@@ -119,6 +119,7 @@ model Quotation {
   bitacora             String?
   secureHash           String?            @unique
   purchaseOrderUrl     String?
+  purchaseOrderKey     String?
   rejectionType        RejectionType?
   rejectionReason      String?
   clientId             String
