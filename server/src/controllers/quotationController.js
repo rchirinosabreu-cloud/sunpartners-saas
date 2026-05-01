@@ -67,7 +67,7 @@ exports.formalizeByHash = async (req, res) => {
       ACL: 'public-read'
     }));
 
-    const purchaseOrderUrl = `${(process.env.S3_ENDPOINT || 'https://t3.storageapi.dev').replace(/\/$/, '')}/${BUCKET_NAME}/${key}`;
+    const purchaseOrderUrl = `${(process.env.AWS_ENDPOINT_URL || 'https://t3.storageapi.dev').replace(/\/$/, '')}/${BUCKET_NAME}/${key}`;
 
     const updated = await prisma.quotation.update({
       where: { id: quotation.id },
