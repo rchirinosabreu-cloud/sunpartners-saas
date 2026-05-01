@@ -54,7 +54,7 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFontSize(7);
   doc.text('DATOS DEL EVENTO', 110, currentY);
 
-  currentY += 15; // Increased spacing to prevent overlap with field titles (v34.1)
+  currentY += 15; // Mandatory offset (v36.1)
   doc.setFontSize(9);
   doc.setTextColor(24, 24, 27);
   doc.setFont('helvetica', 'bold');
@@ -85,12 +85,14 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('Nombre del evento: ', labelX, currentY);
+  doc.text('Nombre del evento: ', labelX, currentY + 15); // +15px mandatory offset (v36.1)
   doc.setTextColor(84, 134, 161);
 
   const eventName = (quotation.nombre_evento || 'PROYECTO');
   const eventNameLines = doc.splitTextToSize(eventName, 55);
-  doc.text(eventNameLines, dataX, currentY);
+  doc.text(eventNameLines, dataX, currentY + 15); // +15px mandatory offset (v36.1)
+
+  currentY += 15; // Shift currentY to account for the offset
 
   currentY += (eventNameLines.length > 1 ? (eventNameLines.length * 3.5) : 5); // Tightened spacing
   doc.setFont('helvetica', 'bold');
@@ -160,7 +162,7 @@ export const generateQuotationPDF = (quotation) => {
   ];
 
   autoTable(doc, {
-    startY: currentY + 10,
+    startY: currentY + 25, // At least 25px after logistics (v36.1)
     head: [['Detalles del servicio', 'Cant.', 'Días', 'Inversión Un.', 'Subtotal']],
     body: tableData,
     headStyles: {
