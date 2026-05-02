@@ -124,6 +124,7 @@ model Quotation {
   rejectionReason      String?
   clientId             String
   consultantId         String?
+  consecutivo          Int?               @unique
   archivedAt           DateTime?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt

@@ -36,7 +36,8 @@ export const generateQuotationPDF = (quotation) => {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(161, 161, 170); // Zinc-400 (Suttle grey)
-  doc.text(`REF: #Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`, 15, 50);
+  const refLabel = quotation?.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`;
+  doc.text(`REF: ${refLabel}`, 15, 50);
   doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 15, 54);
 
   // 2. Client & Logistics Grid
@@ -289,7 +290,7 @@ export const generateQuotationPDF = (quotation) => {
   }
 
   const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');
-  const idSafe = (quotation?.id || 'REF').substring(0, 6).toUpperCase();
+  const idSafe = quotation?.consecutivo ? `SP-${quotation.consecutivo}` : (quotation?.id || 'REF').substring(0, 6).toUpperCase();
   const fileName = `Cotizacion_${eventNameSafe}_${idSafe}.pdf`;
   doc.save(fileName);
 };

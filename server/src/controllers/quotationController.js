@@ -196,48 +196,69 @@ exports.create = async (req, res) => {
       };
     }));
 
-    const quotation = await prisma.quotation.create({
-      data: {
-        clientId,
-        consultantId: consultantId || req.userId,
-        nombre_evento: nombre_evento || 'Evento sin nombre',
-        tipo_evento: tipo_evento || 'Corporativo',
-        ubicacion: ubicacion || 'Por definir',
-        montaje_inicio: new Date(montaje_inicio),
-        montaje_fin: new Date(montaje_fin),
-        evento_inicio: new Date(evento_inicio),
-        evento_fin: new Date(evento_fin),
-        desmontaje_inicio: new Date(desmontaje_inicio),
-        desmontaje_fin: new Date(desmontaje_fin),
-        pago_metodo,
-        evento_servicio,
-        evento_duracion,
-        bitacora,
-        estado,
-        vlrNeto,
-        vlrTotal,
-        items: {
-          create: processedItems
-        },
-        services: {
-          create: (services || []).map(svc => ({
-            tipo: svc.tipo,
-            descripcion: svc.descripcion,
-            cantidad: parseInt(svc.cantidad || 1),
-            dias: parseInt(svc.dias || 1),
-            precio_pactado: parseFloat(svc.precio_pactado),
-            precio_dia_adicional: parseFloat(svc.precio_dia_adicional || 0)
-          }))
-        },
-        logs: {
-          create: {
-            message: 'Cotización creada en el sistema',
-            userId: req.userId
-          }
+    const quotation = await (async function createWithRetry(retries = 3) {
+      try {
+        return await prisma.$transaction(async (tx) => {
+          const lastQuotation = await tx.quotation.findFirst({
+            where: { NOT: { consecutivo: null } },
+            orderBy: { consecutivo: 'desc' },
+            select: { consecutivo: true }
+          });
+
+          const nextConsecutivo = lastQuotation?.consecutivo ? lastQuotation.consecutivo + 1 : 2341;
+
+          return await tx.quotation.create({
+            data: {
+              clientId,
+              consultantId: consultantId || req.userId,
+              consecutivo: nextConsecutivo,
+              nombre_evento: nombre_evento || 'Evento sin nombre',
+              tipo_evento: tipo_evento || 'Corporativo',
+              ubicacion: ubicacion || 'Por definir',
+              montaje_inicio: new Date(montaje_inicio),
+              montaje_fin: new Date(montaje_fin),
+              evento_inicio: new Date(evento_inicio),
+              evento_fin: new Date(evento_fin),
+              desmontaje_inicio: new Date(desmontaje_inicio),
+              desmontaje_fin: new Date(desmontaje_fin),
+              pago_metodo,
+              evento_servicio,
+              evento_duracion,
+              bitacora,
+              estado,
+              vlrNeto,
+              vlrTotal,
+              items: {
+                create: processedItems
+              },
+              services: {
+                create: (services || []).map(svc => ({
+                  tipo: svc.tipo,
+                  descripcion: svc.descripcion,
+                  cantidad: parseInt(svc.cantidad || 1),
+                  dias: parseInt(svc.dias || 1),
+                  precio_pactado: parseFloat(svc.precio_pactado),
+                  precio_dia_adicional: parseFloat(svc.precio_dia_adicional || 0)
+                }))
+              },
+              logs: {
+                create: {
+                  message: 'Cotización creada en el sistema',
+                  userId: req.userId
+                }
+              }
+            },
+            include: { items: true, services: true }
+          });
+        });
+      } catch (error) {
+        // P2002 is Prisma's Unique Constraint violation
+        if (error.code === 'P2002' && retries > 0) {
+          return createWithRetry(retries - 1);
         }
-      },
-      include: { items: true, services: true }
-    });
+        throw error;
+      }
+    })();
 
     res.status(201).json(quotation);
   } catch (error) {
