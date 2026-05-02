@@ -43,10 +43,11 @@ exports.getAll = async (req, res) => {
 exports.formalizeByHash = async (req, res) => {
   try {
     const { hash } = req.params;
+    const { sendByEmail } = req.body;
     const file = req.file;
 
-    if (!file) {
-      return res.status(400).json({ error: 'Debes cargar el archivo de la Orden de Compra.' });
+    if (!file && sendByEmail !== 'true') {
+      return res.status(400).json({ error: 'Debes cargar el archivo o seleccionar envío por correo.' });
     }
 
     const quotation = await prisma.quotation.findUnique({
@@ -56,39 +57,50 @@ exports.formalizeByHash = async (req, res) => {
 
     if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
 
-    // v34.1: Upload to Railway S3 Bucket (spacious-basketcase)
-    const key = `purchase_orders/${Date.now()}_${file.originalname}`;
+    let purchaseOrderUrl = null;
+    let purchaseOrderKey = null;
+    let newStatus = 'ACCEPTED_PENDING_OC';
+    let logMessage = 'El cliente confirmó la propuesta. Quedó pendiente el envío de la OC por correo.';
 
-    await s3Client.send(new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype
-      // ACL: 'public-read' - REMOVED for Signed URL Strategy (v38.0)
-    }));
+    if (file) {
+      // v34.1: Upload to Railway S3 Bucket (spacious-basketcase)
+      const key = `purchase_orders/${Date.now()}_${file.originalname}`;
 
-    const purchaseOrderUrl = `${(process.env.AWS_ENDPOINT_URL || 'https://t3.storageapi.dev').replace(/\/$/, '')}/${BUCKET_NAME}/${key}`;
+      await s3Client.send(new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype
+      }));
+
+      purchaseOrderKey = key;
+      purchaseOrderUrl = `${(process.env.AWS_ENDPOINT_URL || 'https://t3.storageapi.dev').replace(/\/$/, '')}/${BUCKET_NAME}/${key}`;
+      newStatus = 'FINALIZADA';
+      logMessage = 'El cliente aceptó la propuesta y cargó la Orden de Compra. Estado cambiado a LEGALIZADA.';
+    }
 
     const updated = await prisma.quotation.update({
       where: { id: quotation.id },
       data: {
-        estado: 'ACCEPTED_PENDING_OC',
+        estado: newStatus,
         purchaseOrderUrl,
-        purchaseOrderKey: key,
+        purchaseOrderKey,
         logs: {
           create: {
-            message: 'El cliente aceptó la propuesta y cargó la Orden de Compra.'
+            message: logMessage
           }
         }
       }
     });
 
     // Lógica de Notificación (Mock)
-    console.log(`[EMAIL NOTIFICATION] ¡Evento Legalizado! El cliente ${quotation.client.razon_social} ha subido la Orden de Compra para la cotización #Q-${quotation.id.substring(0,6).toUpperCase()}`);
+    console.log(`[EMAIL NOTIFICATION] ¡Actualización de Propuesta! El cliente ${quotation.client.razon_social} ha ${file ? 'subido la OC' : 'confirmado envío por correo'} para la cotización #Q-${quotation.id.substring(0,6).toUpperCase()}. Nuevo estado: ${newStatus}`);
 
     res.json({
-      message: 'Orden de Compra cargada con éxito. Su propuesta está siendo procesada.',
-      status: 'ACCEPTED_PENDING_OC',
+      message: file
+        ? 'Orden de Compra cargada con éxito. Su propuesta ha sido legalizada.'
+        : 'Propuesta confirmada. Quedamos a la espera de tu documento por correo.',
+      status: newStatus,
       purchaseOrderUrl
     });
   } catch (error) {

@@ -92,16 +92,18 @@ const QuotationList = () => {
 
   const getStatusBadge = (status) => {
     const styles = {
-      BORRADOR: 'bg-zinc-100 text-zinc-600',
-      ENVIADA: 'bg-blue-50 text-blue-600',
-      APROBADA: 'bg-green-50 text-green-600',
-      EJECUCION: 'bg-primary/10 text-primary',
-      FINALIZADA: 'bg-zinc-900 text-zinc-50',
-      CANCELADA: 'bg-red-50 text-red-600',
-      RECHAZADA: 'bg-red-100 text-red-700',
-      REVISION_SOLICITADA: 'bg-amber-50 text-amber-600'
+      BORRADOR: { style: 'bg-zinc-100 text-zinc-600', label: 'BORRADOR' },
+      ENVIADA: { style: 'bg-blue-50 text-blue-600', label: 'ENVIADA' },
+      APROBADA: { style: 'bg-green-50 text-green-600', label: 'APROBADA' },
+      EJECUCION: { style: 'bg-primary/10 text-primary', label: 'EJECUCIÓN' },
+      FINALIZADA: { style: 'bg-green-100 text-green-700', label: 'LEGALIZADA' },
+      CANCELADA: { style: 'bg-red-50 text-red-600', label: 'CANCELADA' },
+      RECHAZADA: { style: 'bg-red-100 text-red-700', label: 'RECHAZADA' },
+      REVISION_SOLICITADA: { style: 'bg-red-50 text-red-600', label: 'CAMBIOS SOLICITADOS' },
+      ACCEPTED_PENDING_OC: { style: 'bg-amber-50 text-amber-600', label: 'PENDIENTE OC' }
     };
-    return <span className={`px-2 py-0.5 rounded text-[10px] font-bold  tracking-wider ${styles[status] || 'bg-zinc-100 text-zinc-600'}`}>{status}</span>;
+    const config = styles[status] || { style: 'bg-zinc-100 text-zinc-600', label: status };
+    return <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${config.style}`}>{config.label}</span>;
   };
 
   const filteredQuotations = useMemo(() => {

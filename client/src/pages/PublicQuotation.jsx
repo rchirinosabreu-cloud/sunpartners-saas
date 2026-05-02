@@ -13,6 +13,8 @@ const PublicQuotation = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [ocFile, setOcFile] = useState(null);
+  // v41.0: Support for sending OC later via email
+  const [sendByEmail, setSendByEmail] = useState(false);
   const [rejection, setRejection] = useState({ type: 'CANTIDADES', reason: '' });
   const [processing, setProcessing] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -38,17 +40,18 @@ const PublicQuotation = () => {
   };
 
   const handleFormalize = async () => {
-    if (!ocFile) {
-      setUiModal({ isOpen: true, title: 'Atención', content: 'Por favor, selecciona el archivo de tu Orden de Compra.', type: 'warning' });
+    if (!ocFile && !sendByEmail) {
+      setUiModal({ isOpen: true, title: 'Atención', content: 'Por favor, selecciona el archivo de tu Orden de Compra o confirma el envío por correo.', type: 'warning' });
       return;
     }
 
     setProcessing(true);
     const formData = new FormData();
-    formData.append('purchaseOrder', ocFile);
+    if (ocFile) formData.append('purchaseOrder', ocFile);
+    formData.append('sendByEmail', sendByEmail);
 
     try {
-      await axios.post(`/api/quotations/public/${hash}/formalize`, formData, {
+      const res = await axios.post(`/api/quotations/public/${hash}/formalize`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 20000
       });
@@ -145,7 +148,22 @@ const PublicQuotation = () => {
                  <img src="/logo_sp.png" alt="Sunpartners" className="w-[300px] h-auto object-contain" />
               </div>
               <div className="space-y-3 pt-6 border-t border-zinc-50 max-w-xs">
-                 <h2 className="text-2xl font-black tracking-tighter text-zinc-900 leading-none">COTIZACIÓN</h2>
+                 <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-black tracking-tighter text-zinc-900 leading-none">COTIZACIÓN</h2>
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-black tracking-[0.2em] uppercase ${
+                        quotation.estado === 'REVISION_SOLICITADA' ? 'bg-red-50 text-red-600' :
+                        quotation.estado === 'FINALIZADA' ? 'bg-green-100 text-green-700' :
+                        quotation.estado === 'ACCEPTED_PENDING_OC' ? 'bg-amber-50 text-amber-600' :
+                        'bg-blue-50 text-blue-600'
+                    }`}>
+                        {
+                            quotation.estado === 'REVISION_SOLICITADA' ? 'CAMBIOS SOLICITADOS' :
+                            quotation.estado === 'FINALIZADA' ? 'LEGALIZADA' :
+                            quotation.estado === 'ACCEPTED_PENDING_OC' ? 'PENDIENTE OC' :
+                            quotation.estado.replace('_', ' ')
+                        }
+                    </span>
+                 </div>
                  <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] font-black text-zinc-400 tracking-widest uppercase">
                       REF: {quotation?.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0,6).toUpperCase()}`}
@@ -374,10 +392,11 @@ const PublicQuotation = () => {
             </p>
 
             <div className="space-y-8">
-              <div className="relative group">
+              <div className={`relative group ${sendByEmail ? 'opacity-40 pointer-events-none' : ''}`}>
                 <input
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
+                  disabled={sendByEmail}
                   onChange={e => setOcFile(e.target.files[0])}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
@@ -394,13 +413,21 @@ const PublicQuotation = () => {
                 </div>
               </div>
 
+              {/* v41.0: Flexible Option - Send by email */}
+              <div className="flex items-center gap-3 bg-zinc-50 p-4 rounded-lg border border-zinc-100 cursor-pointer hover:bg-zinc-100 transition-all" onClick={() => { setSendByEmail(!sendByEmail); if (!sendByEmail) setOcFile(null); }}>
+                 <div className={`size-5 rounded border-2 flex items-center justify-center transition-all ${sendByEmail ? 'bg-primary border-primary' : 'border-zinc-300 bg-white'}`}>
+                    {sendByEmail && <span className="material-symbols-outlined text-white text-[14px] font-black">check</span>}
+                 </div>
+                 <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-tight">Enviaré la orden de compra por correo electrónico</span>
+              </div>
+
               <div className="flex flex-col gap-4 pt-4">
                 <button
-                  disabled={processing || !ocFile}
+                  disabled={processing || (!ocFile && !sendByEmail)}
                   onClick={handleFormalize}
                   className="w-full bg-[#fbae17] text-white py-5 rounded-lg text-xs font-black  tracking-[0.4em] hover:opacity-90 disabled:opacity-50 shadow-lg border-b-4 border-black/5 flex items-center justify-center gap-4"
                 >
-                  {processing ? 'Procesando...' : 'Legalizar y Finalizar'}
+                  {processing ? 'Procesando...' : (ocFile ? 'Legalizar y Finalizar' : 'Confirmar Propuesta')}
                   <span className="material-symbols-outlined text-[18px]">verified</span>
                 </button>
                 <button
