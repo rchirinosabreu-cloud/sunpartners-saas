@@ -147,7 +147,9 @@ const PublicQuotation = () => {
               <div className="space-y-3 pt-6 border-t border-zinc-50 max-w-xs">
                  <h2 className="text-2xl font-black tracking-tighter text-zinc-900 leading-none">COTIZACIÓN</h2>
                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] font-black text-zinc-400 tracking-widest uppercase">REF: #Q-{(quotation?.id || 'REF').substring(0,6).toUpperCase()}</span>
+                    <span className="text-[10px] font-black text-zinc-400 tracking-widest uppercase">
+                      REF: {quotation?.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0,6).toUpperCase()}`}
+                    </span>
                     <span className="text-[10px] font-medium text-zinc-300">EMISIÓN: {new Date().toLocaleDateString('es-CO')}</span>
                  </div>
               </div>

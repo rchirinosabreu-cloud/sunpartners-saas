@@ -105,10 +105,13 @@ const QuotationList = () => {
   };
 
   const filteredQuotations = useMemo(() => {
-    return quotations.filter(q =>
-      matchesSearch(q.nombre_evento, debouncedSearch) ||
-      matchesSearch(q.client.razon_social, debouncedSearch)
-    );
+    return quotations.filter(q => {
+      const refLabel = q.consecutivo ? `SP-${q.consecutivo}` : `#Q-${q.id.substring(0, 6).toUpperCase()}`;
+      return matchesSearch(q.nombre_evento, debouncedSearch) ||
+             matchesSearch(q.client.razon_social, debouncedSearch) ||
+             matchesSearch(refLabel, debouncedSearch) ||
+             (q.consecutivo && matchesSearch(q.consecutivo.toString(), debouncedSearch));
+    });
   }, [quotations, debouncedSearch]);
 
   return (
@@ -184,11 +187,11 @@ const QuotationList = () => {
         <table className="w-full text-left font-body text-sm">
           <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-semibold text-[11px] tracking-wider">
             <tr>
+              <th className="px-6 py-4">REF</th>
               <th className="px-6 py-4">Evento / Cliente</th>
               <th className="px-6 py-4">Consultor</th>
               <th className="px-6 py-4">Fecha</th>
               <th className="px-6 py-4">Estado</th>
-              <th className="px-6 py-4">Items</th>
               <th className="px-6 py-4 text-right">Total</th>
               <th className="px-6 py-4 w-10"></th>
             </tr>
@@ -196,7 +199,7 @@ const QuotationList = () => {
           <tbody className="divide-y divide-zinc-50">
             {filteredQuotations.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-6 py-16 text-center text-zinc-400 font-bold  text-[11px] tracking-widest">
+                <td colSpan="7" className="px-6 py-16 text-center text-zinc-400 font-bold  text-[11px] tracking-widest">
                   {loading ? 'Sincronizando registros...' : `No se encontraron cotizaciones ${activeTab === 'active' ? 'activas' : 'archivadas'}.`}
                 </td>
               </tr>
@@ -207,6 +210,11 @@ const QuotationList = () => {
                   className={`hover:bg-zinc-50/80 cursor-pointer transition-all group border-l-4 border-transparent hover:border-primary ${activeTab === 'archived' ? 'opacity-60 grayscale-[0.5]' : ''}`}
                   onClick={() => navigate(`/cotizaciones/${q.id}`)}
                 >
+                  <td className="px-6 py-5">
+                    <span className="text-[11px] font-black text-zinc-500 tracking-widest uppercase">
+                      {q.consecutivo ? `SP-${q.consecutivo}` : `#Q-${q.id.substring(0, 6).toUpperCase()}`}
+                    </span>
+                  </td>
                   <td className="px-6 py-5">
                     <div className="flex flex-col">
                       <span className="font-black text-zinc-900 tracking-tight text-[13px]">{q.nombre_evento}</span>
@@ -235,12 +243,6 @@ const QuotationList = () => {
                     </div>
                   </td>
                   <td className="px-6 py-5">{getStatusBadge(q.estado)}</td>
-                  <td className="px-6 py-5">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-100 text-zinc-500 font-black text-[9px]  tracking-wider">
-                      <span className="material-symbols-outlined text-[14px]">inventory_2</span>
-                      {(q.items?.length || 0) + (q.services?.length || 0)} líneas
-                    </div>
-                  </td>
                   <td className="px-6 py-5 text-right">
                     <span className="font-black text-zinc-900 text-[14px] tracking-tight">
                       $ {(q.vlrTotal || 0).toLocaleString()}

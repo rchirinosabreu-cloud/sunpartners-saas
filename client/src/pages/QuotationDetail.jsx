@@ -124,7 +124,12 @@ const QuotationDetail = () => {
               <div className="h-14 w-px bg-zinc-100"></div>
               <div className="space-y-3">
                 <div className="flex flex-col gap-1.5">
-                  <h2 className="font-display text-2xl font-black tracking-tighter text-zinc-900 leading-none">{quotation.nombre_evento}</h2>
+                  <div className="flex items-center gap-3">
+                    <h2 className="font-display text-2xl font-black tracking-tighter text-zinc-900 leading-none">{quotation.nombre_evento}</h2>
+                    <span className="text-[11px] font-black text-zinc-400 bg-zinc-50 px-2 py-1 rounded border border-zinc-100 tracking-widest uppercase">
+                      {quotation.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${quotation.id.substring(0,6).toUpperCase()}`}
+                    </span>
+                  </div>
                   <div className="flex flex-col gap-1">
                      <p className="text-[12px] text-zinc-500 font-medium tracking-tight">
                         {quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}
