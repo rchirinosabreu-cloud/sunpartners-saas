@@ -183,6 +183,7 @@ const QuotationDetail = () => {
              <button
                 onClick={() => generateQuotationPDF(quotation)}
                 className="btn-action border border-zinc-200 text-zinc-600 bg-white hover:bg-zinc-50"
+                aria-label="Descargar PDF"
              >
                <span className="material-symbols-outlined">picture_as_pdf</span>
                PDF INTERNO
