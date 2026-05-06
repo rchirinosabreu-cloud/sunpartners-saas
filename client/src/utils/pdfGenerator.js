@@ -4,8 +4,12 @@ import { calculateLineTotal, calculateTotals } from './quotationUtils';
 
 export const generateQuotationPDF = (quotation) => {
   const doc = new jsPDF('p', 'mm', 'a4');
+  const pageHeight = doc.internal.pageSize.height; // 297mm for A4
 
-  // Totals Calculation
+  // v42.0: Layout Constants
+  const GLOBAL_BOTTOM_MARGIN = 20;
+  const TABLE_BOTTOM_MARGIN = 30;
+  const CLOSING_BLOCK_HEIGHT = 65; // Estimated height for Totals + Payment + Terms + Margins
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
   // 1. Header - Institutional Symmetry (v25.0)
@@ -186,6 +190,7 @@ export const generateQuotationPDF = (quotation) => {
       3: { halign: 'right' },
       4: { halign: 'right', fontSize: 10, fontStyle: 'bold', textColor: [24, 24, 27] }
     },
+    margin: { bottom: TABLE_BOTTOM_MARGIN },
     theme: 'plain',
     didDrawCell: (data) => {
       if (data.section === 'body') {
@@ -195,37 +200,44 @@ export const generateQuotationPDF = (quotation) => {
     }
   });
 
-  let finalY = doc.lastAutoTable.finalY + 10;
+  // 5. "Bloque de Cierre" Indivisible (v42.0)
+  // Totals + Payment + Terms must jump together if they don't fit
+  let closingY = doc.lastAutoTable.finalY + 15;
 
-  // 5. Totals Block
+  if (closingY + CLOSING_BLOCK_HEIGHT + GLOBAL_BOTTOM_MARGIN > pageHeight) {
+    doc.addPage();
+    closingY = 25; // Start on new page with margin
+  }
+
+  // A. Totals
   const summaryX = 130;
   doc.setFontSize(8);
   doc.setTextColor(113, 113, 122);
-  doc.text('SUBTOTAL NETO', summaryX, finalY);
+  doc.text('SUBTOTAL NETO', summaryX, closingY);
   doc.setTextColor(24, 24, 27);
-  doc.text(`$ ${subtotal.toLocaleString()}`, 195, finalY, { align: 'right' });
+  doc.text(`$ ${subtotal.toLocaleString()}`, 195, closingY, { align: 'right' });
 
-  finalY += 6;
+  closingY += 6;
   doc.setTextColor(113, 113, 122);
-  doc.text(quotation.client.isTaxExempt ? 'IVA (0% - EXENTO)' : 'IVA CAUSADO (19%)', summaryX, finalY);
+  doc.text(quotation.client.isTaxExempt ? 'IVA (0% - EXENTO)' : 'IVA CAUSADO (19%)', summaryX, closingY);
   doc.setTextColor(24, 24, 27);
-  doc.text(`$ ${iva.toLocaleString()}`, 195, finalY, { align: 'right' });
+  doc.text(`$ ${iva.toLocaleString()}`, 195, closingY, { align: 'right' });
 
-  finalY += 4;
+  closingY += 4;
   doc.setDrawColor(228, 228, 231);
-  doc.line(summaryX, finalY, 195, finalY);
+  doc.line(summaryX, closingY, 195, closingY);
 
-  finalY += 10;
-  doc.setFontSize(9); // v18.0: Smaller Total text
-  doc.setTextColor(84, 134, 161); // Sunpartners Blue
+  closingY += 10;
+  doc.setFontSize(9);
+  doc.setTextColor(84, 134, 161);
   doc.setFont('helvetica', 'bold');
-  doc.text('TOTAL', summaryX, finalY);
-  doc.setFontSize(14); // v18.0: Smaller total amount
+  doc.text('TOTAL', summaryX, closingY);
+  doc.setFontSize(14);
   doc.setTextColor(24, 24, 27);
-  doc.text(`$ ${total.toLocaleString()}`, 195, finalY, { align: 'right' });
+  doc.text(`$ ${total.toLocaleString()}`, 195, closingY, { align: 'right' });
 
-  // Forma de Pago Box (v32.0)
-  const paymentY = finalY - 15;
+  // B. Forma de Pago Box
+  const paymentY = closingY - 15;
   doc.setDrawColor(244, 244, 245);
   doc.setFillColor(250, 250, 251);
   doc.roundedRect(15, paymentY, 80, 15, 2, 2, 'FD');
@@ -237,21 +249,12 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(24, 24, 27);
   doc.text((quotation.pago_metodo || 'CONTADO').toUpperCase(), 20, paymentY + 11);
 
-  // 6. Terms & Conditions (v22.0: Fixed Anchor at bottom with 2 clean columns)
-  const pageHeight = doc.internal.pageSize.height;
-  const termsBlockHeight = 25; // Compacted for v22.0
-  const footerReservedSpace = 15;
-  const anchorY = pageHeight - termsBlockHeight - footerReservedSpace;
-
-  // Page break logic: If current Y is too close to anchor, add page
-  if (finalY > anchorY - 5) {
-    doc.addPage();
-  }
-
+  // C. Terms & Conditions
+  closingY += 15;
   doc.setFontSize(8);
   doc.setTextColor(84, 134, 161);
   doc.setFont('helvetica', 'bold');
-  doc.text('TÉRMINOS Y CONDICIONES LEGALES', 15, anchorY);
+  doc.text('TÉRMINOS Y CONDICIONES LEGALES', 15, closingY);
 
   doc.setFontSize(6.5);
   doc.setFont('helvetica', 'normal');
@@ -274,7 +277,7 @@ export const generateQuotationPDF = (quotation) => {
   terms.forEach((term, i) => {
     const col = i < 5 ? 0 : 1;
     const row = i % 5;
-    doc.text(term, 15 + (col * colWidth), anchorY + 6 + (row * 3.5));
+    doc.text(term, 15 + (col * colWidth), closingY + 6 + (row * 3.5));
   });
 
   // 7. Footer (v19.0: Two-column symmetry)
@@ -284,9 +287,12 @@ export const generateQuotationPDF = (quotation) => {
     doc.setFontSize(6);
     doc.setTextColor(161, 161, 170); // Zinc-500
 
-    // Column Left: Company Name
+    // Page Number (Right Aligned)
+    doc.text(`Página ${i} de ${pageCount}`, 195, pageHeight - 10, { align: 'right' });
+
+    // Company Name (Left Aligned) - v42.0
     doc.setFont('helvetica', 'bold');
-    // REMOVED: BY PROCAMPO DEL CARIBE S.A.S. (v32.0 branding cleanup)
+    doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S.', 15, pageHeight - 10);
   }
 
   const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');
