@@ -6,10 +6,12 @@ export const generateQuotationPDF = (quotation) => {
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageHeight = doc.internal.pageSize.height; // 297mm for A4
 
-  // v42.0: Layout Constants
+  // v42.1: Layout Constants
   const GLOBAL_BOTTOM_MARGIN = 20;
   const TABLE_BOTTOM_MARGIN = 30;
-  const CLOSING_BLOCK_HEIGHT = 65; // Estimated height for Totals + Payment + Terms + Margins
+  const TERMS_BLOCK_HEIGHT = 25;
+  const ANCHOR_Y_TERMS = pageHeight - TERMS_BLOCK_HEIGHT - GLOBAL_BOTTOM_MARGIN; // ~252mm
+  const TOTALS_PAYMENT_HEIGHT = 35;
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
   // 1. Header - Institutional Symmetry (v25.0)
@@ -200,11 +202,11 @@ export const generateQuotationPDF = (quotation) => {
     }
   });
 
-  // 5. "Bloque de Cierre" Indivisible (v42.0)
-  // Totals + Payment + Terms must jump together if they don't fit
+  // 5. "Bloque de Cierre" Indivisible (v42.1)
+  // Totals + Payment must jump together if they don't fit before the Terms anchor
   let closingY = doc.lastAutoTable.finalY + 15;
 
-  if (closingY + CLOSING_BLOCK_HEIGHT + GLOBAL_BOTTOM_MARGIN > pageHeight) {
+  if (closingY + TOTALS_PAYMENT_HEIGHT > ANCHOR_Y_TERMS - 5) {
     doc.addPage();
     closingY = 25; // Start on new page with margin
   }
@@ -249,12 +251,11 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(24, 24, 27);
   doc.text((quotation.pago_metodo || 'CONTADO').toUpperCase(), 20, paymentY + 11);
 
-  // C. Terms & Conditions
-  closingY += 15;
+  // 6. Terms & Conditions (v42.1: Absolute Anchoring at bottom)
   doc.setFontSize(8);
   doc.setTextColor(84, 134, 161);
   doc.setFont('helvetica', 'bold');
-  doc.text('TÉRMINOS Y CONDICIONES LEGALES', 15, closingY);
+  doc.text('TÉRMINOS Y CONDICIONES LEGALES', 15, ANCHOR_Y_TERMS);
 
   doc.setFontSize(6.5);
   doc.setFont('helvetica', 'normal');
@@ -277,23 +278,10 @@ export const generateQuotationPDF = (quotation) => {
   terms.forEach((term, i) => {
     const col = i < 5 ? 0 : 1;
     const row = i % 5;
-    doc.text(term, 15 + (col * colWidth), closingY + 6 + (row * 3.5));
+    doc.text(term, 15 + (col * colWidth), ANCHOR_Y_TERMS + 6 + (row * 3.5));
   });
 
-  // 7. Footer (v19.0: Two-column symmetry)
-  const pageCount = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(6);
-    doc.setTextColor(161, 161, 170); // Zinc-500
-
-    // Page Number (Right Aligned)
-    doc.text(`Página ${i} de ${pageCount}`, 195, pageHeight - 10, { align: 'right' });
-
-    // Company Name (Left Aligned) - v42.0
-    doc.setFont('helvetica', 'bold');
-    doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S.', 15, pageHeight - 10);
-  }
+  // 7. Footer removed (v42.1: Rodny prefers clean design)
 
   const eventNameSafe = (quotation?.nombre_evento || 'Cotizacion').replace(/\s+/g, '_');
   const idSafe = quotation?.consecutivo ? `SP-${quotation.consecutivo}` : (quotation?.id || 'REF').substring(0, 6).toUpperCase();
