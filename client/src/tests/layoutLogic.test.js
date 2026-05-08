@@ -24,8 +24,8 @@ describe('AppLayout Logic', () => {
   });
 
   describe('getDynamicTitle', () => {
-    it('should return Ojo al dato for /', () => {
-      expect(getDynamicTitle('/')).toBe('Ojo al dato');
+    it('should return Ojo al Dato for /', () => {
+      expect(getDynamicTitle('/')).toBe('Ojo al Dato');
     });
 
     it('should return Tasks for /tasks', () => {
