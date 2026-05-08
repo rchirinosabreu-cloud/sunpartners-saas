@@ -211,20 +211,20 @@ const Dashboard = () => {
                 Logros Recientes
               </h2>
             </div>
-            <div className="bg-white rounded-2xl border border-zinc-100 p-8 shadow-sm space-y-8 relative overflow-hidden">
-              <div className="relative space-y-8">
+            <div className="bg-white rounded-2xl border border-zinc-100 p-8 shadow-sm space-y-6 relative overflow-hidden">
+              <div className="relative space-y-6">
                 {/* Vertical Timeline Line */}
                 {stats.logrosRecientes.length > 1 && (
-                  <div className="absolute left-5 top-2 bottom-2 w-px bg-zinc-100 z-0"></div>
+                  <div className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-100 z-0"></div>
                 )}
 
                 {stats.logrosRecientes.length === 0 ? (
                   <p className="text-center py-8 text-xs text-zinc-400 font-medium italic">Sin logros registrados esta semana</p>
                 ) : (
-                  stats.logrosRecientes.map((logro, idx) => (
-                    <div key={logro.id} className="flex items-start gap-4 relative z-10 group">
-                      <div className="size-10 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm ring-4 ring-white">
-                         <Avatar size={40} name={logro.user.nombre} variant="beam" />
+                  stats.logrosRecientes.slice(0, 5).map((logro, idx) => (
+                    <div key={logro.id} className="flex items-start gap-3 relative z-10 group">
+                      <div className="size-8 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm ring-4 ring-white">
+                         <Avatar size={32} name={logro.user.nombre} variant="beam" />
                       </div>
                       <div className="flex-1 min-w-0 pt-0.5">
                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
