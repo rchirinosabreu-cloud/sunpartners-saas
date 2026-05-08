@@ -7,7 +7,7 @@ const { calculateLineTotal, calculateTotals } = require('../utils/quotationUtils
 const includeAll = {
   client: true,
   consultant: { select: { id: true, nombre: true, email: true } },
-  items: { include: { inventory: { include: { compositions: { include: { warehouseItem: true } } } }, compositions: { include: { warehouseItem: true } } } },
+  items: { include: { inventory: { include: { compositions: { include: { warehouseItem: true, componentCatalogItem: true } } } }, compositions: { include: { warehouseItem: true, componentCatalogItem: true } } } },
   services: true,
   planning: true,
   logs: { include: { user: true }, orderBy: { createdAt: 'desc' } }
@@ -179,7 +179,8 @@ exports.create = async (req, res) => {
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
             compositions: {
               create: (item.compositions || []).map(c => ({
-                warehouseItemId: c.warehouseItemId,
+                warehouseItemId: c.warehouseItemId || null,
+                componentCatalogItemId: c.componentCatalogItemId || null,
                 quantity: parseInt(c.quantity)
               }))
             }
@@ -201,7 +202,8 @@ exports.create = async (req, res) => {
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
           create: compositions.map(c => ({
-            warehouseItemId: c.warehouseItemId,
+            warehouseItemId: c.warehouseItemId || null,
+            componentCatalogItemId: c.componentCatalogItemId || null,
             quantity: parseInt(c.quantity)
           }))
         } : undefined
@@ -330,7 +332,8 @@ exports.update = async (req, res) => {
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
             compositions: {
               create: (item.compositions || []).map(c => ({
-                warehouseItemId: c.warehouseItemId,
+                warehouseItemId: c.warehouseItemId || null,
+                componentCatalogItemId: c.componentCatalogItemId || null,
                 quantity: parseInt(c.quantity)
               }))
             }
@@ -352,7 +355,8 @@ exports.update = async (req, res) => {
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
           create: compositions.map(c => ({
-            warehouseItemId: c.warehouseItemId,
+            warehouseItemId: c.warehouseItemId || null,
+            componentCatalogItemId: c.componentCatalogItemId || null,
             quantity: parseInt(c.quantity)
           }))
         } : undefined
@@ -571,6 +575,60 @@ exports.upsertPlanning = async (req, res) => {
   }
 };
 
+async function resolveWarehouseRequirements(items) {
+  const requirements = {};
+
+  async function resolve(entity, multiplier, visited) {
+    // entity can be a QuotationItem, a Composition, or an Inventory_Commercial
+
+    // 1. Check if it's a direct warehouse link
+    if (entity.warehouseItemId) {
+      const qty = (entity.quantity || 1) * multiplier;
+      requirements[entity.warehouseItemId] = (requirements[entity.warehouseItemId] || 0) + qty;
+      return;
+    }
+
+    // 2. Check if it points to a catalog item (either via inventoryId or componentCatalogItemId)
+    const catalogId = entity.inventoryId || entity.componentCatalogItemId;
+    if (catalogId) {
+      if (visited.has(catalogId)) return; // Prevent infinite loops
+      visited.add(catalogId);
+
+      const catalogItem = await prisma.inventory_Commercial.findUnique({
+        where: { id: catalogId },
+        include: { compositions: true }
+      });
+
+      if (catalogItem && !catalogItem.isExternal) {
+        if (catalogItem.compositions && catalogItem.compositions.length > 0) {
+          for (const comp of catalogItem.compositions) {
+            await resolve(comp, (entity.cantidad || entity.quantity || 1) * multiplier, visited);
+          }
+        } else if (catalogItem.bodegaId) {
+          const qty = (entity.cantidad || entity.quantity || 1) * multiplier;
+          requirements[catalogItem.bodegaId] = (requirements[catalogItem.bodegaId] || 0) + qty;
+        }
+      }
+      visited.delete(catalogId);
+      return;
+    }
+
+    // 3. Check for local compositions (One-shot)
+    if (entity.compositions && entity.compositions.length > 0) {
+      for (const comp of entity.compositions) {
+        await resolve(comp, (entity.cantidad || entity.quantity || 1) * multiplier, visited);
+      }
+    }
+  }
+
+  for (const item of items) {
+    if (item.isExternal) continue;
+    await resolve(item, 1, new Set());
+  }
+
+  return requirements;
+}
+
 async function checkAvailability(quotationId) {
   const q = await prisma.quotation.findUnique({
     where: { id: quotationId },
@@ -606,54 +664,24 @@ async function checkAvailability(quotationId) {
     }
   });
 
-  // Calculate committed stock by Warehouse Item (Universal key)
-  const committed = {}; // warehouseItemId -> quantity
-  overlaps.forEach(overlap => {
-    overlap.items.forEach(item => {
-      // 1. If it's a dynamic composition
-      if (item.compositions && item.compositions.length > 0) {
-        item.compositions.forEach(comp => {
-          committed[comp.warehouseItemId] = (committed[comp.warehouseItemId] || 0) + (comp.quantity * item.cantidad);
-        });
-      }
-      // 2. If it's a catalog item that is a composition
-      else if (item.inventory?.compositions && item.inventory.compositions.length > 0) {
-        item.inventory.compositions.forEach(comp => {
-          committed[comp.warehouseItemId] = (committed[comp.warehouseItemId] || 0) + (comp.quantity * item.cantidad);
-        });
-      }
-      // 3. If it's a simple catalog item (1-to-1)
-      else if (item.inventory?.bodegaId) {
-        committed[item.inventory.bodegaId] = (committed[item.inventory.bodegaId] || 0) + item.cantidad;
-      }
-    });
-  });
-
-  // Check availability for current quotation items
-  for (const item of q.items) {
-    if (item.isExternal || item.inventory?.isExternal) continue;
-
-    const components = [];
-
-    if (item.compositions && item.compositions.length > 0) {
-      components.push(...item.compositions);
-    } else if (item.inventory?.compositions && item.inventory.compositions.length > 0) {
-      components.push(...item.inventory.compositions);
-    } else if (item.inventory?.bodegaId) {
-      components.push({ warehouseItemId: item.inventory.bodegaId, quantity: 1, name: item.inventory.nombre_comercial });
+  // Calculate committed stock by Warehouse Item
+  const committed = {};
+  for (const overlap of overlaps) {
+    const reqs = await resolveWarehouseRequirements(overlap.items);
+    for (const [id, qty] of Object.entries(reqs)) {
+      committed[id] = (committed[id] || 0) + qty;
     }
+  }
 
-    for (const comp of components) {
-      const warehouseId = comp.warehouseItemId;
-      const needed = comp.quantity * item.cantidad;
-      const alreadyCommitted = committed[warehouseId] || 0;
+  // Check requirements for current quotation
+  const needed = await resolveWarehouseRequirements(q.items);
+  for (const [warehouseId, neededQty] of Object.entries(needed)) {
+    const warehouseItem = await prisma.inventory_Bodega.findUnique({ where: { id: warehouseId } });
+    const totalStock = (warehouseItem.claseA || 0) + (warehouseItem.claseB || 0);
+    const alreadyCommitted = committed[warehouseId] || 0;
 
-      const warehouseItem = await prisma.inventory_Bodega.findUnique({ where: { id: warehouseId } });
-      const totalStock = (warehouseItem.claseA || 0) + (warehouseItem.claseB || 0);
-
-      if (alreadyCommitted + needed > totalStock) {
-        return `Stock insuficiente para "${warehouseItem.nombre}". Disponible (A+B): ${totalStock}, Comprometido: ${alreadyCommitted}, Requerido para este set: ${needed}`;
-      }
+    if (alreadyCommitted + neededQty > totalStock) {
+      return `Stock insuficiente para "${warehouseItem.nombre}". Disponible (A+B): ${totalStock}, Comprometido: ${alreadyCommitted}, Requerido para esta propuesta: ${neededQty}`;
     }
   }
 
