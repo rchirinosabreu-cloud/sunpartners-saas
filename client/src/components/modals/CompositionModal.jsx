@@ -9,7 +9,7 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   const [saveToCatalog, setSaveToCatalog] = useState(false);
   const [precio1erDia, setPrecio1erDia] = useState(0);
   const [precioDiaAdic, setPrecioDiaAdic] = useState(0);
-  const [warehouseInventory, setWarehouseInventory] = useState([]);
+  const [catalogInventory, setCatalogInventory] = useState([]);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,15 +22,15 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   }, [search]);
 
   useEffect(() => {
-    const fetchWarehouse = async () => {
+    const fetchCatalog = async () => {
       try {
-        const res = await axios.get('/api/inventory/bodega', { withCredentials: true });
-        setWarehouseInventory(Array.isArray(res.data) ? res.data : []);
+        const res = await axios.get('/api/inventory/commercial', { withCredentials: true });
+        setCatalogInventory(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
-        console.error('Error fetching warehouse inventory:', err);
+        console.error('Error fetching catalog inventory:', err);
       }
     };
-    if (isOpen) fetchWarehouse();
+    if (isOpen) fetchCatalog();
   }, [isOpen]);
 
   useEffect(() => {
@@ -42,12 +42,16 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
 
         // Handle items if they are compositions (catalog or dynamic)
         const rawItems = initialData.compositions || initialData.inventory?.compositions || [];
-        setItems(rawItems.map(it => ({
-          warehouseItemId: it.warehouseItemId,
-          nombre: it.warehouseItem?.nombre || it.nombre || 'Item',
-          quantity: it.quantity,
-          vlrUnitario: it.warehouseItem?.vlrUnitario || it.vlrUnitario || 0
-        })));
+        setItems(rawItems.map(it => {
+          const isCatalogComponent = !!it.componentCatalogItemId;
+          return {
+            warehouseItemId: it.warehouseItemId,
+            componentCatalogItemId: it.componentCatalogItemId,
+            nombre: it.componentCatalogItem?.nombre_comercial || it.warehouseItem?.nombre || it.nombre || 'Item',
+            quantity: it.quantity,
+            vlrUnitario: isCatalogComponent ? (it.componentCatalogItem?.valor_alquiler || 0) : (it.warehouseItem?.vlrUnitario || it.vlrUnitario || 0)
+          };
+        }));
         setSaveToCatalog(false);
       } else {
         // Reset for new creation
@@ -61,30 +65,30 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     }
   }, [isOpen, initialData]);
 
-  const filteredWarehouse = useMemo(() => {
+  const filteredCatalog = useMemo(() => {
     if (!debouncedSearch) return [];
-    return warehouseInventory
-      .filter(item => matchesSearch(item.nombre, debouncedSearch))
+    return catalogInventory
+      .filter(item => matchesSearch(item.nombre_comercial, debouncedSearch))
       .slice(0, 20);
-  }, [debouncedSearch, warehouseInventory]);
+  }, [debouncedSearch, catalogInventory]);
 
   const addItem = (item) => {
-    if (items.some(i => i.warehouseItemId === item.id)) return;
+    if (items.some(i => i.componentCatalogItemId === item.id)) return;
     setItems([...items, {
-      warehouseItemId: item.id,
-      nombre: item.nombre,
+      componentCatalogItemId: item.id,
+      nombre: item.nombre_comercial,
       quantity: 1,
-      vlrUnitario: item.vlrUnitario
+      vlrUnitario: item.valor_alquiler
     }]);
     setSearch('');
   };
 
   const removeItem = (id) => {
-    setItems(items.filter(i => i.warehouseItemId !== id));
+    setItems(items.filter(i => (i.componentCatalogItemId || i.warehouseItemId) !== id));
   };
 
   const updateQuantity = (id, q) => {
-    setItems(items.map(i => i.warehouseItemId === id ? { ...i, quantity: parseInt(q) || 1 } : i));
+    setItems(items.map(i => (i.componentCatalogItemId || i.warehouseItemId) === id ? { ...i, quantity: parseInt(q) || 1 } : i));
   };
 
   const suggestedPrice = useMemo(() => {
@@ -133,7 +137,7 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
         </div>
 
         <div className="relative">
-          <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2 uppercase">Añadir piezas de bodega</label>
+          <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2 uppercase">Añadir productos del catálogo</label>
           <div className="relative">
              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-[18px]">search</span>
              <input
@@ -141,18 +145,21 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                value={search}
                onChange={e => setSearch(e.target.value)}
                className="w-full pl-10 pr-4 py-3 border-2 border-zinc-100 rounded-lg font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
-               placeholder="Buscar en bodega (sofás, mesas, poltronas...)"
+               placeholder="Buscar en catálogo..."
              />
           </div>
-          {filteredWarehouse.length > 0 && (
+          {filteredCatalog.length > 0 && (
             <div className="absolute top-full left-0 w-full mt-1 bg-white border-2 border-primary/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar">
-              {filteredWarehouse.map(item => (
+              {filteredCatalog.map(item => (
                 <div
                   key={item.id}
                   onClick={() => addItem(item)}
                   className="p-3 hover:bg-zinc-50 cursor-pointer flex justify-between items-center border-b border-zinc-50 last:border-0"
                 >
-                  <span className="text-xs font-bold text-zinc-900">{item.nombre}</span>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-zinc-900">{item.nombre_comercial}</span>
+                    <span className="text-[9px] text-zinc-400 font-bold uppercase">Base: ${item.valor_alquiler.toLocaleString()}</span>
+                  </div>
                   <span className="text-[10px] font-black text-primary bg-primary/5 px-2 py-1 rounded">Stock: {item.claseA + item.claseB}</span>
                 </div>
               ))}
@@ -168,20 +175,21 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
              </div>
           ) : (
             items.map(item => (
-              <div key={item.warehouseItemId} className="flex items-center gap-4 bg-zinc-50 p-3 rounded-lg border border-zinc-100">
+              <div key={item.componentCatalogItemId || item.warehouseItemId} className="flex items-center gap-4 bg-zinc-50 p-3 rounded-lg border border-zinc-100">
                 <div className="flex-1">
                   <p className="text-xs font-bold text-zinc-900">{item.nombre}</p>
+                  <p className="text-[9px] font-bold text-zinc-400">UNIT: ${item.vlrUnitario?.toLocaleString()}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-[9px] font-black text-zinc-400">CANT:</label>
                   <input
                     type="number"
                     value={item.quantity}
-                    onChange={e => updateQuantity(item.warehouseItemId, e.target.value)}
+                    onChange={e => updateQuantity(item.componentCatalogItemId || item.warehouseItemId, e.target.value)}
                     className="w-12 p-1 text-center font-bold border-2 border-zinc-200 rounded outline-none focus:border-primary text-xs"
                   />
                 </div>
-                <button onClick={() => removeItem(item.warehouseItemId)} className="text-zinc-300 hover:text-red-500 transition-colors">
+                <button onClick={() => removeItem(item.componentCatalogItemId || item.warehouseItemId)} className="text-zinc-300 hover:text-red-500 transition-colors">
                   <span className="material-symbols-outlined text-[18px]">close</span>
                 </button>
               </div>

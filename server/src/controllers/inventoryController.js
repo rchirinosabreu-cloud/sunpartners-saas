@@ -72,7 +72,7 @@ exports.getAllCommercial = async (req, res) => {
     const items = await prisma.inventory_Commercial.findMany({
       include: {
         bodega: true,
-        compositions: { include: { warehouseItem: true } }
+        compositions: { include: { warehouseItem: true, componentCatalogItem: true } }
       }
     });
     const processed = items.map(item => {
@@ -108,7 +108,8 @@ exports.createCommercial = async (req, res) => {
         estado: estado || 'ACTIVO',
         compositions: compositions ? {
           create: compositions.map(c => ({
-            warehouseItemId: c.warehouseItemId,
+            warehouseItemId: c.warehouseItemId || null,
+            componentCatalogItemId: c.componentCatalogItemId || null,
             quantity: parseInt(c.quantity)
           }))
         } : undefined
@@ -144,7 +145,8 @@ exports.updateCommercial = async (req, res) => {
         estado: estado !== undefined ? estado : undefined,
         compositions: compositions ? {
           create: compositions.map(c => ({
-            warehouseItemId: c.warehouseItemId,
+            warehouseItemId: c.warehouseItemId || null,
+            componentCatalogItemId: c.componentCatalogItemId || null,
             quantity: parseInt(c.quantity)
           }))
         } : undefined

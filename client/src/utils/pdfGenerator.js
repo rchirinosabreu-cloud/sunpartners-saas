@@ -136,12 +136,12 @@ export const generateQuotationPDF = (quotation) => {
 
       // Dynamic Composition inclusions
       if (item.compositions?.length > 0) {
-        const inclusions = item.compositions.map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ');
+        const inclusions = item.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ');
         description += `\n(Incluye: ${inclusions})`;
       }
       // Catalog Item Composition inclusions
       else if (item.inventory?.compositions?.length > 0) {
-        const inclusions = item.inventory.compositions.map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ');
+        const inclusions = item.inventory.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ');
         description += `\n(Incluye: ${inclusions})`;
       }
 

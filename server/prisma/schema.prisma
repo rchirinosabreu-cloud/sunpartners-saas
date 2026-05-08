@@ -96,7 +96,8 @@ model Inventory_Commercial {
   deletedJustification String?
   bodega               Inventory_Bodega? @relation(fields: [bodegaId], references: [id], onDelete: Cascade)
   quotationItems   QuotationItem[]
-  compositions     Composition[]
+  compositions     Composition[]     @relation("CatalogItemCompositions")
+  asComponentIn    Composition[]     @relation("ComponentCatalogItems")
 }
 
 model Quotation {
@@ -160,16 +161,18 @@ model QuotationItem {
 }
 
 model Composition {
-  id              String                @id @default(uuid())
-  quantity        Int                   @default(1)
-  catalogItemId   String?
-  quotationItemId String?
-  warehouseItemId String
-  catalogItem     Inventory_Commercial? @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
-  quotationItem   QuotationItem?        @relation(fields: [quotationItemId], references: [id], onDelete: Cascade)
-  warehouseItem   Inventory_Bodega      @relation(fields: [warehouseItemId], references: [id])
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  id                     String                @id @default(uuid())
+  quantity               Int                   @default(1)
+  catalogItemId          String?
+  quotationItemId        String?
+  warehouseItemId        String?
+  componentCatalogItemId String?
+  catalogItem            Inventory_Commercial? @relation("CatalogItemCompositions", fields: [catalogItemId], references: [id], onDelete: Cascade)
+  quotationItem          QuotationItem?        @relation(fields: [quotationItemId], references: [id], onDelete: Cascade)
+  warehouseItem          Inventory_Bodega?     @relation(fields: [warehouseItemId], references: [id])
+  componentCatalogItem   Inventory_Commercial? @relation("ComponentCatalogItems", fields: [componentCatalogItemId], references: [id])
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
 }
 
 model QuotationService {

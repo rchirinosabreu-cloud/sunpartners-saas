@@ -243,7 +243,7 @@ const PublicQuotation = () => {
                        {/* Composition breakdown (v18.0: Clean) */}
                        {(item.compositions?.length > 0 || item.inventory?.compositions?.length > 0) && (
                           <span className="text-[10px] text-zinc-500 font-medium italic mt-1 block max-w-md">
-                            (Incluye: {(item.compositions || item.inventory.compositions).map(c => `${c.quantity} ${c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ')})
+                            (Incluye: {(item.compositions || item.inventory.compositions).map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ')})
                           </span>
                        )}
                     </td>
