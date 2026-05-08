@@ -20,7 +20,7 @@ export function getGreetingInfo(userName, date = new Date()) {
 }
 
 export function getDynamicTitle(pathname) {
-  if (pathname === '/' || pathname === '/dashboard') return 'Ojo al dato';
+  if (pathname === '/' || pathname === '/dashboard') return 'Ojo al Dato';
   if (pathname.startsWith('/tasks')) return 'Tasks';
   if (pathname.startsWith('/inventario')) return 'Bodega';
   if (pathname.startsWith('/comercial')) return 'Catálogo';

@@ -130,7 +130,7 @@ const Dashboard = () => {
       <div className="flex h-full items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <div className="size-12 bg-zinc-100 rounded-full"></div>
-          <span className="text-sm font-medium text-zinc-400">Ojo al dato: Sincronizando...</span>
+          <span className="text-sm font-medium text-zinc-400">Ojo al Dato: Sincronizando...</span>
         </div>
       </div>
     );
@@ -211,31 +211,53 @@ const Dashboard = () => {
                 Logros Recientes
               </h2>
             </div>
-            <div className="bg-white rounded-2xl border border-zinc-100 p-6 shadow-sm space-y-6">
-              <div className="space-y-4">
+            <div className="bg-white rounded-2xl border border-zinc-100 p-8 shadow-sm space-y-8 relative overflow-hidden">
+              <div className="relative space-y-8">
+                {/* Vertical Timeline Line */}
+                {stats.logrosRecientes.length > 1 && (
+                  <div className="absolute left-5 top-2 bottom-2 w-px bg-zinc-100 z-0"></div>
+                )}
+
                 {stats.logrosRecientes.length === 0 ? (
                   <p className="text-center py-8 text-xs text-zinc-400 font-medium italic">Sin logros registrados esta semana</p>
                 ) : (
-                  stats.logrosRecientes.map(logro => (
-                    <div key={logro.id} className="flex items-center gap-3 group">
-                      <div className="size-2 rounded-full bg-green-400 shrink-0 group-hover:scale-150 transition-transform"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-zinc-800 truncate">{logro.titulo}</p>
-                        <p className="text-[10px] text-zinc-400 font-medium">por {toTitleCase(logro.user.nombre)}</p>
+                  stats.logrosRecientes.map((logro, idx) => (
+                    <div key={logro.id} className="flex items-start gap-4 relative z-10 group">
+                      <div className="size-10 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm ring-4 ring-white">
+                         <Avatar size={40} name={logro.user.nombre} variant="beam" />
                       </div>
-                      <span className="text-[10px] font-medium text-zinc-400">
-                        {new Date(logro.updatedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-                      </span>
+                      <div className="flex-1 min-w-0 pt-0.5">
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                          {toTitleCase(logro.user.nombre)} completó:
+                        </p>
+                        <p className="text-sm font-black text-zinc-900 mb-1 leading-tight">{logro.titulo}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-zinc-300">
+                             {new Date(logro.updatedAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                          </span>
+                          {logro.client && (
+                            <>
+                              <span className="text-[10px] text-zinc-200">•</span>
+                              <span className="text-[10px] font-bold text-zinc-400 truncate max-w-[150px]">
+                                {logro.client.razon_social}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))
                 )}
               </div>
-              <button
-                onClick={() => setIsHistoryModalOpen(true)}
-                className="w-full py-4 border-t border-zinc-50 text-[11px] font-black uppercase tracking-widest text-primary hover:text-primary-hover flex items-center justify-center gap-2 transition-colors"
-              >
-                Ver historial completo <span className="material-symbols-outlined text-[16px]">arrow_outward</span>
-              </button>
+
+              <div className="pt-4">
+                <button
+                  onClick={() => setIsHistoryModalOpen(true)}
+                  className="w-full py-4 border-t border-zinc-50 text-[11px] font-black uppercase tracking-widest text-primary hover:text-primary-hover flex items-center justify-center gap-2 transition-all hover:gap-3"
+                >
+                  Ver historial completo <span className="material-symbols-outlined text-[16px]">arrow_outward</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

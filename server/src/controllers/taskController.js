@@ -64,7 +64,8 @@ exports.getDashboardStats = async (req, res) => {
         deletedAt: null
       },
       include: {
-        user: { select: { id: true, nombre: true } }
+        user: { select: { id: true, nombre: true } },
+        client: { select: { razon_social: true } }
       },
       orderBy: { updatedAt: 'desc' }
     });

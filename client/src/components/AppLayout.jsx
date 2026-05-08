@@ -48,7 +48,7 @@ const AppLayout = () => {
   };
 
   const menuItems = [
-    { to: '/', icon: 'dashboard', label: 'Ojo al dato' },
+    { to: '/', icon: 'dashboard', label: 'Ojo al Dato' },
     { to: '/cotizaciones', icon: 'receipt_long', label: 'Cotizaciones' },
     { to: '/tasks', icon: 'view_kanban', label: 'Tasks' },
     { to: '/inventario', icon: 'warehouse', label: 'Bodega', roles: ['ADMIN', 'EDITOR'] },
