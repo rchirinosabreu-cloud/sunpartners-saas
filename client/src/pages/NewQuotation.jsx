@@ -241,6 +241,7 @@ const NewQuotation = () => {
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isCompositionModalOpen, setIsCompositionModalOpen] = useState(false);
   const [isCustomItemModalOpen, setIsCustomItemModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, type: '', index: null });
   const [editingComposition, setEditingComposition] = useState(null);
   const [editingCustomItem, setEditingCustomItem] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
@@ -406,11 +407,35 @@ const NewQuotation = () => {
     });
   };
 
+  const handleDelete = () => {
+    if (deleteConfirm.type === 'item') {
+      const newItems = formData.items.filter((_, i) => i !== deleteConfirm.index);
+      setFormData({ ...formData, items: newItems });
+    } else {
+      const newServices = formData.services.filter((_, i) => i !== deleteConfirm.index);
+      setFormData({ ...formData, services: newServices });
+    }
+    setDeleteConfirm({ isOpen: false, type: '', index: null });
+  };
+
   if (loading) return <div className="p-20 text-center font-display text-zinc-400">CARGANDO...</div>;
 
   return (
     <div className="p-8 max-w-7xl mx-auto font-body bg-[#F8FAFC] min-h-screen">
       <Modal isOpen={modal.isOpen} onClose={() => setModal({ ...modal, isOpen: false })} title={modal.title} type={modal.type}>{modal.content}</Modal>
+      <Modal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, type: '', index: null })}
+        title="Confirmar eliminación"
+        type="warning"
+        action={{
+          label: 'Eliminar',
+          color: 'danger',
+          onClick: handleDelete
+        }}
+      >
+        ¿Seguro que quieres eliminar este {deleteConfirm.type === 'item' ? 'ítem' : 'servicio'}?
+      </Modal>
       <NewClientModal
         isOpen={isClientModalOpen}
         onClose={() => { setIsClientModalOpen(false); setEditingClient(null); }}
@@ -822,7 +847,15 @@ const NewQuotation = () => {
                                  <td className="p-4 text-right">$ <input type="number" value={sv.precio_pactado} onChange={e => updateSv('precio_pactado', e.target.value)} className="w-24 text-right bg-transparent outline-none" /></td>
                                  <td className="p-4 text-right">$ <input type="number" value={sv.precio_dia_adicional} onChange={e => updateSv('precio_dia_adicional', e.target.value)} className="w-24 text-right bg-transparent outline-none" /></td>
                                  <td className="p-6 text-right text-primary font-black text-sm">$ {calculateLineTotal(sv).toLocaleString()}</td>
-                                 <td className="p-6"><button type="button" onClick={() => setFormData(p => ({...p, services: p.services.filter((_, i) => i !== idx)}))} className="text-zinc-300 hover:text-red-500 transition-colors">×</button></td>
+                                 <td className="p-6">
+                                    <button
+                                       type="button"
+                                       onClick={() => setDeleteConfirm({ isOpen: true, type: 'service', index: idx })}
+                                       className="text-zinc-300 hover:text-red-500 transition-colors"
+                                    >
+                                       <span className="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
+                                 </td>
                               </tr>
                            );
                         })}
@@ -903,7 +936,15 @@ const NewQuotation = () => {
                                  <td className="p-4 text-right">$ <input type="number" value={it.precio_pactado} onChange={e => update('precio_pactado', e.target.value)} className="w-24 text-right outline-none" /></td>
                                  <td className="p-4 text-right">$ <input type="number" value={it.precio_dia_adicional} onChange={e => update('precio_dia_adicional', e.target.value)} className="w-24 text-right outline-none" /></td>
                                  <td className="p-6 text-right text-zinc-900 font-black text-sm">$ {calculateLineTotal(it).toLocaleString()}</td>
-                                 <td className="p-6"><button type="button" onClick={() => setFormData(p => ({...p, items: p.items.filter((_, i) => i !== idx)}))} className="text-zinc-300 hover:text-red-500 transition-colors">×</button></td>
+                                 <td className="p-6">
+                                    <button
+                                       type="button"
+                                       onClick={() => setDeleteConfirm({ isOpen: true, type: 'item', index: idx })}
+                                       className="text-zinc-300 hover:text-red-500 transition-colors"
+                                    >
+                                       <span className="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
+                                 </td>
                               </tr>
                            );
                         })}
