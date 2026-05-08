@@ -225,16 +225,14 @@ const QuotationDetail = () => {
                </button>
              )}
 
-             {(quotation.estado === 'BORRADOR' || quotation.estado === 'REVISION_SOLICITADA') && (
-               <button
-                disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
-                onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-                className={`btn-action bg-primary text-white hover:opacity-90 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
-               >
-                 <span className="material-symbols-outlined">edit</span>
-                 EDITAR
-               </button>
-             )}
+             <button
+              disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
+              onClick={() => navigate(`/cotizaciones/editar/${id}`)}
+              className={`btn-action bg-primary text-white hover:opacity-90 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+             >
+               <span className="material-symbols-outlined">edit</span>
+               EDITAR
+             </button>
           </div>
         </div>
 
