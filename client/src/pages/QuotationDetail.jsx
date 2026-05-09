@@ -180,6 +180,24 @@ const QuotationDetail = () => {
 
           {/* Unified Action Buttons (RIGHT SIDE) */}
           <div className="flex items-center gap-3">
+             {currentUser?.role === 'ADMIN' && (
+               <div className="relative group">
+                 <select
+                    disabled={updating}
+                    value={quotation.estado}
+                    onChange={(e) => handleStatusChange(e.target.value)}
+                    className="btn-action appearance-none pl-10 pr-10 bg-zinc-100 border-zinc-200 text-zinc-700 hover:bg-zinc-200 font-black cursor-pointer transition-all"
+                 >
+                    <option value="ENVIADA">ENVIADA</option>
+                    <option value="REVISION_SOLICITADA">CAMBIOS SOLICITADOS</option>
+                    <option value="ACCEPTED_PENDING_OC">PENDIENTE OC</option>
+                    <option value="FINALIZADA">LEGALIZADA</option>
+                 </select>
+                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-[18px]">rule_settings</span>
+                 <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none text-[18px]">expand_more</span>
+               </div>
+             )}
+
              <button
                 onClick={() => generateQuotationPDF(quotation)}
                 className="btn-action border border-zinc-200 text-zinc-600 bg-white hover:bg-zinc-50"
