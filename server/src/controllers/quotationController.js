@@ -75,8 +75,8 @@ exports.formalizeByHash = async (req, res) => {
 
       purchaseOrderKey = key;
       purchaseOrderUrl = `${(process.env.AWS_ENDPOINT_URL || 'https://t3.storageapi.dev').replace(/\/$/, '')}/${BUCKET_NAME}/${key}`;
-      newStatus = 'FINALIZADA';
-      logMessage = 'El cliente aceptó la propuesta y cargó la Orden de Compra. Estado cambiado a LEGALIZADA.';
+      newStatus = 'APROBADA';
+      logMessage = 'El cliente aceptó la propuesta y cargó la Orden de Compra. Estado confirmado como APROBADA.';
     }
 
     const updated = await prisma.quotation.update({
@@ -98,7 +98,7 @@ exports.formalizeByHash = async (req, res) => {
 
     res.json({
       message: file
-        ? 'Orden de Compra cargada con éxito. Su propuesta ha sido legalizada.'
+        ? 'Orden de Compra cargada con éxito. Su propuesta ha sido aprobada.'
         : 'Propuesta confirmada. Quedamos a la espera de tu documento por correo.',
       status: newStatus,
       purchaseOrderUrl
@@ -527,10 +527,11 @@ exports.rejectByHash = async (req, res) => {
 
 exports.updateStatus = async (req, res) => {
   try {
-    const { estado, details } = req.body;
+    const { estado, details, force } = req.body;
     const current = await prisma.quotation.findUnique({ where: { id: req.params.id } });
 
-    if (estado === 'APROBADA' || estado === 'EJECUCION') {
+    // Bypass check if force is true (v47.0: Freedom for Admin)
+    if (!force && (estado === 'APROBADA' || estado === 'EJECUCION')) {
       const conflict = await checkAvailability(req.params.id);
       if (conflict) {
         return res.status(400).json({
@@ -703,8 +704,8 @@ exports.archive = async (req, res) => {
     const quotation = await prisma.quotation.findUnique({ where: { id } });
     if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
 
-    // Restriction: Only BORRADOR, ENVIADA, FINALIZADA, CANCELADA are allowed
-    const allowedStatuses = ['BORRADOR', 'ENVIADA', 'FINALIZADA', 'CANCELADA'];
+    // Restriction: Only BORRADOR, ENVIADA, APROBADA, CANCELADA are allowed
+    const allowedStatuses = ['BORRADOR', 'ENVIADA', 'APROBADA', 'CANCELADA'];
     if (!allowedStatuses.includes(quotation.estado)) {
       return res.status(400).json({
         error: `Restricción de Seguridad: No se pueden archivar cotizaciones en estado ${quotation.estado}. Solo se permiten estados de cierre o etapas iniciales.`

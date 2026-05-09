@@ -152,13 +152,12 @@ const PublicQuotation = () => {
                     <h2 className="text-2xl font-black tracking-tighter text-zinc-900 leading-none">COTIZACIÓN</h2>
                     <span className={`px-2 py-0.5 rounded text-[8px] font-black tracking-[0.2em] uppercase ${
                         quotation.estado === 'REVISION_SOLICITADA' ? 'bg-red-50 text-red-600' :
-                        quotation.estado === 'FINALIZADA' ? 'bg-green-100 text-green-700' :
                         quotation.estado === 'ACCEPTED_PENDING_OC' ? 'bg-amber-50 text-amber-600' :
+                        quotation.estado === 'APROBADA' ? 'bg-green-100 text-green-700' :
                         'bg-blue-50 text-blue-600'
                     }`}>
                         {
                             quotation.estado === 'REVISION_SOLICITADA' ? 'CAMBIOS SOLICITADOS' :
-                            quotation.estado === 'FINALIZADA' ? 'LEGALIZADA' :
                             quotation.estado === 'ACCEPTED_PENDING_OC' ? 'PENDIENTE OC' :
                             quotation.estado.replace('_', ' ')
                         }

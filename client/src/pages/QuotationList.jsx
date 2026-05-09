@@ -1,5 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useDismiss,
+  useRole,
+  useClick,
+  useInteractions,
+  FloatingPortal,
+  FloatingFocusManager,
+} from '@floating-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
@@ -9,7 +22,28 @@ import Avatar from "boring-avatars";
 const QuotationList = () => {
   const { user } = useAuth();
   const [quotations, setQuotations] = useState([]);
-  const [activePopover, setActivePopover] = useState(null); // { id: string, rect: DOMRect }
+  const [activePopover, setActivePopover] = useState(null); // { id: string, currentStatus: string }
+
+  const { refs, floatingStyles, context } = useFloating({
+    open: !!activePopover,
+    onOpenChange: (isOpen) => !isOpen && setActivePopover(null),
+    middleware: [
+      offset(8),
+      flip({ fallbackAxisSideDirection: 'end' }),
+      shift({ padding: 8 }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
+
+  const click = useClick(context);
+  const dismiss = useDismiss(context);
+  const role = useRole(context);
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    click,
+    dismiss,
+    role,
+  ]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('active'); // 'active' | 'archived'
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,16 +125,43 @@ const QuotationList = () => {
     }
   };
 
-  const handleInPlaceStatusChange = async (quotationId, newStatus) => {
+  const handleInPlaceStatusChange = async (quotationId, newStatus, force = false) => {
     try {
       await axios.put(`/api/quotations/${quotationId}/status`, {
         estado: newStatus,
-        details: 'Estado cambiado manualmente por Administrador'
+        details: 'Estado cambiado manualmente por Administrador',
+        force: force
       }, { withCredentials: true });
 
       setActivePopover(null);
       fetchQuotations();
     } catch (err) {
+      // v47.0: Handle availability conflict with bypass option
+      if (err.response?.status === 400 && err.response?.data?.error === 'Conflicto de disponibilidad') {
+        setActivePopover(null);
+        setMessageModal({
+          isOpen: true,
+          title: 'Conflicto de disponibilidad',
+          content: (
+            <div className="space-y-4">
+              <p className="text-zinc-600 text-xs font-medium leading-relaxed">{err.response.data.details}</p>
+              <div className="h-px bg-zinc-100 w-full" />
+              <p className="text-zinc-900 font-black text-[11px] tracking-tight">¿Deseas aprobar la propuesta de todas formas?</p>
+            </div>
+          ),
+          type: 'warning',
+          action: {
+            label: 'Sí, aprobar con conflicto',
+            onClick: () => {
+              setMessageModal({ ...messageModal, isOpen: false });
+              handleInPlaceStatusChange(quotationId, newStatus, true);
+            },
+            color: 'primary'
+          }
+        });
+        return;
+      }
+
       setMessageModal({
         isOpen: true,
         title: 'Error al cambiar estado',
@@ -117,7 +178,6 @@ const QuotationList = () => {
       ENVIADA: { style: 'bg-blue-50 text-blue-600', label: 'ENVIADA' },
       APROBADA: { style: 'bg-green-50 text-green-600', label: 'APROBADA' },
       EJECUCION: { style: 'bg-primary/10 text-primary', label: 'EJECUCIÓN' },
-      FINALIZADA: { style: 'bg-green-100 text-green-700', label: 'LEGALIZADA' },
       CANCELADA: { style: 'bg-red-50 text-red-600', label: 'CANCELADA' },
       RECHAZADA: { style: 'bg-red-100 text-red-700', label: 'RECHAZADA' },
       REVISION_SOLICITADA: { style: 'bg-red-50 text-red-600', label: 'CAMBIOS SOLICITADOS' },
@@ -125,13 +185,16 @@ const QuotationList = () => {
     };
     const config = styles[status] || { style: 'bg-zinc-100 text-zinc-600', label: status };
 
+    const isActive = activePopover?.id === quotation.id;
+
     return (
       <span
+        ref={isActive ? refs.setReference : null}
+        {...(isActive ? getReferenceProps() : {})}
         onClick={(e) => {
           if (user?.role === 'ADMIN') {
             e.stopPropagation();
-            const rect = e.currentTarget.getBoundingClientRect();
-            setActivePopover({ id: quotation.id, rect, currentStatus: status });
+            setActivePopover({ id: quotation.id, currentStatus: status });
           }
         }}
         className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${config.style} ${user?.role === 'ADMIN' ? 'cursor-pointer hover:ring-2 ring-primary/20 transition-all' : ''}`}
@@ -158,6 +221,7 @@ const QuotationList = () => {
         onClose={() => setMessageModal({ ...messageModal, isOpen: false })}
         title={messageModal.title}
         type={messageModal.type}
+        action={messageModal.action}
       >
         {messageModal.content}
       </Modal>
@@ -311,44 +375,41 @@ const QuotationList = () => {
           </tbody>
         </table>
       </div>
-      {/* Admin Status Popover */}
+      {/* Admin Status Popover (v47.0: Smart Positioning with Floating UI) */}
       {activePopover && (
-        <div
-          className="fixed inset-0 z-[100]"
-          onClick={() => setActivePopover(null)}
-        >
-          <div
-            className="absolute bg-white border border-zinc-200 rounded-lg shadow-2xl p-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150"
-            style={{
-              top: activePopover.rect.bottom + 8,
-              left: activePopover.rect.left,
-              maxHeight: '300px',
-              overflowY: 'auto'
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <p className="px-3 py-2 text-[9px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-50 mb-1">
-              Cambiar Estado
-            </p>
-            {[
-              { val: 'BORRADOR', label: 'BORRADOR' },
-              { val: 'ENVIADA', label: 'ENVIADA' },
-              { val: 'APROBADA', label: 'APROBADA' },
-              { val: 'REVISION_SOLICITADA', label: 'CAMBIOS SOLICITADOS' },
-              { val: 'ACCEPTED_PENDING_OC', label: 'PENDIENTE OC' },
-              { val: 'FINALIZADA', label: 'LEGALIZADA' },
-              { val: 'CANCELADA', label: 'CANCELADA' }
-            ].map(opt => (
-              <button
-                key={opt.val}
-                onClick={() => handleInPlaceStatusChange(activePopover.id, opt.val)}
-                className={`w-full text-left px-3 py-2.5 text-[11px] font-bold rounded-md transition-all hover:bg-zinc-50 ${activePopover.currentStatus === opt.val ? 'text-primary bg-primary/5' : 'text-zinc-600'}`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <FloatingPortal>
+          <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
+            <div
+              ref={refs.setFloating}
+              style={floatingStyles}
+              {...getFloatingProps()}
+              className="z-[200] bg-white border border-zinc-200 rounded-lg shadow-2xl p-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150 outline-none"
+              onClick={e => e.stopPropagation()}
+            >
+              <p className="px-3 py-2 text-[9px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-50 mb-1">
+                Cambiar Estado
+              </p>
+              <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                {[
+                  { val: 'BORRADOR', label: 'BORRADOR' },
+                  { val: 'ENVIADA', label: 'ENVIADA' },
+                  { val: 'APROBADA', label: 'APROBADA' },
+                  { val: 'REVISION_SOLICITADA', label: 'CAMBIOS SOLICITADOS' },
+                  { val: 'ACCEPTED_PENDING_OC', label: 'PENDIENTE OC' },
+                  { val: 'CANCELADA', label: 'CANCELADA' }
+                ].map(opt => (
+                  <button
+                    key={opt.val}
+                    onClick={() => handleInPlaceStatusChange(activePopover.id, opt.val)}
+                    className={`w-full text-left px-3 py-2.5 text-[11px] font-bold rounded-md transition-all hover:bg-zinc-50 ${activePopover.currentStatus === opt.val ? 'text-primary bg-primary/5' : 'text-zinc-600'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </FloatingFocusManager>
+        </FloatingPortal>
       )}
     </div>
   );
