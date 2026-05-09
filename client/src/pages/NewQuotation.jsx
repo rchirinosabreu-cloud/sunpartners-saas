@@ -795,8 +795,8 @@ const NewQuotation = () => {
                      <button type="button" onClick={() => setFormData(p => ({...p, services: [...p.services, {tipo: 'Transporte', descripcion: '', cantidad: 1, dias: 1, precio_pactado: 0, precio_dia_adicional: 0}]}))} className="bg-white border border-zinc-200 text-zinc-900 px-6 py-2 rounded-lg text-[10px] font-black  hover:bg-zinc-50 transition-all shadow-sm">+ Personal</button>
                   </div>
                </div>
-               <div className="border border-zinc-200 rounded-lg overflow-hidden shadow-sm">
-                  <table className="w-full text-left text-xs">
+               <div className="border border-zinc-200 rounded-lg overflow-x-auto shadow-sm custom-scrollbar">
+                  <table className="w-full text-left text-xs min-w-[1000px]">
                      <thead className="bg-zinc-50 text-zinc-900  font-black tracking-widest border-b border-zinc-200">
                         <tr>
                            <th className="p-6">Detalles del servicio</th>
@@ -805,7 +805,7 @@ const NewQuotation = () => {
                            <th className="p-6 text-right">Vr. 1er Día</th>
                            <th className="p-6 text-right">Vr. Adic</th>
                            <th className="p-6 text-right">Subtotal</th>
-                           <th className="p-6 w-10"></th>
+                           <th className="p-6 w-[60px] min-w-[60px] text-center">Acción</th>
                         </tr>
                      </thead>
                      <tbody className="font-bold border-t-4 border-zinc-50">
@@ -847,13 +847,14 @@ const NewQuotation = () => {
                                  <td className="p-4 text-right">$ <input type="number" value={sv.precio_pactado} onChange={e => updateSv('precio_pactado', e.target.value)} className="w-24 text-right bg-transparent outline-none" /></td>
                                  <td className="p-4 text-right">$ <input type="number" value={sv.precio_dia_adicional} onChange={e => updateSv('precio_dia_adicional', e.target.value)} className="w-24 text-right bg-transparent outline-none" /></td>
                                  <td className="p-6 text-right text-primary font-black text-sm">$ {calculateLineTotal(sv).toLocaleString()}</td>
-                                 <td className="p-6">
+                                 <td className="p-6 text-center">
                                     <button
                                        type="button"
                                        onClick={() => setDeleteConfirm({ isOpen: true, type: 'service', index: idx })}
-                                       className="text-zinc-300 hover:text-red-500 transition-colors"
+                                       className="text-red-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-full"
+                                       title="Eliminar servicio"
                                     >
-                                       <span className="material-symbols-outlined text-[18px]">delete</span>
+                                       <span className="material-symbols-outlined text-[20px]">delete</span>
                                     </button>
                                  </td>
                               </tr>
@@ -936,13 +937,14 @@ const NewQuotation = () => {
                                  <td className="p-4 text-right">$ <input type="number" value={it.precio_pactado} onChange={e => update('precio_pactado', e.target.value)} className="w-24 text-right outline-none" /></td>
                                  <td className="p-4 text-right">$ <input type="number" value={it.precio_dia_adicional} onChange={e => update('precio_dia_adicional', e.target.value)} className="w-24 text-right outline-none" /></td>
                                  <td className="p-6 text-right text-zinc-900 font-black text-sm">$ {calculateLineTotal(it).toLocaleString()}</td>
-                                 <td className="p-6">
+                                 <td className="p-6 text-center">
                                     <button
                                        type="button"
                                        onClick={() => setDeleteConfirm({ isOpen: true, type: 'item', index: idx })}
-                                       className="text-zinc-300 hover:text-red-500 transition-colors"
+                                       className="text-red-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-full"
+                                       title="Eliminar ítem"
                                     >
-                                       <span className="material-symbols-outlined text-[18px]">delete</span>
+                                       <span className="material-symbols-outlined text-[20px]">delete</span>
                                     </button>
                                  </td>
                               </tr>
