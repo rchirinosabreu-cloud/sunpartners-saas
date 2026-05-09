@@ -9,6 +9,7 @@ import Avatar from "boring-avatars";
 const QuotationList = () => {
   const { user } = useAuth();
   const [quotations, setQuotations] = useState([]);
+  const [activePopover, setActivePopover] = useState(null); // { id: string, rect: DOMRect }
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('active'); // 'active' | 'archived'
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,7 +91,27 @@ const QuotationList = () => {
     }
   };
 
-  const getStatusBadge = (status) => {
+  const handleInPlaceStatusChange = async (quotationId, newStatus) => {
+    try {
+      await axios.put(`/api/quotations/${quotationId}/status`, {
+        estado: newStatus,
+        details: 'Estado cambiado manualmente por Administrador'
+      }, { withCredentials: true });
+
+      setActivePopover(null);
+      fetchQuotations();
+    } catch (err) {
+      setMessageModal({
+        isOpen: true,
+        title: 'Error al cambiar estado',
+        content: err.response?.data?.error || 'No se pudo actualizar el estado.',
+        type: 'error'
+      });
+    }
+  };
+
+  const getStatusBadge = (quotation) => {
+    const status = quotation.estado;
     const styles = {
       BORRADOR: { style: 'bg-zinc-100 text-zinc-600', label: 'BORRADOR' },
       ENVIADA: { style: 'bg-blue-50 text-blue-600', label: 'ENVIADA' },
@@ -103,7 +124,21 @@ const QuotationList = () => {
       ACCEPTED_PENDING_OC: { style: 'bg-amber-50 text-amber-600', label: 'PENDIENTE OC' }
     };
     const config = styles[status] || { style: 'bg-zinc-100 text-zinc-600', label: status };
-    return <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${config.style}`}>{config.label}</span>;
+
+    return (
+      <span
+        onClick={(e) => {
+          if (user?.role === 'ADMIN') {
+            e.stopPropagation();
+            const rect = e.currentTarget.getBoundingClientRect();
+            setActivePopover({ id: quotation.id, rect, currentStatus: status });
+          }
+        }}
+        className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${config.style} ${user?.role === 'ADMIN' ? 'cursor-pointer hover:ring-2 ring-primary/20 transition-all' : ''}`}
+      >
+        {config.label}
+      </span>
+    );
   };
 
   const filteredQuotations = useMemo(() => {
@@ -244,7 +279,7 @@ const QuotationList = () => {
                       <span className="text-[9px] text-zinc-400  font-black tracking-tighter">{q.evento_inicio ? new Date(q.evento_inicio).getFullYear() : '-'}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-5">{getStatusBadge(q.estado)}</td>
+                  <td className="px-6 py-5">{getStatusBadge(q)}</td>
                   <td className="px-6 py-5 text-right">
                     <span className="font-black text-zinc-900 text-[14px] tracking-tight">
                       $ {(q.vlrTotal || 0).toLocaleString()}
@@ -276,6 +311,45 @@ const QuotationList = () => {
           </tbody>
         </table>
       </div>
+      {/* Admin Status Popover */}
+      {activePopover && (
+        <div
+          className="fixed inset-0 z-[100]"
+          onClick={() => setActivePopover(null)}
+        >
+          <div
+            className="absolute bg-white border border-zinc-200 rounded-lg shadow-2xl p-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150"
+            style={{
+              top: activePopover.rect.bottom + 8,
+              left: activePopover.rect.left,
+              maxHeight: '300px',
+              overflowY: 'auto'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="px-3 py-2 text-[9px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-50 mb-1">
+              Cambiar Estado
+            </p>
+            {[
+              { val: 'BORRADOR', label: 'BORRADOR' },
+              { val: 'ENVIADA', label: 'ENVIADA' },
+              { val: 'APROBADA', label: 'APROBADA' },
+              { val: 'REVISION_SOLICITADA', label: 'CAMBIOS SOLICITADOS' },
+              { val: 'ACCEPTED_PENDING_OC', label: 'PENDIENTE OC' },
+              { val: 'FINALIZADA', label: 'LEGALIZADA' },
+              { val: 'CANCELADA', label: 'CANCELADA' }
+            ].map(opt => (
+              <button
+                key={opt.val}
+                onClick={() => handleInPlaceStatusChange(activePopover.id, opt.val)}
+                className={`w-full text-left px-3 py-2.5 text-[11px] font-bold rounded-md transition-all hover:bg-zinc-50 ${activePopover.currentStatus === opt.val ? 'text-primary bg-primary/5' : 'text-zinc-600'}`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
