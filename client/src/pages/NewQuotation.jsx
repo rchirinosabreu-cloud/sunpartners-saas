@@ -265,6 +265,7 @@ const NewQuotation = () => {
     pago_metodo: 'Contado',
     // Internal refs
     bitacora: '',
+    estado: 'BORRADOR',
     items: [],
     services: []
   });
@@ -315,6 +316,7 @@ const NewQuotation = () => {
             evento_duracion: q.evento_duracion || '',
             pago_metodo: q.pago_metodo || 'Contado',
             bitacora: q.bitacora || '',
+            estado: q.estado || 'BORRADOR',
             items: (q.items || []).map(it => ({
               inventoryId: it.inventoryId,
               cantidad: it.cantidad,
@@ -851,7 +853,7 @@ const NewQuotation = () => {
                                     <button
                                        type="button"
                                        onClick={() => setDeleteConfirm({ isOpen: true, type: 'service', index: idx })}
-                                       className="text-red-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-full"
+                                       className="text-zinc-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-full"
                                        title="Eliminar servicio"
                                     >
                                        <span className="material-symbols-outlined text-[20px]">delete</span>
@@ -941,7 +943,7 @@ const NewQuotation = () => {
                                     <button
                                        type="button"
                                        onClick={() => setDeleteConfirm({ isOpen: true, type: 'item', index: idx })}
-                                       className="text-red-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-full"
+                                       className="text-zinc-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-full"
                                        title="Eliminar ítem"
                                     >
                                        <span className="material-symbols-outlined text-[20px]">delete</span>
