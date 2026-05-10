@@ -23,4 +23,18 @@ router.put('/:id/status', authMiddleware, (req, res) => quotationController.upda
 router.put('/:id/planning', authMiddleware, (req, res) => quotationController.upsertPlanning(req, res));
 router.get('/:id/availability', authMiddleware, (req, res) => quotationController.checkAvailabilityEndpoint(req, res));
 
+// Maintenance: Emergency migration route (v47.1)
+router.post('/maintenance/migrate-finalizada', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const prisma = require('../db');
+    const result = await prisma.quotation.updateMany({
+      where: { estado: 'FINALIZADA' },
+      data: { estado: 'APROBADA' }
+    });
+    res.json({ message: `Migración exitosa: ${result.count} registros actualizados.`, count: result.count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
