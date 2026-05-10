@@ -147,13 +147,11 @@ const QuotationDetail = () => {
                     quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
                     quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
                     quotation.estado === 'REVISION_SOLICITADA' ? 'bg-red-50 border-red-200 text-red-600' :
-                    quotation.estado === 'FINALIZADA' ? 'bg-green-100 border-green-200 text-green-700' :
                     quotation.estado === 'ACCEPTED_PENDING_OC' ? 'bg-amber-50 border-amber-200 text-amber-600' :
                     'bg-zinc-50 border-zinc-200 text-zinc-500'
                   }`}>
                     {
                       quotation.estado === 'REVISION_SOLICITADA' ? 'CAMBIOS SOLICITADOS' :
-                      quotation.estado === 'FINALIZADA' ? 'LEGALIZADA' :
                       quotation.estado === 'ACCEPTED_PENDING_OC' ? 'PENDIENTE OC' :
                       quotation.estado.replace('_', ' ')
                     }
