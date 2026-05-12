@@ -890,7 +890,6 @@ const NewQuotation = () => {
                                     n[idx].isComposition = item.isComposition;
                                     n[idx].isExternal = item.isExternal;
                                     n[idx].vendorCost = item.vendorCost;
-                                    n[idx].vendorName = item.vendorName;
                                     n[idx].inventory = item;
                                     // v49.5: Inflate item with components if it's a catalog composition
                                     if (item.isComposition && item.compositions) {

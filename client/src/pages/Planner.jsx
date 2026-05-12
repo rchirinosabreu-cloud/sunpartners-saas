@@ -7,7 +7,7 @@ import { generatePlannerPDF } from '../utils/pdfGenerator';
 const DEFAULT_BUDGET_ROWS = [
   { id: 'sub', concepto: 'Subcontratación', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'mat', concepto: 'Materiales', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
-  { id: 'per', concepto: 'Personal', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0, isAutomatic: true },
+  { id: 'per', concepto: 'Personal', indicaciones: 'Cálculo automático de matriz operativa', montaje: 0, evento: 0, desmontaje: 0, isAutomatic: true },
   { id: 'tra', concepto: 'Transporte/Peajes/Combustible', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'ali', concepto: 'Viáticos: transporte + alimentación logísticos', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'alo', concepto: 'Alojamiento', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
@@ -42,26 +42,24 @@ const Planner = () => {
           setPresupuesto(q.planning.presupuesto || DEFAULT_BUDGET_ROWS);
           setFooter(q.planning.footer || { elaboro: '', reviso: '', verifico: '' });
         } else {
-          // INITIAL EXPLOSION (v50.6)
+          // INITIAL EXPLOSION (v50.4)
           const exploded = [];
           q.items.forEach(item => {
             const isExternal = !!(item.isExternal || item.inventory?.isExternal);
             const provider = isExternal ? (item.vendorName || item.inventory?.vendorName || '') : 'SUN PARTNERS';
-            const cost = isExternal ? (item.vendorCost || item.inventory?.vendorCost || 0) : 0;
 
             if (item.isComposition) {
                const pieces = item.compositions || item.inventory?.compositions || [];
                pieces.forEach(p => {
                   const pieceIsExternal = !!p.componentCatalogItem?.isExternal;
                   const pieceProvider = pieceIsExternal ? (p.componentCatalogItem?.vendorName || '') : 'SUN PARTNERS';
-                  const pieceCost = pieceIsExternal ? (p.componentCatalogItem?.vendorCost || 0) : 0;
                   exploded.push({
                     id: crypto.randomUUID(),
                     category: 'EQUIPAMIENTO',
                     nombre: p.componentCatalogItem?.nombre_comercial || p.warehouseItem?.nombre || p.nombre || 'Pieza de Set',
                     cantidad: (p.quantity || 1) * item.cantidad,
                     isExternal: pieceIsExternal,
-                    costo: pieceCost,
+                    costo: p.componentCatalogItem?.vendorCost || 0,
                     proveedor: pieceProvider,
                     notas: `De: ${item.customName || item.inventory?.nombre_comercial}`,
                     originalQuotationItemId: item.id
@@ -74,7 +72,7 @@ const Planner = () => {
                   nombre: item.customName || item.inventory?.nombre_comercial,
                   cantidad: item.cantidad,
                   isExternal: isExternal,
-                  costo: cost,
+                  costo: item.vendorCost || item.inventory?.vendorCost || 0,
                   proveedor: provider,
                   notas: '',
                   originalQuotationItemId: item.id
@@ -94,9 +92,18 @@ const Planner = () => {
     fetchData();
   }, [id]);
 
-  // AUTO-CALCULATION: Automatic Rows in Budget (v50.6)
+  // AUTO-CALCULATION: Automatic Rows in Budget (v50.4)
   useEffect(() => {
     const sumPhasePersonal = (phase) => personal.reduce((acc, p) => acc + (p[phase] || 0), 0);
+
+    // Sum for Subcontracting (External items from EQUIPAMIENTO)
+    const sumPhaseSub = (phase) => {
+       // Currently materials don't have phases, so we just sum total costs into 'evento' or split them?
+       // Ticket says "Subcontratación" is manual in Budget, but we can help by summing external items.
+       // However, defined rule #4 in v50.4 says "Subcontratación" in Budget is manual consolidation.
+       // So we ONLY automate Personal.
+       return 0;
+    };
 
     setPresupuesto(prev => prev.map(row => {
       if (row.id === 'per') {
@@ -112,21 +119,8 @@ const Planner = () => {
   }, [personal]);
 
   const totalPresupuesto = useMemo(() => {
-    // v50.6: Global Summation Algorithm
-
-    // 1. Sum of all Costs in Materials (Sections 1, 2, 3, 4)
-    const materialsCost = materiales.reduce((acc, m) => acc + ((m.costo || 0) * (m.cantidad || 1)), 0);
-
-    // 2. Sum of all Personnel totals (Section 5)
-    const personnelCost = personal.reduce((acc, p) => acc + (p.montaje || 0) + (p.evento || 0) + (p.desmontaje || 0), 0);
-
-    // 3. Manual adjustments in Budget table (Excluding 'per' which is redundant with personnelCost)
-    const budgetAdjustments = presupuesto
-      .filter(row => row.id !== 'per')
-      .reduce((acc, row) => acc + (row.montaje || 0) + (row.evento || 0) + (row.desmontaje || 0), 0);
-
-    return materialsCost + personnelCost + budgetAdjustments;
-  }, [materiales, personal, presupuesto]);
+    return presupuesto.reduce((acc, row) => acc + (row.montaje || 0) + (row.evento || 0) + (row.desmontaje || 0), 0);
+  }, [presupuesto]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -180,7 +174,7 @@ const Planner = () => {
     setList(list.filter(i => i.id !== itemId));
   };
 
-  if (loading || !quotation) return <div className="p-20 text-center font-display text-zinc-400">INFLANDO PLANEADOR v50.6...</div>;
+  if (loading || !quotation) return <div className="p-20 text-center font-display text-zinc-400">INFLANDO PLANEADOR v50.3...</div>;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FAFC] font-body text-zinc-900">
@@ -398,6 +392,7 @@ const Planner = () => {
                                onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'indicaciones', e.target.value)}
                                className="w-full bg-transparent text-[11px] italic outline-none"
                                placeholder="Observaciones..."
+                               disabled={row.isAutomatic}
                              />
                           </td>
                           <td className="px-4 py-4 text-right">
