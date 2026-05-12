@@ -3,9 +3,10 @@ import Modal from '../ui/Modal';
 import axios from 'axios';
 import { matchesSearch } from '../../utils/formatters';
 
-const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
+const CompositionModal = ({ isOpen, onClose, onSave, initialData = null, title = "Crear composición" }) => {
   const [nombre, setNombre] = useState('');
   const [items, setItems] = useState([]);
+  const [isComposition, setIsComposition] = useState(true);
   const [saveToCatalog, setSaveToCatalog] = useState(false);
   const [precio1erDia, setPrecio1erDia] = useState(0);
   const [precioDiaAdic, setPrecioDiaAdic] = useState(0);
@@ -39,6 +40,7 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
         setNombre(initialData.customName || initialData.nombre_comercial || '');
         setPrecio1erDia(initialData.precio_pactado || 0);
         setPrecioDiaAdic(initialData.precio_dia_adicional || 0);
+        setIsComposition(initialData.isComposition !== undefined ? initialData.isComposition : true);
 
         // Handle items if they are compositions (catalog or dynamic)
         const rawItems = initialData.compositions || initialData.inventory?.compositions || [];
@@ -105,12 +107,18 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
 
   const handleSave = () => {
     if (!nombre || items.length === 0) return;
+
+    // Generate description: "Incluye: 1 base, 1 luz, etc."
+    const includesText = `Incluye: ${items.map(it => `${it.quantity} ${it.nombre}`).join(', ')}`;
+
     onSave({
       customName: nombre,
       items,
       precio_pactado: precio1erDia,
       precio_dia_adicional: precioDiaAdic,
-      saveToCatalog
+      saveToCatalog,
+      isComposition: true,
+      description: includesText
     });
     onClose();
   };
@@ -119,7 +127,7 @@ const CompositionModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Crear composición"
+      title={title}
       zIndexClass="z-[100]"
       maxWidthClass="max-w-4xl"
       showFooter={false}

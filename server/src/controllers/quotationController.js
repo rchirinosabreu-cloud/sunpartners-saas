@@ -167,6 +167,7 @@ exports.create = async (req, res) => {
     const processedItems = await Promise.all((items || []).map(async (item) => {
       let inventoryId = item.inventoryId || null;
       let compositions = item.compositions;
+      let isComposition = !!item.isComposition;
 
       if (item.saveToCatalog && item.customName) {
         // If it was already a catalog item, we create a NEW one (versioning by creation)
@@ -176,6 +177,7 @@ exports.create = async (req, res) => {
             nombre_comercial: item.customName,
             valor_alquiler: parseFloat(item.precio_pactado),
             isExternal: !!item.isExternal,
+            isComposition: true,
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
             compositions: {
               create: (item.compositions || []).map(c => ({
@@ -188,16 +190,19 @@ exports.create = async (req, res) => {
         });
         inventoryId = newItem.id;
         compositions = null; // Links to the new catalog entry
+        isComposition = true;
       }
 
       return {
         inventoryId,
         customName: inventoryId ? null : (item.customName || null),
+        description: item.description || null,
         cantidad: parseInt(item.cantidad),
         dias: parseInt(item.dias || 1),
         precio_pactado: parseFloat(item.precio_pactado),
         precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
         isExternal: !!item.isExternal,
+        isComposition,
         vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
@@ -322,6 +327,7 @@ exports.update = async (req, res) => {
     const processedItems = await Promise.all((items || []).map(async (item) => {
       let inventoryId = item.inventoryId || null;
       let compositions = item.compositions;
+      let isComposition = !!item.isComposition;
 
       if (item.saveToCatalog && item.customName) {
         const newItem = await prisma.inventory_Commercial.create({
@@ -329,6 +335,7 @@ exports.update = async (req, res) => {
             nombre_comercial: item.customName,
             valor_alquiler: parseFloat(item.precio_pactado),
             isExternal: !!item.isExternal,
+            isComposition: true,
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
             compositions: {
               create: (item.compositions || []).map(c => ({
@@ -341,16 +348,19 @@ exports.update = async (req, res) => {
         });
         inventoryId = newItem.id;
         compositions = null;
+        isComposition = true;
       }
 
       return {
         inventoryId,
         customName: inventoryId ? null : (item.customName || null),
+        description: item.description || null,
         cantidad: parseInt(item.cantidad),
         dias: parseInt(item.dias || 1),
         precio_pactado: parseFloat(item.precio_pactado),
         precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
         isExternal: !!item.isExternal,
+        isComposition,
         vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
@@ -589,7 +599,16 @@ async function resolveWarehouseRequirements(items) {
       return;
     }
 
-    // 2. Check if it points to a catalog item (either via inventoryId or componentCatalogItemId)
+    // 2. Check for local compositions (One-shot or overridden)
+    // IMPORTANT: If it's a QuotationItem and has compositions, we use those INSTEAD of the catalog recipe.
+    if (entity.compositions && entity.compositions.length > 0) {
+      for (const comp of entity.compositions) {
+        await resolve(comp, (entity.cantidad || entity.quantity || 1) * multiplier, visited);
+      }
+      return; // Stop here if we used local overrides
+    }
+
+    // 3. Check if it points to a catalog item (either via inventoryId or componentCatalogItemId)
     const catalogId = entity.inventoryId || entity.componentCatalogItemId;
     if (catalogId) {
       if (visited.has(catalogId)) return; // Prevent infinite loops
@@ -612,13 +631,6 @@ async function resolveWarehouseRequirements(items) {
       }
       visited.delete(catalogId);
       return;
-    }
-
-    // 3. Check for local compositions (One-shot)
-    if (entity.compositions && entity.compositions.length > 0) {
-      for (const comp of entity.compositions) {
-        await resolve(comp, (entity.cantidad || entity.quantity || 1) * multiplier, visited);
-      }
     }
   }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import Modal from '../components/ui/Modal';
+import CompositionModal from '../components/modals/CompositionModal';
 import { matchesSearch } from '../utils/formatters';
 
 const API_URL = '/api';
@@ -19,6 +20,7 @@ const InventoryCommercial = () => {
   }, [searchTerm]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCompositionModalOpen, setIsCompositionModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [uiModal, setUiModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
 
@@ -30,6 +32,7 @@ const InventoryCommercial = () => {
     claseB: 0,
     claseC: 0,
     isExternal: false,
+    isComposition: false,
     vendorCost: 0,
     estado: 'ACTIVO'
   });
@@ -85,17 +88,60 @@ const InventoryCommercial = () => {
 
   const handleEdit = (item) => {
     setEditingItem(item);
-    setFormData({
-      nombre_comercial: item.nombre_comercial,
-      valor_alquiler: item.valor_alquiler,
-      claseA: item.claseA,
-      claseB: item.claseB,
-      claseC: item.claseC,
-      isExternal: item.isExternal || false,
-      vendorCost: item.vendorCost || 0,
-      estado: item.estado
-    });
-    setIsModalOpen(true);
+    if (item.isComposition) {
+      setIsCompositionModalOpen(true);
+    } else {
+      setFormData({
+        nombre_comercial: item.nombre_comercial,
+        valor_alquiler: item.valor_alquiler,
+        claseA: item.claseA,
+        claseB: item.claseB,
+        claseC: item.claseC,
+        isExternal: item.isExternal || false,
+        isComposition: item.isComposition || false,
+        vendorCost: item.vendorCost || 0,
+        estado: item.estado
+      });
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleSaveComposition = async (compData) => {
+    try {
+      const payload = {
+        nombre_comercial: compData.customName,
+        valor_alquiler: compData.precio_pactado,
+        isComposition: true,
+        isExternal: false, // Compositions are usually internal
+        compositions: compData.items.map(it => ({
+          componentCatalogItemId: it.componentCatalogItemId,
+          warehouseItemId: it.warehouseItemId,
+          quantity: it.quantity
+        }))
+      };
+
+      if (editingItem) {
+        await axios.put(`${API_URL}/inventory/commercial/${editingItem.id}`, payload, { withCredentials: true });
+      } else {
+        await axios.post(`${API_URL}/inventory/commercial`, payload, { withCredentials: true });
+      }
+
+      fetchItems();
+      setUiModal({
+        isOpen: true,
+        title: 'Operación Exitosa',
+        content: editingItem ? 'La composición ha sido actualizada.' : 'Nueva composición añadida al catálogo.',
+        type: 'success'
+      });
+    } catch (error) {
+       const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message;
+       setUiModal({
+         isOpen: true,
+         title: 'Error de Guardado',
+         content: `No se pudo procesar la solicitud: ${errorMsg}`,
+         type: 'error'
+       });
+    }
   };
 
   const handleCreate = () => {
@@ -107,10 +153,16 @@ const InventoryCommercial = () => {
       claseB: 0,
       claseC: 0,
       isExternal: true, // Focus on external services from this view
+      isComposition: false,
       vendorCost: 0,
       estado: 'ACTIVO'
     });
     setIsModalOpen(true);
+  };
+
+  const handleCreateComposition = () => {
+    setEditingItem(null);
+    setIsCompositionModalOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -174,11 +226,18 @@ const InventoryCommercial = () => {
             />
           </div>
           <button
+            onClick={handleCreateComposition}
+            className="h-9 px-4 bg-[#2D4A5A] text-white text-[11px] font-black tracking-widest rounded shadow-lg shadow-[#2D4A5A]/20 hover:opacity-90 transition-all flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+            NUEVA COMPOSICIÓN
+          </button>
+          <button
             onClick={handleCreate}
             className="h-9 px-4 bg-primary text-white text-[11px] font-black tracking-widest rounded shadow-lg shadow-primary/20 hover:opacity-90 transition-all flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
-            NUEVO
+            NUEVO ÍTEM
           </button>
         </div>
       </header>
@@ -207,6 +266,9 @@ const InventoryCommercial = () => {
                 <tr key={item.id} className="border-b border-zinc-200 hover:bg-zinc-50 transition-colors">
                   <td className="px-4 py-4 font-bold text-zinc-900 tracking-tight">
                     <div className="flex items-center gap-2">
+                       <span className="material-symbols-outlined text-[18px] text-zinc-400">
+                          {item.isComposition ? 'auto_awesome' : 'package_2'}
+                       </span>
                        {item.nombre_comercial}
                        {item.isExternal && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-500 text-[8px] font-black rounded border border-blue-100">EXTERNO</span>}
                     </div>
@@ -252,6 +314,21 @@ const InventoryCommercial = () => {
           </table>
         </div>
       </div>
+
+      <CompositionModal
+        isOpen={isCompositionModalOpen}
+        onClose={() => {
+          setIsCompositionModalOpen(false);
+          setEditingItem(null);
+        }}
+        onSave={handleSaveComposition}
+        initialData={editingItem ? {
+          ...editingItem,
+          precio_pactado: editingItem.valor_alquiler,
+          precio_dia_adicional: editingItem.valor_alquiler * 0.5
+        } : null}
+        title={editingItem ? "Editar composición maestra" : "Crear composición maestra"}
+      />
 
       {/* Sidebar for Edit */}
       {isModalOpen && (

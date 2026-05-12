@@ -94,12 +94,13 @@ exports.getAllCommercial = async (req, res) => {
 
 exports.createCommercial = async (req, res) => {
   try {
-    const { nombre_comercial, valor_alquiler, compositions, bodegaId, isExternal, vendorCost, claseA, claseB, claseC, estado } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, bodegaId, isExternal, isComposition, vendorCost, claseA, claseB, claseC, estado } = req.body;
     const newItem = await prisma.inventory_Commercial.create({
       data: {
         nombre_comercial,
         valor_alquiler: parseFloat(valor_alquiler || 0),
         isExternal: !!isExternal,
+        isComposition: !!isComposition,
         vendorCost: vendorCost !== undefined ? parseFloat(vendorCost) : null,
         bodegaId: bodegaId || null,
         claseA: parseInt(claseA || 0),
@@ -125,7 +126,7 @@ exports.createCommercial = async (req, res) => {
 exports.updateCommercial = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre_comercial, valor_alquiler, compositions, isExternal, vendorCost, claseA, claseB, claseC, estado } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, isExternal, isComposition, vendorCost, claseA, claseB, claseC, estado } = req.body;
 
     // If updating compositions, clear old ones first
     if (compositions) {
@@ -138,6 +139,7 @@ exports.updateCommercial = async (req, res) => {
         nombre_comercial,
         valor_alquiler: valor_alquiler !== undefined ? parseFloat(valor_alquiler) : undefined,
         isExternal: isExternal !== undefined ? !!isExternal : undefined,
+        isComposition: isComposition !== undefined ? !!isComposition : undefined,
         vendorCost: vendorCost !== undefined ? parseFloat(vendorCost) : undefined,
         claseA: claseA !== undefined ? parseInt(claseA) : undefined,
         claseB: claseB !== undefined ? parseInt(claseB) : undefined,
