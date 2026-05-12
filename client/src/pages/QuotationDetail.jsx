@@ -204,6 +204,16 @@ const QuotationDetail = () => {
                </button>
              )}
 
+             {quotation.estado === 'APROBADA' && (
+                <button
+                   onClick={() => navigate(`/cotizaciones/${id}/planeador`)}
+                   className="btn-action bg-zinc-900 text-white hover:bg-zinc-800"
+                >
+                   <span className="material-symbols-outlined">analytics</span>
+                   PLANEADOR
+                </button>
+             )}
+
              {(!linkData || quotation.estado === 'REVISION_SOLICITADA') ? (
                <button
                 onClick={handleGenerateLink}
