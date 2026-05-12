@@ -7,7 +7,7 @@ import { generatePlannerPDF } from '../utils/pdfGenerator';
 const DEFAULT_BUDGET_ROWS = [
   { id: 'sub', concepto: 'Subcontratación', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'mat', concepto: 'Materiales', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
-  { id: 'per', concepto: 'Personal', indicaciones: 'Cálculo automático de matriz operativa', montaje: 0, evento: 0, desmontaje: 0, isAutomatic: true },
+  { id: 'per', concepto: 'Personal', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'tra', concepto: 'Transporte/Peajes/Combustible', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'ali', concepto: 'Viáticos: transporte + alimentación logísticos', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'alo', concepto: 'Alojamiento', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
@@ -36,50 +36,18 @@ const Planner = () => {
         setQuotation(q);
 
         if (q.planning) {
-          setMateriales(q.planning.materiales || []);
           setPersonal(q.planning.personal || []);
           setCronograma(q.planning.cronograma || '');
           setPresupuesto(q.planning.presupuesto || DEFAULT_BUDGET_ROWS);
           setFooter(q.planning.footer || { elaboro: '', reviso: '', verifico: '' });
-        } else {
-          // INITIAL EXPLOSION (v50.4)
-          const exploded = [];
-          q.items.forEach(item => {
-            const isExternal = !!(item.isExternal || item.inventory?.isExternal);
-            const provider = isExternal ? (item.vendorName || item.inventory?.vendorName || '') : 'SUN PARTNERS';
 
-            if (item.isComposition) {
-               const pieces = item.compositions || item.inventory?.compositions || [];
-               pieces.forEach(p => {
-                  const pieceIsExternal = !!p.componentCatalogItem?.isExternal;
-                  const pieceProvider = pieceIsExternal ? (p.componentCatalogItem?.vendorName || '') : 'SUN PARTNERS';
-                  exploded.push({
-                    id: crypto.randomUUID(),
-                    category: 'EQUIPAMIENTO',
-                    nombre: p.componentCatalogItem?.nombre_comercial || p.warehouseItem?.nombre || p.nombre || 'Pieza de Set',
-                    cantidad: (p.quantity || 1) * item.cantidad,
-                    isExternal: pieceIsExternal,
-                    costo: p.componentCatalogItem?.vendorCost || 0,
-                    proveedor: pieceProvider,
-                    notas: `De: ${item.customName || item.inventory?.nombre_comercial}`,
-                    originalQuotationItemId: item.id
-                  });
-               });
-            } else {
-               exploded.push({
-                  id: crypto.randomUUID(),
-                  category: 'EQUIPAMIENTO',
-                  nombre: item.customName || item.inventory?.nombre_comercial,
-                  cantidad: item.cantidad,
-                  isExternal: isExternal,
-                  costo: item.vendorCost || item.inventory?.vendorCost || 0,
-                  proveedor: provider,
-                  notas: '',
-                  originalQuotationItemId: item.id
-               });
-            }
-          });
-          setMateriales(exploded);
+          if (q.planning.materiales && q.planning.materiales.length > 0) {
+            setMateriales(q.planning.materiales);
+          } else {
+             explodeQuotation(q);
+          }
+        } else {
+          explodeQuotation(q);
           setPersonal([]);
           setPresupuesto(DEFAULT_BUDGET_ROWS);
         }
@@ -92,18 +60,9 @@ const Planner = () => {
     fetchData();
   }, [id]);
 
-  // AUTO-CALCULATION: Automatic Rows in Budget (v50.4)
+  // AUTO-CALCULATION: Mirroring Section 5 (Personal) to Budget Table Cells
   useEffect(() => {
-    const sumPhasePersonal = (phase) => personal.reduce((acc, p) => acc + (p[phase] || 0), 0);
-
-    // Sum for Subcontracting (External items from EQUIPAMIENTO)
-    const sumPhaseSub = (phase) => {
-       // Currently materials don't have phases, so we just sum total costs into 'evento' or split them?
-       // Ticket says "Subcontratación" is manual in Budget, but we can help by summing external items.
-       // However, defined rule #4 in v50.4 says "Subcontratación" in Budget is manual consolidation.
-       // So we ONLY automate Personal.
-       return 0;
-    };
+    const sumPhasePersonal = (phase) => personal.reduce((acc, p) => acc + (parseFloat(p[phase]) || 0), 0);
 
     setPresupuesto(prev => prev.map(row => {
       if (row.id === 'per') {
@@ -118,9 +77,68 @@ const Planner = () => {
     }));
   }, [personal]);
 
+  const explodeQuotation = (q) => {
+    const exploded = [];
+    (q.items || []).forEach(item => {
+      const isExternal = !!(item.isExternal || item.inventory?.isExternal);
+      const provider = isExternal ? (item.vendorName || item.inventory?.vendorName || '') : 'SUN PARTNERS';
+      const cost = isExternal ? (item.vendorCost || item.inventory?.vendorCost || 0) : 0;
+
+      if (item.isComposition) {
+          const pieces = item.compositions || item.inventory?.compositions || [];
+          pieces.forEach(p => {
+            const pieceIsExternal = !!p.componentCatalogItem?.isExternal;
+            const pieceProvider = pieceIsExternal ? (p.componentCatalogItem?.vendorName || '') : 'SUN PARTNERS';
+            const pieceCost = pieceIsExternal ? (p.componentCatalogItem?.vendorCost || 0) : 0;
+            exploded.push({
+              id: crypto.randomUUID(),
+              category: 'EQUIPAMIENTO',
+              nombre: p.componentCatalogItem?.nombre_comercial || p.warehouseItem?.nombre || p.nombre || 'Pieza de Set',
+              cantidad: (p.quantity || 1) * item.cantidad,
+              isExternal: pieceIsExternal,
+              costo: pieceCost,
+              proveedor: pieceProvider,
+              notas: `De: ${item.customName || item.inventory?.nombre_comercial}`,
+              originalQuotationItemId: item.id
+            });
+          });
+      } else {
+          exploded.push({
+            id: crypto.randomUUID(),
+            category: 'EQUIPAMIENTO',
+            nombre: item.customName || item.inventory?.nombre_comercial,
+            cantidad: item.cantidad,
+            isExternal: isExternal,
+            costo: cost,
+            proveedor: provider,
+            notas: '',
+            originalQuotationItemId: item.id
+          });
+      }
+    });
+    setMateriales(exploded);
+  };
+
+  const getLinkedSubtotal = (rowId) => {
+    // Only Sections 1-4 are added separately to the total because they are NOT mirrored into cells
+    // Section 5 (Personal) IS mirrored, so its linked subtotal is already in the cells.
+    if (rowId === 'tra') return materiales.filter(m => m.category === 'TRANSPORTE').reduce((acc, m) => acc + (parseFloat(m.costo) || 0) * (parseInt(m.cantidad) || 1), 0);
+    if (rowId === 'sub') return materiales.filter(m => m.category === 'EQUIPAMIENTO' && m.isExternal).reduce((acc, m) => acc + (parseFloat(m.costo) || 0) * (parseInt(m.cantidad) || 1), 0);
+    if (rowId === 'mat') return materiales.filter(m => ['HERRAMIENTAS', 'INSUMOS'].includes(m.category)).reduce((acc, m) => acc + (parseFloat(m.costo) || 0) * (parseInt(m.cantidad) || 1), 0);
+    return 0;
+  };
+
   const totalPresupuesto = useMemo(() => {
-    return presupuesto.reduce((acc, row) => acc + (row.montaje || 0) + (row.evento || 0) + (row.desmontaje || 0), 0);
-  }, [presupuesto]);
+    // v50.7: Master Algorithm
+    // Sum of all linked subtotals (Except Personal because it's mirrored into cells)
+    const linkedTotal = getLinkedSubtotal('tra') + getLinkedSubtotal('sub') + getLinkedSubtotal('mat');
+
+    // Sum of all manual entries in the Budget table
+    const manualTotal = presupuesto.reduce((acc, row) =>
+        acc + (parseFloat(row.montaje) || 0) + (parseFloat(row.evento) || 0) + (parseFloat(row.desmontaje) || 0), 0);
+
+    return linkedTotal + manualTotal;
+  }, [materiales, personal, presupuesto]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -147,7 +165,7 @@ const Planner = () => {
       category,
       nombre: '',
       cantidad: 1,
-      isExternal: true, // Manual items are usually external costs
+      isExternal: true,
       costo: 0,
       proveedor: '',
       notas: '',
@@ -174,7 +192,7 @@ const Planner = () => {
     setList(list.filter(i => i.id !== itemId));
   };
 
-  if (loading || !quotation) return <div className="p-20 text-center font-display text-zinc-400">INFLANDO PLANEADOR v50.3...</div>;
+  if (loading || !quotation) return <div className="p-20 text-center font-display text-zinc-400">INFLANDO PLANEADOR v50.7...</div>;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FAFC] font-body text-zinc-900">
@@ -197,25 +215,15 @@ const Planner = () => {
               </div>
            </div>
            <div className="flex gap-3">
-             <button
-               onClick={() => generatePlannerPDF(quotation, 'ROUTER')}
-               className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2"
-             >
+             <button onClick={() => generatePlannerPDF(quotation, 'ROUTER')} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
                <span className="material-symbols-outlined text-[18px]">print</span>
                HOJA DE RUTA
              </button>
-             <button
-               onClick={() => generatePlannerPDF(quotation, 'REPORT')}
-               className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2"
-             >
+             <button onClick={() => generatePlannerPDF(quotation, 'REPORT')} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
                <span className="material-symbols-outlined text-[18px]">analytics</span>
                REPORTE OPERATIVO
              </button>
-             <button
-               onClick={handleSave}
-               disabled={saving}
-               className="bg-[#5486A1] text-white px-8 py-3 rounded-lg text-[10px] font-black tracking-widest shadow-lg shadow-blue-900/10 hover:opacity-90 transition-all flex items-center gap-2 ml-4"
-             >
+             <button onClick={handleSave} disabled={saving} className="bg-[#5486A1] text-white px-8 py-3 rounded-lg text-[10px] font-black tracking-widest shadow-lg shadow-blue-900/10 hover:opacity-90 transition-all flex items-center gap-2 ml-4">
                <span className="material-symbols-outlined text-[20px]">{saving ? 'sync' : 'cloud_upload'}</span>
                {saving ? 'GUARDANDO...' : 'SINCRONIZAR DATOS'}
              </button>
@@ -352,7 +360,7 @@ const Planner = () => {
                           <td className="px-4 py-4 text-right">$ <input type="number" value={p.montaje} onChange={e => updateList(personal, setPersonal, p.id, 'montaje', parseFloat(e.target.value) || 0)} className="w-20 text-right outline-none" /></td>
                           <td className="px-4 py-4 text-right">$ <input type="number" value={p.evento} onChange={e => updateList(personal, setPersonal, p.id, 'evento', parseFloat(e.target.value) || 0)} className="w-20 text-right outline-none" /></td>
                           <td className="px-4 py-4 text-right">$ <input type="number" value={p.desmontaje} onChange={e => updateList(personal, setPersonal, p.id, 'desmontaje', parseFloat(e.target.value) || 0)} className="w-20 text-right outline-none" /></td>
-                          <td className="px-4 py-4 text-right font-black bg-zinc-100/30">$ {((p.montaje || 0) + (p.evento || 0) + (p.desmontaje || 0)).toLocaleString()}</td>
+                          <td className="px-4 py-4 text-right font-black bg-zinc-100/30">$ {((parseFloat(p.montaje) || 0) + (parseFloat(p.evento) || 0) + (parseFloat(p.desmontaje) || 0)).toLocaleString()}</td>
                           <td className="px-4 py-4 text-center"><button onClick={() => removeList(personal, setPersonal, p.id)} className="text-zinc-300 hover:text-red-500"><span className="material-symbols-outlined text-[18px]">close</span></button></td>
                        </tr>
                     ))}
@@ -383,50 +391,57 @@ const Planner = () => {
                     </tr>
                  </thead>
                  <tbody className="divide-y divide-zinc-100">
-                    {presupuesto.map(row => (
-                       <tr key={row.id} className={row.isAutomatic ? 'bg-zinc-50/50' : ''}>
-                          <td className="px-8 py-4 font-black">{row.concepto}</td>
-                          <td className="px-4 py-4">
-                             <input
-                               value={row.indicaciones}
-                               onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'indicaciones', e.target.value)}
-                               className="w-full bg-transparent text-[11px] italic outline-none"
-                               placeholder="Observaciones..."
-                               disabled={row.isAutomatic}
-                             />
-                          </td>
-                          <td className="px-4 py-4 text-right">
-                             $ <input
-                               type="number"
-                               value={row.montaje}
-                               onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'montaje', parseFloat(e.target.value) || 0)}
-                               className="w-24 text-right outline-none bg-transparent font-bold"
-                               disabled={row.isAutomatic}
-                             />
-                          </td>
-                          <td className="px-4 py-4 text-right">
-                             $ <input
-                               type="number"
-                               value={row.evento}
-                               onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'evento', parseFloat(e.target.value) || 0)}
-                               className="w-24 text-right outline-none bg-transparent font-bold"
-                               disabled={row.isAutomatic}
-                             />
-                          </td>
-                          <td className="px-4 py-4 text-right">
-                             $ <input
-                               type="number"
-                               value={row.desmontaje}
-                               onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'desmontaje', parseFloat(e.target.value) || 0)}
-                               className="w-24 text-right outline-none bg-transparent font-bold"
-                               disabled={row.isAutomatic}
-                             />
-                          </td>
-                          <td className="px-4 py-4 text-right font-black bg-zinc-100/30">
-                             $ {((row.montaje || 0) + (row.evento || 0) + (row.desmontaje || 0)).toLocaleString()}
-                          </td>
-                       </tr>
-                    ))}
+                    {presupuesto.map(row => {
+                       const linkedSubtotal = getLinkedSubtotal(row.id);
+                       const manualSum = (parseFloat(row.montaje) || 0) + (parseFloat(row.evento) || 0) + (parseFloat(row.desmontaje) || 0);
+                       const rowTotal = linkedSubtotal + manualSum;
+
+                       return (
+                          <tr key={row.id}>
+                             <td className="px-8 py-4 font-black">
+                                {row.concepto}
+                                {linkedSubtotal > 0 && (
+                                   <div className="text-[8px] text-primary font-black uppercase mt-0.5">Incluye ${linkedSubtotal.toLocaleString()} auto</div>
+                                )}
+                             </td>
+                             <td className="px-4 py-4">
+                                <input
+                                  value={row.indicaciones}
+                                  onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'indicaciones', e.target.value)}
+                                  className="w-full bg-transparent text-[11px] italic outline-none"
+                                  placeholder="Observaciones..."
+                                />
+                             </td>
+                             <td className="px-4 py-4 text-right">
+                                $ <input
+                                  type="number"
+                                  value={row.montaje}
+                                  onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'montaje', parseFloat(e.target.value) || 0)}
+                                  className="w-24 text-right outline-none bg-transparent font-bold"
+                                />
+                             </td>
+                             <td className="px-4 py-4 text-right">
+                                $ <input
+                                  type="number"
+                                  value={row.evento}
+                                  onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'evento', parseFloat(e.target.value) || 0)}
+                                  className="w-24 text-right outline-none bg-transparent font-bold"
+                                />
+                             </td>
+                             <td className="px-4 py-4 text-right">
+                                $ <input
+                                  type="number"
+                                  value={row.desmontaje}
+                                  onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'desmontaje', parseFloat(e.target.value) || 0)}
+                                  className="w-24 text-right outline-none bg-transparent font-bold"
+                                />
+                             </td>
+                             <td className="px-4 py-4 text-right font-black bg-zinc-100/30">
+                                $ {rowTotal.toLocaleString()}
+                             </td>
+                          </tr>
+                       );
+                    })}
                  </tbody>
               </table>
            </div>

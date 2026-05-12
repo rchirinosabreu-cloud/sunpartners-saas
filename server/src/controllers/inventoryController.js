@@ -94,7 +94,7 @@ exports.getAllCommercial = async (req, res) => {
 
 exports.createCommercial = async (req, res) => {
   try {
-    const { nombre_comercial, valor_alquiler, compositions, bodegaId, isExternal, isComposition, vendorCost, claseA, claseB, claseC, estado } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, bodegaId, isExternal, isComposition, vendorCost, vendorName, claseA, claseB, claseC, estado } = req.body;
     const newItem = await prisma.inventory_Commercial.create({
       data: {
         nombre_comercial,
@@ -127,7 +127,7 @@ exports.createCommercial = async (req, res) => {
 exports.updateCommercial = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre_comercial, valor_alquiler, compositions, isExternal, isComposition, vendorCost, claseA, claseB, claseC, estado } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, isExternal, isComposition, vendorCost, vendorName, claseA, claseB, claseC, estado } = req.body;
 
     // If updating compositions, clear old ones first
     if (compositions) {
