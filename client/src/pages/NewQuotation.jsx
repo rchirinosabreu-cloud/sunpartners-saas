@@ -61,7 +61,7 @@ const ComboBox = ({ label, value, options, onChange }) => {
   );
 };
 
-const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar equipo..." }) => {
+const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar equipo...", icon = "package_2" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -126,9 +126,11 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
         className={`w-full border-2 rounded-lg p-2.5 flex items-center justify-between cursor-pointer transition-all bg-zinc-50 ${isOpen ? 'border-primary shadow-sm bg-white' : 'border-zinc-100 hover:border-zinc-200'}`}
       >
         <div className="flex items-center gap-2 overflow-hidden">
-          <span className={`material-symbols-outlined text-[18px] ${selectedItem ? 'text-primary' : 'text-zinc-400'}`}>
-            {selectedItem ? 'inventory_2' : 'search'}
-          </span>
+          {icon && (
+            <span className={`material-symbols-outlined text-[18px] shrink-0 ${selectedItem ? 'text-zinc-400' : 'text-zinc-300'}`}>
+              {icon}
+            </span>
+          )}
           <span className={`text-xs font-bold truncate ${selectedItem ? 'text-zinc-900 ' : 'text-zinc-400'}`}>
             {selectedItem ? selectedItem.nombre_comercial : placeholder}
           </span>
@@ -325,7 +327,10 @@ const NewQuotation = () => {
               precio_dia_adicional: it.precio_dia_adicional,
               clase_asignada: it.clase_asignada,
               isExternal: it.isExternal,
+              isComposition: it.isComposition,
+              description: it.description,
               vendorCost: it.vendorCost,
+              vendorName: it.vendorName,
               customName: it.customName,
               compositions: it.compositions,
               inventory: it.inventory
@@ -458,8 +463,12 @@ const NewQuotation = () => {
             newItems[editingComposition.index] = {
               ...newItems[editingComposition.index],
               customName: comp.customName,
+              description: comp.description,
+              isComposition: true,
               precio_pactado: comp.precio_pactado,
               precio_dia_adicional: comp.precio_dia_adicional,
+              vendorCost: comp.vendorCost,
+              vendorName: comp.vendorName,
               compositions: comp.items,
               saveToCatalog: comp.saveToCatalog
             };
@@ -471,6 +480,8 @@ const NewQuotation = () => {
               items: [...p.items, {
                 inventoryId: null,
                 customName: comp.customName,
+                description: comp.description,
+                isComposition: true,
                 cantidad: 1,
                 dias: 1,
                 precio_pactado: comp.precio_pactado,
@@ -873,7 +884,20 @@ const NewQuotation = () => {
                               const n = [...formData.items]; n[idx][f] = v;
                               if (f === 'inventoryId') {
                                  const item = inventory.find(i => i.id === v);
-                                 if (item) { n[idx].precio_pactado = item.valor_alquiler; n[idx].precio_dia_adicional = item.valor_alquiler * 0.5; }
+                                 if (item) {
+                                    n[idx].precio_pactado = item.valor_alquiler;
+                                    n[idx].precio_dia_adicional = item.valor_alquiler * 0.5;
+                                    n[idx].isComposition = item.isComposition;
+                                    n[idx].isExternal = item.isExternal;
+                                    n[idx].vendorCost = item.vendorCost;
+                                    n[idx].vendorName = item.vendorName;
+                                    n[idx].inventory = item;
+                                    // v49.5: Inflate item with components if it's a catalog composition
+                                    if (item.isComposition && item.compositions) {
+                                       n[idx].compositions = item.compositions;
+                                       n[idx].description = `Incluye: ${item.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || 'Ítem'}`).join(', ')}`;
+                                    }
+                                 }
                               }
                               setFormData({...formData, items: n});
                            };
@@ -882,7 +906,7 @@ const NewQuotation = () => {
                                  <td className="p-4">
                                     <div className="flex flex-col gap-1">
                                        <div className="flex items-center gap-2">
-                                          {(it.customName || (it.inventoryId && it.inventory?.compositions?.length > 0)) ? (
+                                          {(it.isComposition || it.customName || (it.inventoryId && it.inventory?.compositions?.length > 0)) ? (
                                              <div
                                                 onClick={() => {
                                                    if (it.isExternal || it.inventory?.isExternal) {
@@ -895,11 +919,11 @@ const NewQuotation = () => {
                                                 }}
                                                 className={`flex-1 p-2.5 bg-zinc-50 border-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-zinc-100 transition-all ${it.isExternal || it.inventory?.isExternal ? 'border-blue-200' : 'border-primary/20'}`}
                                              >
-                                                <span className={`material-symbols-outlined text-[18px] ${it.isExternal || it.inventory?.isExternal ? 'hidden' : 'text-primary'}`}>
-                                                   {it.isExternal || it.inventory?.isExternal ? '' : 'auto_awesome'}
+                                                <span className={`material-symbols-outlined text-[18px] shrink-0 text-zinc-400 ${it.isExternal || it.inventory?.isExternal ? 'hidden' : ''}`}>
+                                                   {it.isComposition ? 'auto_awesome' : 'package_2'}
                                                 </span>
-                                                <span className="text-xs font-black text-zinc-900 uppercase">
-                                                   {it.customName || it.inventory?.nombre_comercial}
+                                                <span className="text-xs font-black text-zinc-900 uppercase truncate">
+                                                   {it.customName || it.inventory?.nombre_comercial || invItem?.nombre_comercial}
                                                    {(it.isExternal || it.inventory?.isExternal) && (
                                                       <span className="ml-2 px-1.5 py-0.5 bg-blue-50 text-blue-500 text-[8px] font-black rounded border border-blue-100">EXT</span>
                                                    )}
@@ -911,6 +935,7 @@ const NewQuotation = () => {
                                                 value={it.inventoryId}
                                                 options={inventory}
                                                 onChange={val => update('inventoryId', val)}
+                                                icon="package_2"
                                              />
                                           )}
                                           {hasStockWarning && (
@@ -925,9 +950,9 @@ const NewQuotation = () => {
                                        {(it.inventoryId || it.customName) && (
                                           <div className="px-1 flex flex-col gap-0.5">
                                              <span className="text-[9px] text-zinc-400 font-bold ">({it.cantidad || 0} UNIDADES X {it.dias || 1} DÍAS)</span>
-                                             {it.compositions?.length > 0 && (
+                                             {(it.description || it.compositions?.length > 0) && (
                                                 <span className="text-[10px] text-zinc-500 font-medium italic">
-                                                   (Incluye: {it.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem no encontrado'}`).join(', ')})
+                                                   ({it.description || `Incluye: ${it.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem no encontrado'}`).join(', ')}`})
                                                 </span>
                                              )}
                                           </div>
@@ -936,8 +961,8 @@ const NewQuotation = () => {
                                  </td>
                                  <td className="p-4"><input type="number" value={it.cantidad} onChange={e => update('cantidad', e.target.value)} className="w-16 text-center outline-none" /></td>
                                  <td className="p-4"><input type="number" value={it.dias} onChange={e => update('dias', e.target.value)} className="w-16 text-center outline-none" /></td>
-                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_pactado} onChange={e => update('precio_pactado', e.target.value)} className="w-24 text-right outline-none" /></td>
-                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_dia_adicional} onChange={e => update('precio_dia_adicional', e.target.value)} className="w-24 text-right outline-none" /></td>
+                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_pactado} onChange={e => update('precio_pactado', e.target.value)} className="w-24 text-right outline-none focus:bg-white focus:border focus:border-primary/20 rounded" /></td>
+                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_dia_adicional} onChange={e => update('precio_dia_adicional', e.target.value)} className="w-24 text-right outline-none focus:bg-white focus:border focus:border-primary/20 rounded" /></td>
                                  <td className="p-6 text-right text-zinc-900 font-black text-sm">$ {calculateLineTotal(it).toLocaleString()}</td>
                                  <td className="p-6 text-center">
                                     <button

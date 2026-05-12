@@ -167,18 +167,32 @@ exports.create = async (req, res) => {
     const processedItems = await Promise.all((items || []).map(async (item) => {
       let inventoryId = item.inventoryId || null;
       let compositions = item.compositions;
+      let isComposition = !!item.isComposition;
 
-      if (item.saveToCatalog && item.customName) {
+      if (item.saveToCatalog && (item.customName || item.inventory?.nombre_comercial)) {
+        // v49.5: Fix loss of "Combo DNA" when saving back to catalog
+        // If compositions is empty but it's a catalog item, we should try to reuse the source recipe
+        let recipeToSave = item.compositions || [];
+        if (recipeToSave.length === 0 && item.inventoryId) {
+           const source = await prisma.inventory_Commercial.findUnique({
+              where: { id: item.inventoryId },
+              include: { compositions: true }
+           });
+           recipeToSave = source?.compositions || [];
+        }
+
         // If it was already a catalog item, we create a NEW one (versioning by creation)
         // to avoid breaking historical quotations that used the previous version.
         const newItem = await prisma.inventory_Commercial.create({
           data: {
-            nombre_comercial: item.customName,
+            nombre_comercial: item.customName || item.inventory?.nombre_comercial,
             valor_alquiler: parseFloat(item.precio_pactado),
             isExternal: !!item.isExternal,
+            isComposition: true,
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
+            vendorName: item.vendorName || null,
             compositions: {
-              create: (item.compositions || []).map(c => ({
+              create: recipeToSave.map(c => ({
                 warehouseItemId: c.warehouseItemId || null,
                 componentCatalogItemId: c.componentCatalogItemId || null,
                 quantity: parseInt(c.quantity)
@@ -188,17 +202,21 @@ exports.create = async (req, res) => {
         });
         inventoryId = newItem.id;
         compositions = null; // Links to the new catalog entry
+        isComposition = true;
       }
 
       return {
         inventoryId,
         customName: inventoryId ? null : (item.customName || null),
+        description: item.description || null,
         cantidad: parseInt(item.cantidad),
         dias: parseInt(item.dias || 1),
         precio_pactado: parseFloat(item.precio_pactado),
         precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
         isExternal: !!item.isExternal,
+        isComposition,
         vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
+        vendorName: item.vendorName || null,
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
           create: compositions.map(c => ({
@@ -322,16 +340,29 @@ exports.update = async (req, res) => {
     const processedItems = await Promise.all((items || []).map(async (item) => {
       let inventoryId = item.inventoryId || null;
       let compositions = item.compositions;
+      let isComposition = !!item.isComposition;
 
-      if (item.saveToCatalog && item.customName) {
+      if (item.saveToCatalog && (item.customName || item.inventory?.nombre_comercial)) {
+        // v49.5: Fix loss of "Combo DNA" when saving back to catalog
+        let recipeToSave = item.compositions || [];
+        if (recipeToSave.length === 0 && item.inventoryId) {
+           const source = await prisma.inventory_Commercial.findUnique({
+              where: { id: item.inventoryId },
+              include: { compositions: true }
+           });
+           recipeToSave = source?.compositions || [];
+        }
+
         const newItem = await prisma.inventory_Commercial.create({
           data: {
-            nombre_comercial: item.customName,
+            nombre_comercial: item.customName || item.inventory?.nombre_comercial,
             valor_alquiler: parseFloat(item.precio_pactado),
             isExternal: !!item.isExternal,
+            isComposition: true,
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
+            vendorName: item.vendorName || null,
             compositions: {
-              create: (item.compositions || []).map(c => ({
+              create: recipeToSave.map(c => ({
                 warehouseItemId: c.warehouseItemId || null,
                 componentCatalogItemId: c.componentCatalogItemId || null,
                 quantity: parseInt(c.quantity)
@@ -341,17 +372,21 @@ exports.update = async (req, res) => {
         });
         inventoryId = newItem.id;
         compositions = null;
+        isComposition = true;
       }
 
       return {
         inventoryId,
         customName: inventoryId ? null : (item.customName || null),
+        description: item.description || null,
         cantidad: parseInt(item.cantidad),
         dias: parseInt(item.dias || 1),
         precio_pactado: parseFloat(item.precio_pactado),
         precio_dia_adicional: parseFloat(item.precio_dia_adicional || 0),
         isExternal: !!item.isExternal,
+        isComposition,
         vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
+        vendorName: item.vendorName || null,
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
           create: compositions.map(c => ({
@@ -562,12 +597,12 @@ exports.updateStatus = async (req, res) => {
 exports.upsertPlanning = async (req, res) => {
   try {
     const { id } = req.params;
-    const { cronograma, personal, transporte } = req.body;
+    const { cronograma, personal, transporte, materiales, presupuesto, footer } = req.body;
 
     const planning = await prisma.planningStep.upsert({
       where: { quotationId: id },
-      update: { cronograma, personal, transporte },
-      create: { quotationId: id, cronograma, personal, transporte }
+      update: { cronograma, personal, transporte, materiales, presupuesto, footer },
+      create: { quotationId: id, cronograma, personal, transporte, materiales, presupuesto, footer }
     });
 
     res.json(planning);
@@ -589,7 +624,16 @@ async function resolveWarehouseRequirements(items) {
       return;
     }
 
-    // 2. Check if it points to a catalog item (either via inventoryId or componentCatalogItemId)
+    // 2. Check for local compositions (One-shot or overridden)
+    // IMPORTANT: If it's a QuotationItem and has compositions, we use those INSTEAD of the catalog recipe.
+    if (entity.compositions && entity.compositions.length > 0) {
+      for (const comp of entity.compositions) {
+        await resolve(comp, (entity.cantidad || entity.quantity || 1) * multiplier, visited);
+      }
+      return; // Stop here if we used local overrides
+    }
+
+    // 3. Check if it points to a catalog item (either via inventoryId or componentCatalogItemId)
     const catalogId = entity.inventoryId || entity.componentCatalogItemId;
     if (catalogId) {
       if (visited.has(catalogId)) return; // Prevent infinite loops
@@ -612,13 +656,6 @@ async function resolveWarehouseRequirements(items) {
       }
       visited.delete(catalogId);
       return;
-    }
-
-    // 3. Check for local compositions (One-shot)
-    if (entity.compositions && entity.compositions.length > 0) {
-      for (const comp of entity.compositions) {
-        await resolve(comp, (entity.cantidad || entity.quantity || 1) * multiplier, visited);
-      }
     }
   }
 

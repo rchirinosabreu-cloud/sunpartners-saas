@@ -87,7 +87,9 @@ model Inventory_Commercial {
   claseC               Int              @default(0)
   valor_alquiler       Float            @default(0)
   isExternal           Boolean          @default(false)
+  isComposition        Boolean          @default(false)
   vendorCost           Float?
+  vendorName           String?
   estado               ItemStatus       @default(ACTIVO)
   bodegaId             String?          @unique
   createdAt            DateTime         @default(now())
@@ -144,10 +146,13 @@ model QuotationItem {
   quotationId          String
   inventoryId          String?
   customName           String?
+  description          String?
   cantidad             Int
   precio_pactado       Float
   isExternal           Boolean               @default(false)
+  isComposition        Boolean               @default(false)
   vendorCost           Float?
+  vendorName           String?
   clase_asignada       String                @default("A")
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
@@ -197,6 +202,9 @@ model PlanningStep {
   cronograma  String?
   personal    Json?
   transporte  Json?
+  materiales  Json?     // v50.0: For exploded materials and manual items
+  presupuesto Json?     // v50.3: Budget matrix
+  footer      Json?     // v50.3: Signature fields
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   quotation   Quotation @relation(fields: [quotationId], references: [id])
