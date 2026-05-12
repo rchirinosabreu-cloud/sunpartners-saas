@@ -201,6 +201,8 @@ model PlanningStep {
   personal    Json?
   transporte  Json?
   materiales  Json?     // v50.0: For exploded materials and manual items
+  presupuesto Json?     // v50.3: Budget matrix
+  footer      Json?     // v50.3: Signature fields
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   quotation   Quotation @relation(fields: [quotationId], references: [id])
