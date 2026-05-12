@@ -200,6 +200,7 @@ model PlanningStep {
   cronograma  String?
   personal    Json?
   transporte  Json?
+  materiales  Json?     // v50.0: For exploded materials and manual items
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   quotation   Quotation @relation(fields: [quotationId], references: [id])

@@ -9,6 +9,7 @@ import Events from './pages/Events';
 import Clients from './pages/Clients';
 import QuotationList from './pages/QuotationList';
 import QuotationDetail from './pages/QuotationDetail';
+import Planner from './pages/Planner';
 import NewQuotation from './pages/NewQuotation';
 import PublicQuotation from './pages/PublicQuotation';
 import Profile from './pages/Profile';
@@ -56,6 +57,7 @@ const App = () => {
             <Route path="cotizaciones/nueva" element={<NewQuotation />} />
             <Route path="cotizaciones/editar/:id" element={<NewQuotation />} />
             <Route path="cotizaciones/:id" element={<QuotationDetail />} />
+            <Route path="cotizaciones/:id/planeador" element={<Planner />} />
             <Route path="tasks" element={<Kanban />} />
             <Route path="perfil" element={<Profile />} />
             <Route
