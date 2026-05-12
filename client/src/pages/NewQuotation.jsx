@@ -886,8 +886,9 @@ const NewQuotation = () => {
                                     n[idx].isExternal = item.isExternal;
                                     n[idx].vendorCost = item.vendorCost;
                                     n[idx].inventory = item;
-                                    // Generate initial description if it's a catalog composition
+                                    // v49.5: Inflate item with components if it's a catalog composition
                                     if (item.isComposition && item.compositions) {
+                                       n[idx].compositions = item.compositions;
                                        n[idx].description = `Incluye: ${item.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || 'Ítem'}`).join(', ')}`;
                                     }
                                  }
@@ -956,8 +957,8 @@ const NewQuotation = () => {
                                  </td>
                                  <td className="p-4"><input type="number" value={it.cantidad} onChange={e => update('cantidad', e.target.value)} className="w-16 text-center outline-none" /></td>
                                  <td className="p-4"><input type="number" value={it.dias} onChange={e => update('dias', e.target.value)} className="w-16 text-center outline-none" /></td>
-                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_pactado} onChange={e => update('precio_pactado', e.target.value)} className="w-24 text-right outline-none" /></td>
-                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_dia_adicional} onChange={e => update('precio_dia_adicional', e.target.value)} className="w-24 text-right outline-none" /></td>
+                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_pactado} onChange={e => update('precio_pactado', e.target.value)} className="w-24 text-right outline-none focus:bg-white focus:border focus:border-primary/20 rounded" /></td>
+                                 <td className="p-4 text-right">$ <input type="number" value={it.precio_dia_adicional} onChange={e => update('precio_dia_adicional', e.target.value)} className="w-24 text-right outline-none focus:bg-white focus:border focus:border-primary/20 rounded" /></td>
                                  <td className="p-6 text-right text-zinc-900 font-black text-sm">$ {calculateLineTotal(it).toLocaleString()}</td>
                                  <td className="p-6 text-center">
                                     <button
