@@ -61,7 +61,7 @@ const ComboBox = ({ label, value, options, onChange }) => {
   );
 };
 
-const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar equipo..." }) => {
+const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar equipo...", icon = "package_2" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -126,6 +126,11 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
         className={`w-full border-2 rounded-lg p-2.5 flex items-center justify-between cursor-pointer transition-all bg-zinc-50 ${isOpen ? 'border-primary shadow-sm bg-white' : 'border-zinc-100 hover:border-zinc-200'}`}
       >
         <div className="flex items-center gap-2 overflow-hidden">
+          {icon && (
+            <span className={`material-symbols-outlined text-[18px] shrink-0 ${selectedItem ? 'text-zinc-400' : 'text-zinc-300'}`}>
+              {icon}
+            </span>
+          )}
           <span className={`text-xs font-bold truncate ${selectedItem ? 'text-zinc-900 ' : 'text-zinc-400'}`}>
             {selectedItem ? selectedItem.nombre_comercial : placeholder}
           </span>
@@ -910,10 +915,10 @@ const NewQuotation = () => {
                                                 }}
                                                 className={`flex-1 p-2.5 bg-zinc-50 border-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-zinc-100 transition-all ${it.isExternal || it.inventory?.isExternal ? 'border-blue-200' : 'border-primary/20'}`}
                                              >
-                                                <span className={`material-symbols-outlined text-[18px] ${it.isExternal || it.inventory?.isExternal ? 'hidden' : 'text-primary'}`}>
-                                                   {it.isExternal || it.inventory?.isExternal ? '' : (it.isComposition ? 'auto_awesome' : 'package_2')}
+                                                <span className={`material-symbols-outlined text-[18px] shrink-0 text-zinc-400 ${it.isExternal || it.inventory?.isExternal ? 'hidden' : ''}`}>
+                                                   {it.isComposition ? 'auto_awesome' : 'package_2'}
                                                 </span>
-                                                <span className="text-xs font-black text-zinc-900 uppercase">
+                                                <span className="text-xs font-black text-zinc-900 uppercase truncate">
                                                    {it.customName || it.inventory?.nombre_comercial || invItem?.nombre_comercial}
                                                    {(it.isExternal || it.inventory?.isExternal) && (
                                                       <span className="ml-2 px-1.5 py-0.5 bg-blue-50 text-blue-500 text-[8px] font-black rounded border border-blue-100">EXT</span>
@@ -922,14 +927,12 @@ const NewQuotation = () => {
                                                 <span className="material-symbols-outlined text-[14px] text-zinc-300 ml-auto">edit</span>
                                              </div>
                                           ) : (
-                                             <div className="flex-1 flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[18px] text-zinc-400 shrink-0">package_2</span>
-                                                <SearchableSelect
-                                                   value={it.inventoryId}
-                                                   options={inventory}
-                                                   onChange={val => update('inventoryId', val)}
-                                                />
-                                             </div>
+                                             <SearchableSelect
+                                                value={it.inventoryId}
+                                                options={inventory}
+                                                onChange={val => update('inventoryId', val)}
+                                                icon="package_2"
+                                             />
                                           )}
                                           {hasStockWarning && (
                                              <div className="group relative">
