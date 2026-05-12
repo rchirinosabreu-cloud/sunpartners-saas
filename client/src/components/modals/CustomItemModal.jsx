@@ -6,6 +6,7 @@ const CustomItemModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   const [cantidad, setCantidad] = useState(1);
   const [precioPactado, setPrecioPactado] = useState(0);
   const [vendorCost, setVendorCost] = useState(0);
+  const [vendorName, setVendorName] = useState('');
   const [saveToCatalog, setSaveToCatalog] = useState(false);
 
   useEffect(() => {
@@ -15,12 +16,14 @@ const CustomItemModal = ({ isOpen, onClose, onSave, initialData = null }) => {
         setCantidad(initialData.cantidad || 1);
         setPrecioPactado(initialData.precio_pactado || 0);
         setVendorCost(initialData.vendorCost || 0);
+        setVendorName(initialData.vendorName || '');
         setSaveToCatalog(false);
       } else {
         setNombre('');
         setCantidad(1);
         setPrecioPactado(0);
         setVendorCost(0);
+        setVendorName('');
         setSaveToCatalog(false);
       }
     }
@@ -33,6 +36,7 @@ const CustomItemModal = ({ isOpen, onClose, onSave, initialData = null }) => {
       cantidad,
       precio_pactado: precioPactado,
       vendorCost,
+      vendorName,
       isExternal: true,
       saveToCatalog
     });
@@ -84,14 +88,26 @@ const CustomItemModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             </div>
         </div>
 
-        <div>
-          <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2 uppercase">Costo Proveedor (Unidad)</label>
-          <input
-            type="number"
-            value={vendorCost}
-            onChange={e => setVendorCost(parseFloat(e.target.value) || 0)}
-            className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-sm"
-          />
+        <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2 uppercase">Proveedor (Nombre)</label>
+              <input
+                type="text"
+                value={vendorName}
+                onChange={e => setVendorName(e.target.value)}
+                className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-sm"
+                placeholder="Ej: JPL Logística"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black tracking-widest text-zinc-400 mb-2 uppercase">Costo Un.</label>
+              <input
+                type="number"
+                value={vendorCost}
+                onChange={e => setVendorCost(parseFloat(e.target.value) || 0)}
+                className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-sm"
+              />
+            </div>
         </div>
 
         <div className="bg-zinc-50 p-4 rounded-lg border border-zinc-100 flex justify-between items-center">

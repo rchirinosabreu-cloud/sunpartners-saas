@@ -190,6 +190,7 @@ exports.create = async (req, res) => {
             isExternal: !!item.isExternal,
             isComposition: true,
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
+            vendorName: item.vendorName || null,
             compositions: {
               create: recipeToSave.map(c => ({
                 warehouseItemId: c.warehouseItemId || null,
@@ -215,6 +216,7 @@ exports.create = async (req, res) => {
         isExternal: !!item.isExternal,
         isComposition,
         vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
+        vendorName: item.vendorName || null,
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
           create: compositions.map(c => ({
@@ -358,6 +360,7 @@ exports.update = async (req, res) => {
             isExternal: !!item.isExternal,
             isComposition: true,
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
+            vendorName: item.vendorName || null,
             compositions: {
               create: recipeToSave.map(c => ({
                 warehouseItemId: c.warehouseItemId || null,
@@ -383,6 +386,7 @@ exports.update = async (req, res) => {
         isExternal: !!item.isExternal,
         isComposition,
         vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
+        vendorName: item.vendorName || null,
         clase_asignada: item.clase_asignada || 'A',
         compositions: compositions ? {
           create: compositions.map(c => ({

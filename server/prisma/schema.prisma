@@ -89,6 +89,7 @@ model Inventory_Commercial {
   isExternal           Boolean          @default(false)
   isComposition        Boolean          @default(false)
   vendorCost           Float?
+  vendorName           String?
   estado               ItemStatus       @default(ACTIVO)
   bodegaId             String?          @unique
   createdAt            DateTime         @default(now())
@@ -151,6 +152,7 @@ model QuotationItem {
   isExternal           Boolean               @default(false)
   isComposition        Boolean               @default(false)
   vendorCost           Float?
+  vendorName           String?
   clase_asignada       String                @default("A")
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt

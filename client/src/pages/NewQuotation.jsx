@@ -330,6 +330,7 @@ const NewQuotation = () => {
               isComposition: it.isComposition,
               description: it.description,
               vendorCost: it.vendorCost,
+              vendorName: it.vendorName,
               customName: it.customName,
               compositions: it.compositions,
               inventory: it.inventory
@@ -466,6 +467,8 @@ const NewQuotation = () => {
               isComposition: true,
               precio_pactado: comp.precio_pactado,
               precio_dia_adicional: comp.precio_dia_adicional,
+              vendorCost: comp.vendorCost,
+              vendorName: comp.vendorName,
               compositions: comp.items,
               saveToCatalog: comp.saveToCatalog
             };
