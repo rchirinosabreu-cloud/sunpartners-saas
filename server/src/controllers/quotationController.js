@@ -169,18 +169,29 @@ exports.create = async (req, res) => {
       let compositions = item.compositions;
       let isComposition = !!item.isComposition;
 
-      if (item.saveToCatalog && item.customName) {
+      if (item.saveToCatalog && (item.customName || item.inventory?.nombre_comercial)) {
+        // v49.5: Fix loss of "Combo DNA" when saving back to catalog
+        // If compositions is empty but it's a catalog item, we should try to reuse the source recipe
+        let recipeToSave = item.compositions || [];
+        if (recipeToSave.length === 0 && item.inventoryId) {
+           const source = await prisma.inventory_Commercial.findUnique({
+              where: { id: item.inventoryId },
+              include: { compositions: true }
+           });
+           recipeToSave = source?.compositions || [];
+        }
+
         // If it was already a catalog item, we create a NEW one (versioning by creation)
         // to avoid breaking historical quotations that used the previous version.
         const newItem = await prisma.inventory_Commercial.create({
           data: {
-            nombre_comercial: item.customName,
+            nombre_comercial: item.customName || item.inventory?.nombre_comercial,
             valor_alquiler: parseFloat(item.precio_pactado),
             isExternal: !!item.isExternal,
             isComposition: true,
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
             compositions: {
-              create: (item.compositions || []).map(c => ({
+              create: recipeToSave.map(c => ({
                 warehouseItemId: c.warehouseItemId || null,
                 componentCatalogItemId: c.componentCatalogItemId || null,
                 quantity: parseInt(c.quantity)
@@ -329,16 +340,26 @@ exports.update = async (req, res) => {
       let compositions = item.compositions;
       let isComposition = !!item.isComposition;
 
-      if (item.saveToCatalog && item.customName) {
+      if (item.saveToCatalog && (item.customName || item.inventory?.nombre_comercial)) {
+        // v49.5: Fix loss of "Combo DNA" when saving back to catalog
+        let recipeToSave = item.compositions || [];
+        if (recipeToSave.length === 0 && item.inventoryId) {
+           const source = await prisma.inventory_Commercial.findUnique({
+              where: { id: item.inventoryId },
+              include: { compositions: true }
+           });
+           recipeToSave = source?.compositions || [];
+        }
+
         const newItem = await prisma.inventory_Commercial.create({
           data: {
-            nombre_comercial: item.customName,
+            nombre_comercial: item.customName || item.inventory?.nombre_comercial,
             valor_alquiler: parseFloat(item.precio_pactado),
             isExternal: !!item.isExternal,
             isComposition: true,
             vendorCost: item.vendorCost !== undefined ? parseFloat(item.vendorCost) : null,
             compositions: {
-              create: (item.compositions || []).map(c => ({
+              create: recipeToSave.map(c => ({
                 warehouseItemId: c.warehouseItemId || null,
                 componentCatalogItemId: c.componentCatalogItemId || null,
                 quantity: parseInt(c.quantity)
