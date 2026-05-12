@@ -325,6 +325,8 @@ const NewQuotation = () => {
               precio_dia_adicional: it.precio_dia_adicional,
               clase_asignada: it.clase_asignada,
               isExternal: it.isExternal,
+              isComposition: it.isComposition,
+              description: it.description,
               vendorCost: it.vendorCost,
               customName: it.customName,
               compositions: it.compositions,
@@ -458,6 +460,8 @@ const NewQuotation = () => {
             newItems[editingComposition.index] = {
               ...newItems[editingComposition.index],
               customName: comp.customName,
+              description: comp.description,
+              isComposition: true,
               precio_pactado: comp.precio_pactado,
               precio_dia_adicional: comp.precio_dia_adicional,
               compositions: comp.items,
@@ -471,6 +475,8 @@ const NewQuotation = () => {
               items: [...p.items, {
                 inventoryId: null,
                 customName: comp.customName,
+                description: comp.description,
+                isComposition: true,
                 cantidad: 1,
                 dias: 1,
                 precio_pactado: comp.precio_pactado,
@@ -873,7 +879,18 @@ const NewQuotation = () => {
                               const n = [...formData.items]; n[idx][f] = v;
                               if (f === 'inventoryId') {
                                  const item = inventory.find(i => i.id === v);
-                                 if (item) { n[idx].precio_pactado = item.valor_alquiler; n[idx].precio_dia_adicional = item.valor_alquiler * 0.5; }
+                                 if (item) {
+                                    n[idx].precio_pactado = item.valor_alquiler;
+                                    n[idx].precio_dia_adicional = item.valor_alquiler * 0.5;
+                                    n[idx].isComposition = item.isComposition;
+                                    n[idx].isExternal = item.isExternal;
+                                    n[idx].vendorCost = item.vendorCost;
+                                    n[idx].inventory = item;
+                                    // Generate initial description if it's a catalog composition
+                                    if (item.isComposition && item.compositions) {
+                                       n[idx].description = `Incluye: ${item.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || 'Ítem'}`).join(', ')}`;
+                                    }
+                                 }
                               }
                               setFormData({...formData, items: n});
                            };
@@ -882,7 +899,7 @@ const NewQuotation = () => {
                                  <td className="p-4">
                                     <div className="flex flex-col gap-1">
                                        <div className="flex items-center gap-2">
-                                          {(it.customName || (it.inventoryId && it.inventory?.compositions?.length > 0)) ? (
+                                          {(it.isComposition || it.customName || (it.inventoryId && it.inventory?.compositions?.length > 0)) ? (
                                              <div
                                                 onClick={() => {
                                                    if (it.isExternal || it.inventory?.isExternal) {
@@ -896,10 +913,10 @@ const NewQuotation = () => {
                                                 className={`flex-1 p-2.5 bg-zinc-50 border-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-zinc-100 transition-all ${it.isExternal || it.inventory?.isExternal ? 'border-blue-200' : 'border-primary/20'}`}
                                              >
                                                 <span className={`material-symbols-outlined text-[18px] ${it.isExternal || it.inventory?.isExternal ? 'hidden' : 'text-primary'}`}>
-                                                   {it.isExternal || it.inventory?.isExternal ? '' : 'auto_awesome'}
+                                                   {it.isExternal || it.inventory?.isExternal ? '' : (it.isComposition ? 'auto_awesome' : 'package_2')}
                                                 </span>
                                                 <span className="text-xs font-black text-zinc-900 uppercase">
-                                                   {it.customName || it.inventory?.nombre_comercial}
+                                                   {it.customName || it.inventory?.nombre_comercial || invItem?.nombre_comercial}
                                                    {(it.isExternal || it.inventory?.isExternal) && (
                                                       <span className="ml-2 px-1.5 py-0.5 bg-blue-50 text-blue-500 text-[8px] font-black rounded border border-blue-100">EXT</span>
                                                    )}
@@ -907,11 +924,14 @@ const NewQuotation = () => {
                                                 <span className="material-symbols-outlined text-[14px] text-zinc-300 ml-auto">edit</span>
                                              </div>
                                           ) : (
-                                             <SearchableSelect
-                                                value={it.inventoryId}
-                                                options={inventory}
-                                                onChange={val => update('inventoryId', val)}
-                                             />
+                                             <div className="flex-1 flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[18px] text-zinc-400">package_2</span>
+                                                <SearchableSelect
+                                                   value={it.inventoryId}
+                                                   options={inventory}
+                                                   onChange={val => update('inventoryId', val)}
+                                                />
+                                             </div>
                                           )}
                                           {hasStockWarning && (
                                              <div className="group relative">
@@ -925,9 +945,9 @@ const NewQuotation = () => {
                                        {(it.inventoryId || it.customName) && (
                                           <div className="px-1 flex flex-col gap-0.5">
                                              <span className="text-[9px] text-zinc-400 font-bold ">({it.cantidad || 0} UNIDADES X {it.dias || 1} DÍAS)</span>
-                                             {it.compositions?.length > 0 && (
+                                             {(it.description || it.compositions?.length > 0) && (
                                                 <span className="text-[10px] text-zinc-500 font-medium italic">
-                                                   (Incluye: {it.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem no encontrado'}`).join(', ')})
+                                                   {it.description || `(Incluye: ${it.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem no encontrado'}`).join(', ')})`}
                                                 </span>
                                              )}
                                           </div>
