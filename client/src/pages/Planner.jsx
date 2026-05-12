@@ -8,8 +8,8 @@ const DEFAULT_BUDGET_ROWS = [
   { id: 'sub', concepto: 'Subcontratación', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'mat', concepto: 'Materiales', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'per', concepto: 'Personal', indicaciones: 'Cálculo automático de matriz operativa', montaje: 0, evento: 0, desmontaje: 0, isAutomatic: true },
-  { id: 'tra', concepto: 'Transporte / Peajes', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
-  { id: 'ali', concepto: 'Alimentación', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
+  { id: 'tra', concepto: 'Transporte/Peajes/Combustible', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
+  { id: 'ali', concepto: 'Viáticos: transporte + alimentación logísticos', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
   { id: 'alo', concepto: 'Alojamiento', indicaciones: '', montaje: 0, evento: 0, desmontaje: 0 },
 ];
 
@@ -42,20 +42,25 @@ const Planner = () => {
           setPresupuesto(q.planning.presupuesto || DEFAULT_BUDGET_ROWS);
           setFooter(q.planning.footer || { elaboro: '', reviso: '', verifico: '' });
         } else {
-          // INITIAL EXPLOSION (v50.3)
+          // INITIAL EXPLOSION (v50.4)
           const exploded = [];
           q.items.forEach(item => {
+            const isExternal = !!(item.isExternal || item.inventory?.isExternal);
+            const provider = isExternal ? (item.vendorName || item.inventory?.vendorName || '') : 'SUN PARTNERS';
+
             if (item.isComposition) {
                const pieces = item.compositions || item.inventory?.compositions || [];
                pieces.forEach(p => {
+                  const pieceIsExternal = !!p.componentCatalogItem?.isExternal;
+                  const pieceProvider = pieceIsExternal ? (p.componentCatalogItem?.vendorName || '') : 'SUN PARTNERS';
                   exploded.push({
                     id: crypto.randomUUID(),
                     category: 'EQUIPAMIENTO',
                     nombre: p.componentCatalogItem?.nombre_comercial || p.warehouseItem?.nombre || p.nombre || 'Pieza de Set',
                     cantidad: (p.quantity || 1) * item.cantidad,
-                    isExternal: p.componentCatalogItem?.isExternal || false,
+                    isExternal: pieceIsExternal,
                     costo: p.componentCatalogItem?.vendorCost || 0,
-                    proveedor: '',
+                    proveedor: pieceProvider,
                     notas: `De: ${item.customName || item.inventory?.nombre_comercial}`,
                     originalQuotationItemId: item.id
                   });
@@ -66,9 +71,9 @@ const Planner = () => {
                   category: 'EQUIPAMIENTO',
                   nombre: item.customName || item.inventory?.nombre_comercial,
                   cantidad: item.cantidad,
-                  isExternal: item.isExternal || item.inventory?.isExternal || false,
+                  isExternal: isExternal,
                   costo: item.vendorCost || item.inventory?.vendorCost || 0,
-                  proveedor: '',
+                  proveedor: provider,
                   notas: '',
                   originalQuotationItemId: item.id
                });
@@ -87,16 +92,26 @@ const Planner = () => {
     fetchData();
   }, [id]);
 
-  // AUTO-CALCULATION: Personnel Row in Budget
+  // AUTO-CALCULATION: Automatic Rows in Budget (v50.4)
   useEffect(() => {
-    const sumPhase = (phase) => personal.reduce((acc, p) => acc + (p[phase] || 0), 0);
+    const sumPhasePersonal = (phase) => personal.reduce((acc, p) => acc + (p[phase] || 0), 0);
+
+    // Sum for Subcontracting (External items from EQUIPAMIENTO)
+    const sumPhaseSub = (phase) => {
+       // Currently materials don't have phases, so we just sum total costs into 'evento' or split them?
+       // Ticket says "Subcontratación" is manual in Budget, but we can help by summing external items.
+       // However, defined rule #4 in v50.4 says "Subcontratación" in Budget is manual consolidation.
+       // So we ONLY automate Personal.
+       return 0;
+    };
+
     setPresupuesto(prev => prev.map(row => {
-      if (row.isAutomatic) {
+      if (row.id === 'per') {
         return {
           ...row,
-          montaje: sumPhase('montaje'),
-          evento: sumPhase('evento'),
-          desmontaje: sumPhase('desmontaje')
+          montaje: sumPhasePersonal('montaje'),
+          evento: sumPhasePersonal('evento'),
+          desmontaje: sumPhasePersonal('desmontaje')
         };
       }
       return row;
@@ -210,10 +225,10 @@ const Planner = () => {
 
       <main className="p-12 max-w-7xl mx-auto w-full space-y-12 pb-32">
 
-        {/* A. EXPLOSIÓN DE EQUIPAMIENTO */}
+        {/* 1. Inventario asignado al evento */}
         <section className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
            <div className="px-8 py-5 border-b border-zinc-100 flex items-center justify-between bg-[#5486A1]/[0.02]">
-              <h3 className="text-[11px] font-black tracking-[0.2em] text-[#5486A1]">A. LISTADO DE EQUIPAMIENTO (EXPLOSIÓN)</h3>
+              <h3 className="text-[11px] font-black tracking-[0.2em] text-[#5486A1]">1. INVENTARIO ASIGNADO AL EVENTO</h3>
               <button onClick={() => addLogisticsItem('EQUIPAMIENTO')} className="text-[10px] font-black text-[#5486A1] hover:underline flex items-center gap-1">
                  <span className="material-symbols-outlined text-[16px]">add_circle</span> AÑADIR FILA
               </button>
@@ -261,12 +276,12 @@ const Planner = () => {
            </div>
         </section>
 
-        {/* B. BLOQUES DE PREPRODUCCIÓN */}
+        {/* BLOQUES DE PREPRODUCCIÓN */}
         <div className="grid grid-cols-1 gap-12">
            {[
-             { id: 'HERRAMIENTAS', label: '1. OTRAS HERRAMIENTAS Y EQUIPOS' },
-             { id: 'INSUMOS', label: '2. MATERIALES E INSUMOS' },
-             { id: 'TRANSPORTE', label: '3. TRANSPORTE' }
+             { id: 'HERRAMIENTAS', label: '2. OTRAS HERRAMIENTAS Y EQUIPOS DE PREPRODUCCIÓN' },
+             { id: 'INSUMOS', label: '3. MATERIALES E INSUMOS' },
+             { id: 'TRANSPORTE', label: '4. TRANSPORTE' }
            ].map(block => (
               <section key={block.id} className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
                  <div className="px-8 py-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
@@ -308,10 +323,10 @@ const Planner = () => {
            ))}
         </div>
 
-        {/* C. PERSONAL ASIGNADO */}
+        {/* 5. Personal asignado al evento */}
         <section className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
            <div className="px-8 py-5 border-b border-zinc-100 flex items-center justify-between bg-[#FBAE17]/[0.05]">
-              <h3 className="text-[11px] font-black tracking-[0.2em] text-[#FBAE17]">C. PERSONAL ASIGNADO (MATRIZ OPERATIVA)</h3>
+              <h3 className="text-[11px] font-black tracking-[0.2em] text-[#FBAE17]">5. PERSONAL ASIGNADO AL EVENTO</h3>
               <button onClick={addPersonnel} className="text-[10px] font-black text-[#5486A1] hover:underline flex items-center gap-1">
                  <span className="material-symbols-outlined text-[16px]">person_add</span> AÑADIR PERSONAL
               </button>
@@ -349,9 +364,9 @@ const Planner = () => {
         {/* TABLA DE PRESUPUESTO */}
         <section className="bg-white rounded-xl border-2 border-zinc-900 shadow-xl overflow-hidden">
            <div className="px-8 py-6 border-b-2 border-zinc-900 bg-zinc-900 text-white flex justify-between items-center">
-              <h3 className="text-[12px] font-black tracking-[0.2em]">TABLA DE PRESUPUESTO (RESUMEN GASTO REAL)</h3>
+              <h3 className="text-[12px] font-black tracking-[0.2em]">PRESUPUESTO</h3>
               <div className="text-right">
-                 <p className="text-[9px] font-black opacity-60 tracking-widest">TOTAL PRESUPUESTO OPERATIVO</p>
+                 <p className="text-[9px] font-black opacity-60 tracking-widest">TOTAL PRESUPUESTO</p>
                  <p className="text-2xl font-black">$ {totalPresupuesto.toLocaleString()}</p>
               </div>
            </div>
@@ -359,7 +374,7 @@ const Planner = () => {
               <table className="w-full text-left text-xs">
                  <thead className="bg-zinc-50 text-[9px] font-black tracking-widest text-zinc-400 border-b border-zinc-200">
                     <tr>
-                       <th className="px-8 py-4">RUBRO OPERATIVO</th>
+                       <th className="px-8 py-4">ÍTEM</th>
                        <th className="px-4 py-4">INDICACIONES</th>
                        <th className="px-4 py-4 text-right">MONTAJE ($)</th>
                        <th className="px-4 py-4 text-right">EVENTO ($)</th>

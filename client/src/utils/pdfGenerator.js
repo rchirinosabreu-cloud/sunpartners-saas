@@ -368,13 +368,13 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER') => {
     currentY += 4;
   });
 
-  // 3. Table A: EQUIPAMIENTO
+  // 3. Table 1: Inventario asignado
   currentY += 5;
   const materiales = planning.materiales || [];
   const equipamiento = materiales.filter(m => m.category === 'EQUIPAMIENTO');
 
   doc.setFont('helvetica', 'bold');
-  doc.text('A. LISTADO DE EQUIPAMIENTO', 15, currentY);
+  doc.text('1. INVENTARIO ASIGNADO AL EVENTO', 15, currentY);
 
   autoTable(doc, {
     startY: currentY + 3,
@@ -390,9 +390,9 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER') => {
 
   // 4. Table B: PREPRODUCCION
   const blocks = [
-    { id: 'HERRAMIENTAS', label: 'B.1 OTRAS HERRAMIENTAS' },
-    { id: 'INSUMOS', label: 'B.2 MATERIALES E INSUMOS' },
-    { id: 'TRANSPORTE', label: 'B.3 TRANSPORTE' }
+    { id: 'HERRAMIENTAS', label: '2. OTRAS HERRAMIENTAS Y EQUIPOS DE PREPRODUCCIÓN' },
+    { id: 'INSUMOS', label: '3. MATERIALES E INSUMOS' },
+    { id: 'TRANSPORTE', label: '4. TRANSPORTE' }
   ];
 
   blocks.forEach(block => {
@@ -414,12 +414,12 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER') => {
     }
   });
 
-  // 5. Table C: PERSONAL
+  // 5. Table 5: PERSONAL
   const personal = planning.personal || [];
   if (personal.length > 0) {
     if (currentY > 230) { doc.addPage(); currentY = 20; }
     doc.setFont('helvetica', 'bold');
-    doc.text('C. PERSONAL ASIGNADO', 15, currentY);
+    doc.text('5. PERSONAL ASIGNADO AL EVENTO', 15, currentY);
     autoTable(doc, {
       startY: currentY + 3,
       head: [isReport ? ['Cargo', 'Nombre', 'Montaje', 'Evento', 'Desmontaje', 'Total'] : ['Cargo', 'Nombre']],
@@ -432,14 +432,14 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER') => {
     currentY = doc.lastAutoTable.finalY + 10;
   }
 
-  // 6. Table D: PRESUPUESTO (Only Report)
+  // 6. Table PRESUPUESTO (Only Report)
   if (isReport && planning.presupuesto) {
     if (currentY > 200) { doc.addPage(); currentY = 20; }
     doc.setFont('helvetica', 'bold');
-    doc.text('D. RESUMEN DE PRESUPUESTO OPERATIVO', 15, currentY);
+    doc.text('PRESUPUESTO', 15, currentY);
     autoTable(doc, {
       startY: currentY + 3,
-      head: [['Rubro', 'Montaje', 'Evento', 'Desmontaje', 'Total']],
+      head: [['Ítem', 'Montaje', 'Evento', 'Desmontaje', 'Total']],
       body: planning.presupuesto.map(r => [r.concepto, `$ ${r.montaje?.toLocaleString() || 0}`, `$ ${r.evento?.toLocaleString() || 0}`, `$ ${r.desmontaje?.toLocaleString() || 0}`, `$ ${(r.montaje + r.evento + r.desmontaje).toLocaleString()}`]),
       theme: 'grid',
       headStyles: { fillColor: [24, 24, 27], fontSize: 7 },
