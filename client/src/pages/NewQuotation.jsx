@@ -947,7 +947,7 @@ const NewQuotation = () => {
                                              <span className="text-[9px] text-zinc-400 font-bold ">({it.cantidad || 0} UNIDADES X {it.dias || 1} DÍAS)</span>
                                              {(it.description || it.compositions?.length > 0) && (
                                                 <span className="text-[10px] text-zinc-500 font-medium italic">
-                                                   {it.description || `(Incluye: ${it.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem no encontrado'}`).join(', ')})`}
+                                                   ({it.description || `Incluye: ${it.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem no encontrado'}`).join(', ')}`})
                                                 </span>
                                              )}
                                           </div>

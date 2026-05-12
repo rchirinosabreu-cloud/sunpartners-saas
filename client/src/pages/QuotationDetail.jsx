@@ -276,10 +276,10 @@ const QuotationDetail = () => {
                       <div className="flex flex-col">
                         <span className="font-bold text-zinc-900 text-sm ">{item.customName || item.inventory?.nombre_comercial || 'Ítem no identificado'}</span>
                         <span className="text-[10px] text-zinc-400 font-bold  mt-0.5">({item.cantidad} UNIDADES X {item.dias} DÍAS)</span>
-                        {/* Composition breakdown (v18.0: Clean) */}
-                        {(item.compositions?.length > 0 || item.inventory?.compositions?.length > 0) && (
+                        {/* Composition breakdown (v49.3: Priority to description field) */}
+                        {(item.description || item.compositions?.length > 0 || item.inventory?.compositions?.length > 0) && (
                           <span className="text-[10px] text-zinc-500 font-medium italic mt-1 max-w-md">
-                            (Incluye: {(item.compositions || item.inventory.compositions).map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ')})
+                            ({item.description || `Incluye: ${(item.compositions || item.inventory.compositions).map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ')}`})
                           </span>
                         )}
                       </div>
