@@ -315,3 +315,158 @@ export const generateQuotationPDF = (quotation) => {
   const fileName = `Cotizacion_${eventNameSafe}_${idSafe}.pdf`;
   doc.save(fileName);
 };
+
+export const generatePlannerPDF = (quotation, type = 'ROUTER') => {
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const isReport = type === 'REPORT';
+  const planning = quotation.planning || {};
+
+  // 1. Header
+  const logoUrl = '/logo_sp.png';
+  try {
+    doc.addImage(logoUrl, 'PNG', 15, 10, 50, 20);
+  } catch (e) {}
+
+  doc.setTextColor(113, 113, 122);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | OPERACIONES', 195, 13, { align: 'right' });
+
+  doc.setTextColor(24, 24, 27);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(isReport ? 'REPORTE OPERATIVO Y PRESUPUESTO' : 'HOJA DE RUTA LOGÍSTICA', 15, 45);
+
+  doc.setFontSize(8);
+  const refLabel = quotation?.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`;
+  doc.text(`PROYECTO: ${(quotation.nombre_evento || 'SIN NOMBRE').toUpperCase()}`, 15, 52);
+  doc.text(`REFERENCIA: ${refLabel} | GENERADO: ${new Date().toLocaleString('es-CO')}`, 15, 57);
+
+  // 2. Logistics Brief
+  let currentY = 65;
+  doc.setDrawColor(244, 244, 245);
+  doc.line(15, currentY, 195, currentY);
+  currentY += 8;
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DATOS CRÍTICOS DE OPERACIÓN', 15, currentY);
+  currentY += 6;
+
+  const logisticsData = [
+    ['LUGAR / VENUE:', (quotation.ubicacion || 'POR DEFINIR').toUpperCase()],
+    ['INICIO MONTAJE:', new Date(quotation.montaje_inicio).toLocaleString('es-CO')],
+    ['INICIO EVENTO:', new Date(quotation.evento_inicio).toLocaleString('es-CO')],
+    ['FIN DESMONTAJE:', new Date(quotation.desmontaje_fin).toLocaleString('es-CO')]
+  ];
+
+  logisticsData.forEach(row => {
+    doc.setFont('helvetica', 'bold');
+    doc.text(row[0], 15, currentY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(row[1], 55, currentY);
+    currentY += 4;
+  });
+
+  // 3. Table A: EQUIPAMIENTO
+  currentY += 5;
+  const materiales = planning.materiales || [];
+  const equipamiento = materiales.filter(m => m.category === 'EQUIPAMIENTO');
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('A. LISTADO DE EQUIPAMIENTO', 15, currentY);
+
+  autoTable(doc, {
+    startY: currentY + 3,
+    head: [isReport ? ['Concepto', 'Descripción', 'Cant', 'Proveedor', 'Costo'] : ['Concepto', 'Descripción', 'Cant']],
+    body: equipamiento.map(m => isReport ? [m.nombre, m.notas || '', m.cantidad, m.proveedor || '', `$ ${m.costo?.toLocaleString() || 0}`] : [m.nombre, m.notas || '', m.cantidad]),
+    theme: 'grid',
+    headStyles: { fillColor: [84, 134, 161], fontSize: 7 },
+    bodyStyles: { fontSize: 7 },
+    styles: { cellPadding: 2 }
+  });
+
+  currentY = doc.lastAutoTable.finalY + 10;
+
+  // 4. Table B: PREPRODUCCION
+  const blocks = [
+    { id: 'HERRAMIENTAS', label: 'B.1 OTRAS HERRAMIENTAS' },
+    { id: 'INSUMOS', label: 'B.2 MATERIALES E INSUMOS' },
+    { id: 'TRANSPORTE', label: 'B.3 TRANSPORTE' }
+  ];
+
+  blocks.forEach(block => {
+    const items = materiales.filter(m => m.category === block.id);
+    if (items.length > 0) {
+      if (currentY > 250) { doc.addPage(); currentY = 20; }
+      doc.setFont('helvetica', 'bold');
+      doc.text(block.label, 15, currentY);
+      autoTable(doc, {
+        startY: currentY + 3,
+        head: [isReport ? ['Descripción', 'Cant', 'Proveedor', 'Costo'] : ['Descripción', 'Cant']],
+        body: items.map(m => isReport ? [m.nombre, m.cantidad, m.proveedor || '', `$ ${m.costo?.toLocaleString() || 0}`] : [m.nombre, m.cantidad]),
+        theme: 'grid',
+        headStyles: { fillColor: [113, 113, 122], fontSize: 7 },
+        bodyStyles: { fontSize: 7 },
+        styles: { cellPadding: 2 }
+      });
+      currentY = doc.lastAutoTable.finalY + 10;
+    }
+  });
+
+  // 5. Table C: PERSONAL
+  const personal = planning.personal || [];
+  if (personal.length > 0) {
+    if (currentY > 230) { doc.addPage(); currentY = 20; }
+    doc.setFont('helvetica', 'bold');
+    doc.text('C. PERSONAL ASIGNADO', 15, currentY);
+    autoTable(doc, {
+      startY: currentY + 3,
+      head: [isReport ? ['Cargo', 'Nombre', 'Montaje', 'Evento', 'Desmontaje', 'Total'] : ['Cargo', 'Nombre']],
+      body: personal.map(p => isReport ? [p.cargo, p.nombre, `$ ${p.montaje?.toLocaleString() || 0}`, `$ ${p.evento?.toLocaleString() || 0}`, `$ ${p.desmontaje?.toLocaleString() || 0}`, `$ ${(p.montaje + p.evento + p.desmontaje).toLocaleString()}`] : [p.cargo, p.nombre]),
+      theme: 'grid',
+      headStyles: { fillColor: [251, 174, 23], textColor: [0,0,0], fontSize: 7 },
+      bodyStyles: { fontSize: 7 },
+      styles: { cellPadding: 2 }
+    });
+    currentY = doc.lastAutoTable.finalY + 10;
+  }
+
+  // 6. Table D: PRESUPUESTO (Only Report)
+  if (isReport && planning.presupuesto) {
+    if (currentY > 200) { doc.addPage(); currentY = 20; }
+    doc.setFont('helvetica', 'bold');
+    doc.text('D. RESUMEN DE PRESUPUESTO OPERATIVO', 15, currentY);
+    autoTable(doc, {
+      startY: currentY + 3,
+      head: [['Rubro', 'Montaje', 'Evento', 'Desmontaje', 'Total']],
+      body: planning.presupuesto.map(r => [r.concepto, `$ ${r.montaje?.toLocaleString() || 0}`, `$ ${r.evento?.toLocaleString() || 0}`, `$ ${r.desmontaje?.toLocaleString() || 0}`, `$ ${(r.montaje + r.evento + r.desmontaje).toLocaleString()}`]),
+      theme: 'grid',
+      headStyles: { fillColor: [24, 24, 27], fontSize: 7 },
+      bodyStyles: { fontSize: 7, fontStyle: 'bold' },
+      styles: { cellPadding: 2 }
+    });
+    currentY = doc.lastAutoTable.finalY + 10;
+  }
+
+  // 7. Footer: Control
+  if (currentY > 250) { doc.addPage(); currentY = 20; }
+  currentY += 10;
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(113, 113, 122);
+
+  const footerData = planning.footer || {};
+  const sigX = [15, 80, 145];
+  const labels = ['ELABORÓ', 'REVISÓ', 'VERIFICÓ'];
+  const values = [footerData.elaboro, footerData.reviso, footerData.verifico];
+
+  labels.forEach((label, i) => {
+    doc.text(label, sigX[i], currentY);
+    doc.line(sigX[i], currentY + 8, sigX[i] + 45, currentY + 8);
+    doc.text(values[i] || '', sigX[i], currentY + 12);
+  });
+
+  const fileName = `${type}_${refLabel}_${(quotation.nombre_evento || 'Evento').replace(/\s+/g, '_')}.pdf`;
+  doc.save(fileName);
+};
