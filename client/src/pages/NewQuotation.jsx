@@ -126,9 +126,6 @@ const SearchableSelect = ({ value, options, onChange, placeholder = "Seleccionar
         className={`w-full border-2 rounded-lg p-2.5 flex items-center justify-between cursor-pointer transition-all bg-zinc-50 ${isOpen ? 'border-primary shadow-sm bg-white' : 'border-zinc-100 hover:border-zinc-200'}`}
       >
         <div className="flex items-center gap-2 overflow-hidden">
-          <span className={`material-symbols-outlined text-[18px] ${selectedItem ? 'text-primary' : 'text-zinc-400'}`}>
-            {selectedItem ? 'inventory_2' : 'search'}
-          </span>
           <span className={`text-xs font-bold truncate ${selectedItem ? 'text-zinc-900 ' : 'text-zinc-400'}`}>
             {selectedItem ? selectedItem.nombre_comercial : placeholder}
           </span>
@@ -926,7 +923,7 @@ const NewQuotation = () => {
                                              </div>
                                           ) : (
                                              <div className="flex-1 flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[18px] text-zinc-400">package_2</span>
+                                                <span className="material-symbols-outlined text-[18px] text-zinc-400 shrink-0">package_2</span>
                                                 <SearchableSelect
                                                    value={it.inventoryId}
                                                    options={inventory}
