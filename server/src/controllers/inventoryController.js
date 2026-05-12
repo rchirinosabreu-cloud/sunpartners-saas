@@ -94,7 +94,7 @@ exports.getAllCommercial = async (req, res) => {
 
 exports.createCommercial = async (req, res) => {
   try {
-    const { nombre_comercial, valor_alquiler, compositions, bodegaId, isExternal, isComposition, vendorCost, claseA, claseB, claseC, estado } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, bodegaId, isExternal, isComposition, vendorCost, vendorName, claseA, claseB, claseC, estado } = req.body;
     const newItem = await prisma.inventory_Commercial.create({
       data: {
         nombre_comercial,
@@ -102,6 +102,7 @@ exports.createCommercial = async (req, res) => {
         isExternal: !!isExternal,
         isComposition: !!isComposition,
         vendorCost: vendorCost !== undefined ? parseFloat(vendorCost) : null,
+        vendorName: vendorName || null,
         bodegaId: bodegaId || null,
         claseA: parseInt(claseA || 0),
         claseB: parseInt(claseB || 0),
@@ -126,7 +127,7 @@ exports.createCommercial = async (req, res) => {
 exports.updateCommercial = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre_comercial, valor_alquiler, compositions, isExternal, isComposition, vendorCost, claseA, claseB, claseC, estado } = req.body;
+    const { nombre_comercial, valor_alquiler, compositions, isExternal, isComposition, vendorCost, vendorName, claseA, claseB, claseC, estado } = req.body;
 
     // If updating compositions, clear old ones first
     if (compositions) {
@@ -141,6 +142,7 @@ exports.updateCommercial = async (req, res) => {
         isExternal: isExternal !== undefined ? !!isExternal : undefined,
         isComposition: isComposition !== undefined ? !!isComposition : undefined,
         vendorCost: vendorCost !== undefined ? parseFloat(vendorCost) : undefined,
+        vendorName: vendorName !== undefined ? (vendorName || null) : undefined,
         claseA: claseA !== undefined ? parseInt(claseA) : undefined,
         claseB: claseB !== undefined ? parseInt(claseB) : undefined,
         claseC: claseC !== undefined ? parseInt(claseC) : undefined,

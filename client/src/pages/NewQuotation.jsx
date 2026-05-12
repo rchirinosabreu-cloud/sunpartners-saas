@@ -330,6 +330,7 @@ const NewQuotation = () => {
               isComposition: it.isComposition,
               description: it.description,
               vendorCost: it.vendorCost,
+              vendorName: it.vendorName,
               customName: it.customName,
               compositions: it.compositions,
               inventory: it.inventory
@@ -466,6 +467,8 @@ const NewQuotation = () => {
               isComposition: true,
               precio_pactado: comp.precio_pactado,
               precio_dia_adicional: comp.precio_dia_adicional,
+              vendorCost: comp.vendorCost,
+              vendorName: comp.vendorName,
               compositions: comp.items,
               saveToCatalog: comp.saveToCatalog
             };
@@ -887,6 +890,7 @@ const NewQuotation = () => {
                                     n[idx].isComposition = item.isComposition;
                                     n[idx].isExternal = item.isExternal;
                                     n[idx].vendorCost = item.vendorCost;
+                                    n[idx].vendorName = item.vendorName;
                                     n[idx].inventory = item;
                                     // v49.5: Inflate item with components if it's a catalog composition
                                     if (item.isComposition && item.compositions) {

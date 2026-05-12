@@ -300,10 +300,10 @@ const InventoryCommercial = () => {
                   </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => handleEdit(item)} className="p-1.5 text-zinc-400 hover:text-primary hover:bg-zinc-100 rounded transition-all">
-                        <span className="material-symbols-outlined text-[20px]">settings_suggest</span>
+                      <button onClick={() => handleEdit(item)} className="p-1.5 text-zinc-400 hover:text-primary hover:bg-zinc-100 rounded transition-all" aria-label="Editar">
+                        <span className="material-symbols-outlined text-[20px]">edit</span>
                       </button>
-                      <button onClick={() => handleDelete(item.id)} className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded transition-all">
+                      <button onClick={() => handleDelete(item.id)} className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded transition-all" aria-label="Eliminar">
                         <span className="material-symbols-outlined text-[20px]">delete</span>
                       </button>
                     </div>
