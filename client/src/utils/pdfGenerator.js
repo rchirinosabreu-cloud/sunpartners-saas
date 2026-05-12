@@ -134,20 +134,23 @@ export const generateQuotationPDF = (quotation) => {
       // v18.0: Clean description (no classes, no quality standards)
       let description = `${name}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)`;
 
-      // Dynamic Composition inclusions
-      if (item.compositions?.length > 0) {
+      // Dynamic Composition inclusions (v49.3: Simplified and styled via content styling if possible)
+      let breakdown = '';
+      if (item.description) {
+        breakdown = `(${item.description})`;
+      } else if (item.compositions?.length > 0) {
         const inclusions = item.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ');
-        description += `\n(Incluye: ${inclusions})`;
-      }
-      // Catalog Item Composition inclusions
-      else if (item.inventory?.compositions?.length > 0) {
+        breakdown = `(Incluye: ${inclusions})`;
+      } else if (item.inventory?.compositions?.length > 0) {
         const inclusions = item.inventory.compositions.map(c => `${c.quantity} ${c.componentCatalogItem?.nombre_comercial || c.warehouseItem?.nombre || c.nombre || 'Ítem'}`).join(', ');
-        description += `\n(Incluye: ${inclusions})`;
+        breakdown = `(Incluye: ${inclusions})`;
       }
+
+      const mainText = `${name}\n(${item.cantidad} UNIDADES X ${item.dias} DÍAS)`;
 
       return [
         {
-          content: description,
+          content: breakdown ? `${mainText}\n${breakdown}` : mainText,
           styles: { fontStyle: 'bold' }
         },
         item.cantidad,
@@ -184,6 +187,30 @@ export const generateQuotationPDF = (quotation) => {
       fontSize: 8,
       textColor: [63, 63, 70],
       cellPadding: 5
+    },
+    didDrawCell: (data) => {
+      if (data.section === 'body') {
+        doc.setDrawColor(244, 244, 245);
+        doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+      }
+    },
+    willDrawCell: (data) => {
+      // v49.3: Discretely style the breakdown line if it exists
+      if (data.section === 'body' && data.column.index === 0) {
+        // Check if there's a breakdown line (usually starts with '(')
+        const lastLine = data.cell.text[data.cell.text.length - 1];
+        if (lastLine && lastLine.startsWith('(')) {
+           // We can't easily change font size for JUST one line inside autoTable cell content
+           // without full custom drawing.
+           // But we can suggest the font change for the WHOLE cell if it has a breakdown.
+           // To keep it informative but secondary as requested:
+           doc.setFontSize(7);
+           doc.setTextColor(100, 100, 110);
+        } else {
+           doc.setFontSize(8);
+           doc.setTextColor(63, 63, 70);
+        }
+      }
     },
     columnStyles: {
       0: { cellWidth: 80 },
