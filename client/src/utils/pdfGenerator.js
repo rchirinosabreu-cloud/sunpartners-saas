@@ -81,19 +81,31 @@ export const generateQuotationPDF = (quotation) => {
   currentY += (addressLines.length * 3.5);
   doc.text(`Ciudad: ${quotation.client.ciudad || 'PENDIENTE'}`, 15, currentY);
 
-  // Reset currentY for logistics alignement if address was long
-  const logisticsStartY = 68; // Resetting to align with CLIENTE title + 10
-  currentY = logisticsStartY;
+  currentY += 4;
+  doc.text(`Email: ${quotation.client.email || 'PENDIENTE'}`, 15, currentY);
+
+  currentY += 4;
+  doc.text(`Teléfono: ${quotation.client.telefono || 'PENDIENTE'}`, 15, currentY);
+
+  currentY += 4;
+  doc.text(`Asesor: ${quotation.consultant?.nombre || 'SISTEMA'}`, 15, currentY);
+
+  // Capture the end of Client block to ensure Logistics doesn't overlap
+  const clientBlockEndY = currentY + 10;
 
   // Logistics Section Alignment v26.0 (Miniaturized Swiss Watch Look)
+  const logisticsStartY = 68; // Target start
+  currentY = Math.max(logisticsStartY, clientBlockEndY - 15); // Dynamic Y (v51.0: Prevent overlap while keeping v36.1 mandatory offset in mind)
+
   const labelX = 110;
   const dataX = 140; // Moved slightly to left to accommodate 7pt labels
+  const dataColor = [39, 39, 42]; // Zinc-800 for harmonized values
 
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
   doc.text('Nombre del evento: ', labelX, currentY + 15); // +15px mandatory offset (v36.1)
-  doc.setTextColor(84, 134, 161);
+  doc.setTextColor(dataColor);
 
   const eventName = (quotation.nombre_evento || 'PROYECTO');
   const eventNameLines = doc.splitTextToSize(eventName, 55);
@@ -103,28 +115,30 @@ export const generateQuotationPDF = (quotation) => {
 
   currentY += (eventNameLines.length > 1 ? (eventNameLines.length * 3.5) : 5); // Tightened spacing
   doc.setFont('helvetica', 'bold');
+  doc.setTextColor(113, 113, 122); // Harmonized label color
   doc.text('Lugar evento: ', labelX, currentY);
-  doc.setTextColor(84, 134, 161);
+  doc.setTextColor(dataColor);
   doc.text((quotation.ubicacion || 'POR DEFINIR'), dataX, currentY);
 
   currentY += 5; // Tightened vertical spacing v26.0
   doc.setFont('helvetica', 'bold');
+  doc.setTextColor(113, 113, 122); // Harmonized label color
   doc.text('Inicio montaje: ', labelX, currentY);
-  doc.setTextColor(84, 134, 161);
+  doc.setTextColor(dataColor);
   doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
 
   currentY += 5;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
   doc.text('Inicio evento: ', labelX, currentY);
-  doc.setTextColor(84, 134, 161);
+  doc.setTextColor(dataColor);
   doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
 
   currentY += 5;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
   doc.text('Fin desmontaje: ', labelX, currentY);
-  doc.setTextColor(84, 134, 161);
+  doc.setTextColor(dataColor);
   doc.text(new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
 
   // 4. Items Table - WYSIWYG mapping

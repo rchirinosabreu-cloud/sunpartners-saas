@@ -188,6 +188,11 @@ const PublicQuotation = () => {
                        {quotation.client.direccion_fiscal || 'DIRECCIÓN POR REGISTRAR'}
                     </p>
                     <p className="text-[9px] text-zinc-400">{quotation.client.ciudad || 'Ciudad no especificada'}</p>
+                    <div className="pt-2 border-t border-zinc-50 space-y-1">
+                       <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Email:</span> <span className="font-medium text-zinc-500">{quotation.client.email || 'PENDIENTE'}</span></p>
+                       <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Teléfono:</span> <span className="font-medium text-zinc-500">{quotation.client.telefono || 'PENDIENTE'}</span></p>
+                       <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Asesor:</span> <span className="font-medium text-zinc-500">{quotation.consultant?.nombre || 'SISTEMA'}</span></p>
+                    </div>
                  </div>
               </div>
               <div className="text-left md:text-right">
@@ -199,16 +204,16 @@ const PublicQuotation = () => {
                     </div>
                     <div>
                        <p className="text-[9px] font-black text-zinc-300 mb-0.5 tracking-wider">Lugar evento</p>
-                       <p className="text-[12px] font-black text-primary leading-tight">{quotation.ubicacion || 'POR DEFINIR'}</p>
+                       <p className="text-[12px] font-black text-zinc-900 leading-tight">{quotation.ubicacion || 'POR DEFINIR'}</p>
                     </div>
                     {/* v26.0: Horizontal Date Grid (Flexbox) */}
                     <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-10 lg:gap-14 pt-6 border-t border-zinc-50">
                        <div className="text-left md:text-right">
-                          <p className="text-[9px] font-black text-zinc-300 tracking-widest uppercase mb-1">Montaje</p>
+                          <p className="text-[9px] font-black text-zinc-300 tracking-widest uppercase mb-1">Inicio montaje:</p>
                           <p className="text-[10px] font-black text-zinc-800 whitespace-nowrap">{formatPublicDate(quotation.montaje_inicio)}</p>
                        </div>
                        <div className="text-left md:text-right">
-                          <p className="text-[9px] font-black text-primary tracking-widest uppercase mb-1">Inicio Evento</p>
+                          <p className="text-[9px] font-black text-zinc-300 tracking-widest uppercase mb-1">Inicio Evento</p>
                           <p className="text-[10px] font-black text-zinc-800 whitespace-nowrap">{formatPublicDate(quotation.evento_inicio)}</p>
                        </div>
                        <div className="text-left md:text-right">
