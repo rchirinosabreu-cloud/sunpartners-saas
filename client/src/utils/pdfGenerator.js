@@ -99,7 +99,7 @@ export const generateQuotationPDF = (quotation) => {
 
   const labelX = 110;
   const dataX = 140; // Moved slightly to left to accommodate 7pt labels
-  const dataColor = [39, 39, 42]; // Zinc-800 for harmonized values
+  const dataColor = "#27272a"; // Zinc-800 (v51.1: Hex string for stability)
 
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
