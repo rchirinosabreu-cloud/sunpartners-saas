@@ -134,6 +134,17 @@ const QuotationDetail = () => {
                      <p className="text-[12px] text-zinc-500 font-medium tracking-tight">
                         {quotation.client.razon_social} • {quotation.client.documentType || 'NIT'}: {quotation.client.nit_id}
                      </p>
+                     <div className="flex flex-wrap gap-x-3 gap-y-1">
+                        <p className="text-[10px] text-zinc-400 font-medium">
+                           Email: <span className="text-zinc-500">{quotation.client.email || 'PENDIENTE'}</span>
+                        </p>
+                        <p className="text-[10px] text-zinc-400 font-medium">
+                           Teléfono: <span className="text-zinc-500">{quotation.client.telefono || 'PENDIENTE'}</span>
+                        </p>
+                        <p className="text-[10px] text-zinc-400 font-medium">
+                           Asesor: <span className="text-zinc-500">{quotation.consultant?.nombre || 'SISTEMA'}</span>
+                        </p>
+                     </div>
                      <p className="text-[10px] text-zinc-400 font-medium flex items-center gap-1">
                         <span className="material-symbols-outlined text-[12px]">location_on</span>
                         {quotation.ubicacion || 'Lugar por definir'}
