@@ -46,100 +46,96 @@ export const generateQuotationPDF = (quotation) => {
   doc.text(`REF: ${refLabel}`, 15, 50);
   doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 15, 54);
 
-  // 2. Client & Logistics Grid
-  let currentY = 58;
+  // 2. Client & Logistics Grid (v51.4: Symmetric Block System)
+  const gridBaseY = 58;
   doc.setDrawColor(244, 244, 245);
-  doc.line(15, currentY, 195, currentY);
+  doc.line(15, gridBaseY, 195, gridBaseY);
 
-  currentY += 10;
+  // A. Left Column: CLIENTE
+  let leftY = gridBaseY + 10;
   doc.setFontSize(8);
   doc.setTextColor(113, 113, 122);
   doc.setFont('helvetica', 'bold');
-  doc.text('CLIENTE', 15, currentY);
+  doc.text('CLIENTE', 15, leftY);
 
-  // v26.0: DATOS DEL EVENTO (Bold, 7pt)
-  doc.setFontSize(7);
-  doc.text('DATOS DEL EVENTO', 110, currentY);
-
-  currentY += 15; // Mandatory offset (v36.1)
+  leftY += 15; // Mandatory offset (v36.1)
   doc.setFontSize(9);
   doc.setTextColor(24, 24, 27);
   doc.setFont('helvetica', 'bold');
-  doc.text(quotation.client.razon_social, 15, currentY);
+  doc.text(quotation.client.razon_social, 15, leftY);
 
-  currentY += 5;
+  leftY += 5;
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(113, 113, 122);
-  doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, currentY);
+  doc.text(`${quotation.client.documentType || 'NIT'}: ${quotation.client.nit_id || 'PENDIENTE'}`, 15, leftY);
 
-  currentY += 4;
+  leftY += 4;
   const clientAddress = quotation.client.direccion_fiscal || 'DIRECCIÓN POR REGISTRAR';
   const addressLines = doc.splitTextToSize(clientAddress, 85);
-  doc.text(addressLines, 15, currentY);
+  doc.text(addressLines, 15, leftY);
 
-  currentY += (addressLines.length * 3.5);
-  doc.text(`Ciudad: ${quotation.client.ciudad || 'PENDIENTE'}`, 15, currentY);
+  leftY += (addressLines.length * 3.5);
+  doc.text(`Ciudad: ${quotation.client.ciudad || 'PENDIENTE'}`, 15, leftY);
 
-  currentY += 4;
-  doc.text(`Email: ${quotation.client.email || 'PENDIENTE'}`, 15, currentY);
+  leftY += 4;
+  doc.text(`Email: ${quotation.client.email || 'PENDIENTE'}`, 15, leftY);
 
-  currentY += 4;
-  doc.text(`Teléfono: ${quotation.client.telefono || 'PENDIENTE'}`, 15, currentY);
+  leftY += 4;
+  doc.text(`Teléfono: ${quotation.client.telefono || 'PENDIENTE'}`, 15, leftY);
 
-  currentY += 4;
-  doc.text(`Asesor: ${quotation.consultant?.nombre || 'SISTEMA'}`, 15, currentY);
+  leftY += 4;
+  doc.text(`Asesor: ${quotation.consultant?.nombre || 'SISTEMA'}`, 15, leftY);
 
-  // Capture the end of Client block to ensure Logistics doesn't overlap
-  const clientBlockEndY = currentY + 10;
-
-  // Logistics Section Alignment v26.0 (Miniaturized Swiss Watch Look)
-  const logisticsStartY = 68; // Target start
-  currentY = Math.max(logisticsStartY, clientBlockEndY - 15); // Dynamic Y (v51.0: Prevent overlap while keeping v36.1 mandatory offset in mind)
-
-  const labelX = 110;
-  const dataX = 140; // Moved slightly to left to accommodate 7pt labels
-  const dataColor = "#27272a"; // Zinc-800 (v51.1: Hex string for stability)
-
+  // B. Right Column: DATOS DEL EVENTO (Symmetric Reset)
+  let rightY = gridBaseY + 10;
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('Nombre del evento: ', labelX, currentY + 15); // +15px mandatory offset (v36.1)
-  doc.setTextColor(dataColor);
+  doc.text('DATOS DEL EVENTO', 110, rightY);
 
+  const labelX = 110;
+  const dataX = 140;
+  const dataColor = "#27272a"; // Zinc-800
+
+  doc.text('Nombre del evento: ', labelX, rightY + 15); // +15px mandatory offset (v36.1)
+  doc.setTextColor(dataColor);
   const eventName = (quotation.nombre_evento || 'PROYECTO');
   const eventNameLines = doc.splitTextToSize(eventName, 55);
-  doc.text(eventNameLines, dataX, currentY + 15); // +15px mandatory offset (v36.1)
+  doc.text(eventNameLines, dataX, rightY + 15); // +15px mandatory offset (v36.1)
 
-  currentY += 15; // Shift currentY to account for the offset
+  rightY += 15;
+  rightY += (eventNameLines.length > 1 ? (eventNameLines.length * 3.5) : 5);
 
-  currentY += (eventNameLines.length > 1 ? (eventNameLines.length * 3.5) : 5); // Tightened spacing
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(113, 113, 122); // Harmonized label color
-  doc.text('Lugar evento: ', labelX, currentY);
-  doc.setTextColor(dataColor);
-  doc.text((quotation.ubicacion || 'POR DEFINIR'), dataX, currentY);
-
-  currentY += 5; // Tightened vertical spacing v26.0
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(113, 113, 122); // Harmonized label color
-  doc.text('Inicio montaje: ', labelX, currentY);
-  doc.setTextColor(dataColor);
-  doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
-
-  currentY += 5;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('Inicio evento: ', labelX, currentY);
+  doc.text('Lugar evento: ', labelX, rightY);
   doc.setTextColor(dataColor);
-  doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
+  doc.text((quotation.ubicacion || 'POR DEFINIR'), dataX, rightY);
 
-  currentY += 5;
+  rightY += 5;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(113, 113, 122);
-  doc.text('Fin desmontaje: ', labelX, currentY);
+  doc.text('Inicio montaje: ', labelX, rightY);
   doc.setTextColor(dataColor);
-  doc.text(new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, currentY);
+  doc.text(new Date(quotation.montaje_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, rightY);
+
+  rightY += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(113, 113, 122);
+  doc.text('Inicio evento: ', labelX, rightY);
+  doc.setTextColor(dataColor);
+  doc.text(new Date(quotation.evento_inicio).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, rightY);
+
+  rightY += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(113, 113, 122);
+  doc.text('Fin desmontaje: ', labelX, rightY);
+  doc.setTextColor(dataColor);
+  doc.text(new Date(quotation.desmontaje_fin).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), dataX, rightY);
+
+  // Final synchronization of Y axis for the next section
+  let currentY = Math.max(leftY, rightY);
 
   // 4. Items Table - WYSIWYG mapping
   const tableData = [
