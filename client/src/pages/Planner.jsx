@@ -85,7 +85,11 @@ const Planner = () => {
       const itemCost = itemIsExternal ? (item.vendorCost || item.inventory?.vendorCost || 0) : 0;
 
       if (item.isComposition) {
-        const pieces = item.compositions || item.inventory?.compositions || [];
+        // v52.1: Fix data route - empty arrays must fall back to catalog
+        const pieces = (item.compositions && item.compositions.length > 0)
+          ? item.compositions
+          : (item.inventory?.compositions || []);
+
         if (pieces.length === 0) {
           exploded.push({
             id: crypto.randomUUID(),
@@ -183,23 +187,35 @@ const Planner = () => {
 
   const handleSync = () => {
     const theoretical = getTheoreticalExplosion(quotation);
-    const existing = materiales || [];
+    const current = materiales || [];
 
-    // Rule: Identify missing items based on originalQuotationItemId AND name
-    const missing = theoretical.filter(t =>
-      !existing.some(e => e.originalQuotationItemId === t.originalQuotationItemId && e.nombre === t.nombre)
+    // v52.1: Advanced Sync Logic - Replace ghosts and add missing
+    // 1. Keep manual items (those without originalQuotationItemId)
+    const manualItems = current.filter(m => !m.originalQuotationItemId);
+
+    // 2. Filter linked items: only keep those that are still in the theoretical explosion
+    // and are NOT fallbacks if a real breakdown is now available.
+    const validLinkedItems = current.filter(m => {
+      if (!m.originalQuotationItemId) return false;
+      const tMatch = theoretical.find(t => t.originalQuotationItemId === m.originalQuotationItemId && t.nombre === m.nombre);
+      return !!tMatch;
+    });
+
+    // 3. Find truly missing items (theoretical items not in validLinkedItems)
+    const missingItems = theoretical.filter(t =>
+      !validLinkedItems.some(v => v.originalQuotationItemId === t.originalQuotationItemId && v.nombre === t.nombre)
     );
 
-    if (missing.length === 0) {
+    if (missingItems.length === 0) {
       setUiModal({ isOpen: true, title: 'Sincronización Completa', content: 'No hay nuevos elementos por heredar de la cotización comercial.', type: 'info' });
       return;
     }
 
-    setMateriales([...existing, ...missing]);
+    setMateriales([...manualItems, ...validLinkedItems, ...missingItems]);
     setUiModal({
       isOpen: true,
-      title: 'Datos Sincronizados',
-      content: `Se han inyectado ${missing.length} nuevos elementos desglosados respetando tus ajustes manuales.`,
+      title: 'Sincronización Exitosa',
+      content: `Se han inyectado ${missingItems.length} elementos y eliminado filas obsoletas (fantasmas), respetando tus ajustes manuales.`,
       type: 'success'
     });
   };
