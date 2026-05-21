@@ -77,71 +77,16 @@ const Planner = () => {
     }));
   }, [personal]);
 
-  const explodeQuotation = (q) => {
+  const getTheoreticalExplosion = (q) => {
     const exploded = [];
     (q.items || []).forEach(item => {
-      // v51.6: Enhanced logic for Compositions and External Items
       const itemIsExternal = !!(item.isExternal || item.inventory?.isExternal);
       const itemProvider = itemIsExternal ? (item.vendorName || item.inventory?.vendorName || 'POR DEFINIR') : 'SUN PARTNERS';
       const itemCost = itemIsExternal ? (item.vendorCost || item.inventory?.vendorCost || 0) : 0;
 
       if (item.isComposition) {
-          const pieces = item.compositions || item.inventory?.compositions || [];
-
-          if (pieces.length === 0) {
-              // Rule 1: Fallback if no pieces defined - don't leave empty
-              exploded.push({
-                id: crypto.randomUUID(),
-                category: 'EQUIPAMIENTO',
-                nombre: item.customName || item.inventory?.nombre_comercial,
-                cantidad: item.cantidad,
-                isExternal: itemIsExternal,
-                costo: itemCost,
-                proveedor: itemProvider,
-                notas: 'Fallback: Composición sin desglose',
-                originalQuotationItemId: item.id
-              });
-          } else {
-              // Rule 3: For external compositions, keep a main row to hold the contract value
-              if (itemIsExternal) {
-                exploded.push({
-                  id: crypto.randomUUID(),
-                  category: 'EQUIPAMIENTO',
-                  nombre: item.customName || item.inventory?.nombre_comercial,
-                  cantidad: item.cantidad,
-                  isExternal: true,
-                  costo: itemCost,
-                  proveedor: itemProvider,
-                  notas: '(Contrato Principal)',
-                  originalQuotationItemId: item.id
-                });
-              }
-
-              pieces.forEach(p => {
-                const pieceIsExternal = itemIsExternal || !!p.componentCatalogItem?.isExternal;
-                const pieceProvider = itemIsExternal ? itemProvider : (pieceIsExternal ? (p.componentCatalogItem?.vendorName || 'POR DEFINIR') : 'SUN PARTNERS');
-
-                // If item was external, cost is already in main row.
-                // If it's an internal combo with external pieces, keep component costs.
-                let pieceCost = 0;
-                if (!itemIsExternal) {
-                  pieceCost = pieceIsExternal ? (p.componentCatalogItem?.vendorCost || 0) : 0;
-                }
-
-                exploded.push({
-                  id: crypto.randomUUID(),
-                  category: 'EQUIPAMIENTO',
-                  nombre: p.componentCatalogItem?.nombre_comercial || p.warehouseItem?.nombre || p.nombre || 'Pieza de Set',
-                  cantidad: (p.quantity || 1) * item.cantidad,
-                  isExternal: pieceIsExternal,
-                  costo: pieceCost,
-                  proveedor: pieceProvider,
-                  notas: `De: ${item.customName || item.inventory?.nombre_comercial}`,
-                  originalQuotationItemId: item.id
-                });
-              });
-          }
-      } else {
+        const pieces = item.compositions || item.inventory?.compositions || [];
+        if (pieces.length === 0) {
           exploded.push({
             id: crypto.randomUUID(),
             category: 'EQUIPAMIENTO',
@@ -150,12 +95,61 @@ const Planner = () => {
             isExternal: itemIsExternal,
             costo: itemCost,
             proveedor: itemProvider,
-            notas: '',
+            notas: 'Fallback: Composición sin desglose',
             originalQuotationItemId: item.id
           });
+        } else {
+          if (itemIsExternal) {
+            exploded.push({
+              id: crypto.randomUUID(),
+              category: 'EQUIPAMIENTO',
+              nombre: item.customName || item.inventory?.nombre_comercial,
+              cantidad: item.cantidad,
+              isExternal: true,
+              costo: itemCost,
+              proveedor: itemProvider,
+              notas: '(Contrato Principal)',
+              originalQuotationItemId: item.id
+            });
+          }
+          pieces.forEach(p => {
+            const pieceIsExternal = itemIsExternal || !!p.componentCatalogItem?.isExternal;
+            const pieceProvider = itemIsExternal ? itemProvider : (pieceIsExternal ? (p.componentCatalogItem?.vendorName || 'POR DEFINIR') : 'SUN PARTNERS');
+            let pieceCost = 0;
+            if (!itemIsExternal) pieceCost = pieceIsExternal ? (p.componentCatalogItem?.vendorCost || 0) : 0;
+
+            exploded.push({
+              id: crypto.randomUUID(),
+              category: 'EQUIPAMIENTO',
+              nombre: p.componentCatalogItem?.nombre_comercial || p.warehouseItem?.nombre || p.nombre || 'Pieza de Set',
+              cantidad: (p.quantity || 1) * item.cantidad,
+              isExternal: pieceIsExternal,
+              costo: pieceCost,
+              proveedor: pieceProvider,
+              notas: `De: ${item.customName || item.inventory?.nombre_comercial}`,
+              originalQuotationItemId: item.id
+            });
+          });
+        }
+      } else {
+        exploded.push({
+          id: crypto.randomUUID(),
+          category: 'EQUIPAMIENTO',
+          nombre: item.customName || item.inventory?.nombre_comercial,
+          cantidad: item.cantidad,
+          isExternal: itemIsExternal,
+          costo: itemCost,
+          proveedor: itemProvider,
+          notas: '',
+          originalQuotationItemId: item.id
+        });
       }
     });
-    setMateriales(exploded);
+    return exploded;
+  };
+
+  const explodeQuotation = (q) => {
+    setMateriales(getTheoreticalExplosion(q));
   };
 
   const getLinkedSubtotal = (rowId) => {
@@ -178,6 +172,37 @@ const Planner = () => {
 
     return linkedTotal + manualTotal;
   }, [materiales, personal, presupuesto]);
+
+  const hasDiscrepancy = useMemo(() => {
+    if (!quotation) return false;
+    const theoretical = getTheoreticalExplosion(quotation);
+    return theoretical.some(t =>
+      !materiales.some(e => e.originalQuotationItemId === t.originalQuotationItemId && e.nombre === t.nombre)
+    );
+  }, [quotation, materiales]);
+
+  const handleSync = () => {
+    const theoretical = getTheoreticalExplosion(quotation);
+    const existing = materiales || [];
+
+    // Rule: Identify missing items based on originalQuotationItemId AND name
+    const missing = theoretical.filter(t =>
+      !existing.some(e => e.originalQuotationItemId === t.originalQuotationItemId && e.nombre === t.nombre)
+    );
+
+    if (missing.length === 0) {
+      setUiModal({ isOpen: true, title: 'Sincronización Completa', content: 'No hay nuevos elementos por heredar de la cotización comercial.', type: 'info' });
+      return;
+    }
+
+    setMateriales([...existing, ...missing]);
+    setUiModal({
+      isOpen: true,
+      title: 'Datos Sincronizados',
+      content: `Se han inyectado ${missing.length} nuevos elementos desglosados respetando tus ajustes manuales.`,
+      type: 'success'
+    });
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -262,9 +287,13 @@ const Planner = () => {
                <span className="material-symbols-outlined text-[18px]">analytics</span>
                REPORTE OPERATIVO
              </button>
-             <button onClick={handleSave} disabled={saving} className="bg-[#5486A1] text-white px-8 py-3 rounded-lg text-[10px] font-black tracking-widest shadow-lg shadow-blue-900/10 hover:opacity-90 transition-all flex items-center gap-2 ml-4">
-               <span className="material-symbols-outlined text-[20px]">{saving ? 'sync' : 'cloud_upload'}</span>
-               {saving ? 'GUARDANDO...' : 'SINCRONIZAR DATOS'}
+             <button onClick={handleSync} className={`px-8 py-3 rounded-lg text-[10px] font-black tracking-widest shadow-lg transition-all flex items-center gap-2 ml-4 ${hasDiscrepancy ? 'bg-[#FBAE17] text-white animate-pulse shadow-yellow-900/20' : 'bg-[#5486A1] text-white shadow-blue-900/10 hover:opacity-90'}`}>
+               <span className="material-symbols-outlined text-[20px]">{hasDiscrepancy ? 'warning' : 'sync'}</span>
+               {hasDiscrepancy ? 'ACTUALIZACIÓN DISPONIBLE' : 'SINCRONIZAR DATOS'}
+             </button>
+             <button onClick={handleSave} disabled={saving} className="bg-zinc-900 text-white px-8 py-3 rounded-lg text-[10px] font-black tracking-widest shadow-lg shadow-zinc-900/10 hover:opacity-90 transition-all flex items-center gap-2">
+               <span className="material-symbols-outlined text-[20px]">{saving ? 'refresh' : 'cloud_upload'}</span>
+               {saving ? 'GUARDANDO...' : 'GUARDAR CAMBIOS'}
              </button>
            </div>
         </div>
