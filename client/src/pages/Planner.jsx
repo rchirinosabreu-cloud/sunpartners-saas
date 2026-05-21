@@ -80,37 +80,76 @@ const Planner = () => {
   const explodeQuotation = (q) => {
     const exploded = [];
     (q.items || []).forEach(item => {
-      const isExternal = !!(item.isExternal || item.inventory?.isExternal);
-      const provider = isExternal ? (item.vendorName || item.inventory?.vendorName || '') : 'SUN PARTNERS';
-      const cost = isExternal ? (item.vendorCost || item.inventory?.vendorCost || 0) : 0;
+      // v51.6: Enhanced logic for Compositions and External Items
+      const itemIsExternal = !!(item.isExternal || item.inventory?.isExternal);
+      const itemProvider = itemIsExternal ? (item.vendorName || item.inventory?.vendorName || 'POR DEFINIR') : 'SUN PARTNERS';
+      const itemCost = itemIsExternal ? (item.vendorCost || item.inventory?.vendorCost || 0) : 0;
 
       if (item.isComposition) {
           const pieces = item.compositions || item.inventory?.compositions || [];
-          pieces.forEach(p => {
-            const pieceIsExternal = !!p.componentCatalogItem?.isExternal;
-            const pieceProvider = pieceIsExternal ? (p.componentCatalogItem?.vendorName || '') : 'SUN PARTNERS';
-            const pieceCost = pieceIsExternal ? (p.componentCatalogItem?.vendorCost || 0) : 0;
-            exploded.push({
-              id: crypto.randomUUID(),
-              category: 'EQUIPAMIENTO',
-              nombre: p.componentCatalogItem?.nombre_comercial || p.warehouseItem?.nombre || p.nombre || 'Pieza de Set',
-              cantidad: (p.quantity || 1) * item.cantidad,
-              isExternal: pieceIsExternal,
-              costo: pieceCost,
-              proveedor: pieceProvider,
-              notas: `De: ${item.customName || item.inventory?.nombre_comercial}`,
-              originalQuotationItemId: item.id
-            });
-          });
+
+          if (pieces.length === 0) {
+              // Rule 1: Fallback if no pieces defined - don't leave empty
+              exploded.push({
+                id: crypto.randomUUID(),
+                category: 'EQUIPAMIENTO',
+                nombre: item.customName || item.inventory?.nombre_comercial,
+                cantidad: item.cantidad,
+                isExternal: itemIsExternal,
+                costo: itemCost,
+                proveedor: itemProvider,
+                notas: 'Fallback: Composición sin desglose',
+                originalQuotationItemId: item.id
+              });
+          } else {
+              // Rule 3: For external compositions, keep a main row to hold the contract value
+              if (itemIsExternal) {
+                exploded.push({
+                  id: crypto.randomUUID(),
+                  category: 'EQUIPAMIENTO',
+                  nombre: item.customName || item.inventory?.nombre_comercial,
+                  cantidad: item.cantidad,
+                  isExternal: true,
+                  costo: itemCost,
+                  proveedor: itemProvider,
+                  notas: '(Contrato Principal)',
+                  originalQuotationItemId: item.id
+                });
+              }
+
+              pieces.forEach(p => {
+                const pieceIsExternal = itemIsExternal || !!p.componentCatalogItem?.isExternal;
+                const pieceProvider = itemIsExternal ? itemProvider : (pieceIsExternal ? (p.componentCatalogItem?.vendorName || 'POR DEFINIR') : 'SUN PARTNERS');
+
+                // If item was external, cost is already in main row.
+                // If it's an internal combo with external pieces, keep component costs.
+                let pieceCost = 0;
+                if (!itemIsExternal) {
+                  pieceCost = pieceIsExternal ? (p.componentCatalogItem?.vendorCost || 0) : 0;
+                }
+
+                exploded.push({
+                  id: crypto.randomUUID(),
+                  category: 'EQUIPAMIENTO',
+                  nombre: p.componentCatalogItem?.nombre_comercial || p.warehouseItem?.nombre || p.nombre || 'Pieza de Set',
+                  cantidad: (p.quantity || 1) * item.cantidad,
+                  isExternal: pieceIsExternal,
+                  costo: pieceCost,
+                  proveedor: pieceProvider,
+                  notas: `De: ${item.customName || item.inventory?.nombre_comercial}`,
+                  originalQuotationItemId: item.id
+                });
+              });
+          }
       } else {
           exploded.push({
             id: crypto.randomUUID(),
             category: 'EQUIPAMIENTO',
             nombre: item.customName || item.inventory?.nombre_comercial,
             cantidad: item.cantidad,
-            isExternal: isExternal,
-            costo: cost,
-            proveedor: provider,
+            isExternal: itemIsExternal,
+            costo: itemCost,
+            proveedor: itemProvider,
             notas: '',
             originalQuotationItemId: item.id
           });
