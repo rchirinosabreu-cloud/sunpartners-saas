@@ -295,11 +295,11 @@ const Planner = () => {
               </div>
            </div>
            <div className="flex gap-3">
-             <button onClick={() => generatePlannerPDF(quotation, 'ROUTER')} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
+             <button onClick={() => generatePlannerPDF(quotation, 'ROUTER', { materiales, personal, presupuesto, footer })} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
                <span className="material-symbols-outlined text-[18px]">print</span>
                HOJA DE RUTA
              </button>
-             <button onClick={() => generatePlannerPDF(quotation, 'REPORT')} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
+             <button onClick={() => generatePlannerPDF(quotation, 'REPORT', { materiales, personal, presupuesto, totalPresupuesto, footer })} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
                <span className="material-symbols-outlined text-[18px]">analytics</span>
                REPORTE OPERATIVO
              </button>

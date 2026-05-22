@@ -326,10 +326,22 @@ export const generateQuotationPDF = (quotation) => {
   doc.save(fileName);
 };
 
-export const generatePlannerPDF = (quotation, type = 'ROUTER') => {
+export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) => {
   const doc = new jsPDF('p', 'mm', 'a4');
   const isReport = type === 'REPORT';
-  const planning = quotation.planning || {};
+
+  // v52.2: Merge stored planning with live UI state overrides
+  const planning = {
+    ...(quotation.planning || {}),
+    ...overrides
+  };
+
+  const getLinkedSubtotal = (rowId, materialsList) => {
+    if (rowId === 'tra') return (materialsList || []).filter(m => m.category === 'TRANSPORTE').reduce((acc, m) => acc + (parseFloat(m.costo) || 0) * (parseInt(m.cantidad) || 1), 0);
+    if (rowId === 'sub') return (materialsList || []).filter(m => m.category === 'EQUIPAMIENTO' && m.isExternal).reduce((acc, m) => acc + (parseFloat(m.costo) || 0) * (parseInt(m.cantidad) || 1), 0);
+    if (rowId === 'mat') return (materialsList || []).filter(m => ['HERRAMIENTAS', 'INSUMOS'].includes(m.category)).reduce((acc, m) => acc + (parseFloat(m.costo) || 0) * (parseInt(m.cantidad) || 1), 0);
+    return 0;
+  };
 
   // 1. Header
   const logoUrl = '/logo_sp.png';
@@ -447,14 +459,37 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER') => {
     if (currentY > 200) { doc.addPage(); currentY = 20; }
     doc.setFont('helvetica', 'bold');
     doc.text('PRESUPUESTO', 15, currentY);
+
+    const budgetBody = planning.presupuesto.map(r => {
+      const linked = getLinkedSubtotal(r.id, planning.materiales);
+      const rowTotal = linked + (parseFloat(r.montaje) || 0) + (parseFloat(r.evento) || 0) + (parseFloat(r.desmontaje) || 0);
+      return [
+        r.concepto,
+        `$ ${r.montaje?.toLocaleString() || 0}`,
+        `$ ${r.evento?.toLocaleString() || 0}`,
+        `$ ${r.desmontaje?.toLocaleString() || 0}`,
+        `$ ${rowTotal.toLocaleString()}`
+      ];
+    });
+
+    // v52.2: Add Final Summary Row
+    const totalValue = overrides.totalPresupuesto || budgetBody.reduce((acc, row) => acc + parseFloat(row[4].replace(/[^0-9.-]+/g, "")), 0);
+    budgetBody.push([
+      { content: 'TOTAL PRESUPUESTO OPERATIVO', colSpan: 4, styles: { halign: 'right', fillColor: [24, 24, 27], textColor: [255, 255, 255] } },
+      { content: `$ ${totalValue.toLocaleString()}`, styles: { halign: 'right', fillColor: [24, 24, 27], textColor: [255, 255, 255], fontSize: 9 } }
+    ]);
+
     autoTable(doc, {
       startY: currentY + 3,
       head: [['Ítem', 'Montaje', 'Evento', 'Desmontaje', 'Total']],
-      body: planning.presupuesto.map(r => [r.concepto, `$ ${r.montaje?.toLocaleString() || 0}`, `$ ${r.evento?.toLocaleString() || 0}`, `$ ${r.desmontaje?.toLocaleString() || 0}`, `$ ${(r.montaje + r.evento + r.desmontaje).toLocaleString()}`]),
+      body: budgetBody,
       theme: 'grid',
       headStyles: { fillColor: [24, 24, 27], fontSize: 7 },
       bodyStyles: { fontSize: 7, fontStyle: 'bold' },
-      styles: { cellPadding: 2 }
+      styles: { cellPadding: 2 },
+      columnStyles: {
+        4: { halign: 'right' }
+      }
     });
     currentY = doc.lastAutoTable.finalY + 10;
   }
