@@ -537,8 +537,13 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
     const budgetBody = planning.presupuesto.map(r => {
       const linked = getLinkedSubtotal(r.id, planning.materiales);
       const rowTotal = linked + (parseFloat(r.montaje) || 0) + (parseFloat(r.evento) || 0) + (parseFloat(r.desmontaje) || 0);
+
+      // v54.1: Return an object with content for multi-style cell
       return [
-        r.concepto,
+        {
+          content: r.indicaciones ? `${r.concepto}\n(${r.indicaciones})` : r.concepto,
+          styles: { fontStyle: 'bold' } // Default style for the cell
+        },
         `$ ${r.montaje?.toLocaleString() || 0}`,
         `$ ${r.evento?.toLocaleString() || 0}`,
         `$ ${r.desmontaje?.toLocaleString() || 0}`,
@@ -563,6 +568,43 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
       styles: { cellPadding: 2 },
       columnStyles: {
         4: { halign: 'right' }
+      },
+      willDrawCell: (data) => {
+        // v54.1: Secondary line styling for Indications
+        if (data.section === 'body' && data.column.index === 0) {
+           // This logic is hard without drawing line by line.
+           // However, if we know how autoTable splits lines:
+        }
+      },
+      didDrawCell: (data) => {
+        if (data.section === 'body' && data.column.index === 0) {
+          const textLines = data.cell.text;
+          if (textLines.length > 1) {
+             const doc = data.doc;
+             const cell = data.cell;
+
+             // 1. Clear the area of the secondary lines (white out)
+             doc.setFillColor(255, 255, 255);
+             const firstLineHeight = 4; // Approx height of first line
+             doc.rect(cell.x + 0.5, cell.y + firstLineHeight + 1, cell.width - 1, cell.height - firstLineHeight - 1, 'F');
+
+             // 2. Redraw the secondary lines with 7pt italic Zinc-500
+             doc.setFontSize(7);
+             doc.setFont('helvetica', 'italic');
+             doc.setTextColor(113, 113, 122); // Zinc-500
+
+             for (let i = 1; i < textLines.length; i++) {
+                doc.text(textLines[i], cell.x + cell.padding('left'), cell.y + firstLineHeight + (i * 3.5) + 1.5);
+             }
+          }
+        }
+      },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 0) {
+          if (data.cell.raw.includes('\n')) {
+             // data.cell.styles.fontSize = 7; // This would affect the whole cell.
+          }
+        }
       }
     });
     currentY = doc.lastAutoTable.finalY + 10;
