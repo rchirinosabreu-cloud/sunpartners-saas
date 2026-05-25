@@ -398,44 +398,6 @@ const Planner = () => {
            </div>
         </section>
 
-        {/* 6. Viáticos */}
-        <section className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
-           <div className="px-8 py-5 border-b border-zinc-100 flex items-center justify-between bg-emerald-50/50">
-              <h3 className="text-[11px] font-black tracking-[0.2em] text-emerald-600">6. VIÁTICOS</h3>
-              <button onClick={addViaticos} className="text-[10px] font-black text-emerald-600 hover:underline flex items-center gap-1">
-                 <span className="material-symbols-outlined text-[16px]">add_circle</span> AÑADIR FILA LIBRE
-              </button>
-           </div>
-           <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                 <thead className="bg-zinc-50 text-[9px] font-black tracking-widest text-zinc-400 border-b border-zinc-100">
-                    <tr>
-                       <th className="px-8 py-4">CARGO</th>
-                       <th className="px-4 py-4">NOMBRE</th>
-                       <th className="px-4 py-4 text-right">MONTAJE ($)</th>
-                       <th className="px-4 py-4 text-right">EVENTO ($)</th>
-                       <th className="px-4 py-4 text-right">DESMONTAJE ($)</th>
-                       <th className="px-4 py-4 text-right bg-zinc-100/50">TOTAL ($)</th>
-                       <th className="px-4 py-4 text-center w-[50px]"></th>
-                    </tr>
-                 </thead>
-                 <tbody className="divide-y divide-zinc-50">
-                    {viaticos.map(v => (
-                       <tr key={v.id}>
-                          <td className="px-8 py-4"><input value={v.cargo} onChange={e => updateList(viaticos, setViaticos, v.id, 'cargo', e.target.value)} className="w-full bg-transparent font-black outline-none" placeholder="Ej: Chofer..." /></td>
-                          <td className="px-4 py-4"><input value={v.nombre} onChange={e => updateList(viaticos, setViaticos, v.id, 'nombre', e.target.value)} className="w-full bg-transparent outline-none" placeholder="Nombre..." /></td>
-                          <td className="px-4 py-4 text-right">$ <input type="number" value={v.montaje} onChange={e => updateList(viaticos, setViaticos, v.id, 'montaje', parseFloat(e.target.value) || 0)} className="w-20 text-right outline-none" /></td>
-                          <td className="px-4 py-4 text-right">$ <input type="number" value={v.evento} onChange={e => updateList(viaticos, setViaticos, v.id, 'evento', parseFloat(e.target.value) || 0)} className="w-20 text-right outline-none" /></td>
-                          <td className="px-4 py-4 text-right">$ <input type="number" value={v.desmontaje} onChange={e => updateList(viaticos, setViaticos, v.id, 'desmontaje', parseFloat(e.target.value) || 0)} className="w-20 text-right outline-none" /></td>
-                          <td className="px-4 py-4 text-right font-black bg-zinc-100/30">$ {((parseFloat(v.montaje) || 0) + (parseFloat(v.evento) || 0) + (parseFloat(v.desmontaje) || 0)).toLocaleString()}</td>
-                          <td className="px-4 py-4 text-center"><button onClick={() => removeList(viaticos, setViaticos, v.id)} className="text-zinc-300 hover:text-red-500"><span className="material-symbols-outlined text-[18px]">close</span></button></td>
-                       </tr>
-                    ))}
-                 </tbody>
-              </table>
-           </div>
-        </section>
-
         {/* BLOQUES DE PREPRODUCCIÓN */}
         <div className="grid grid-cols-1 gap-12">
            {[
@@ -444,8 +406,8 @@ const Planner = () => {
              { id: 'TRANSPORTE', label: '4. TRANSPORTE' }
            ].map(block => (
               <section key={block.id} className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
-                 <div className="px-8 py-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
-                    <h3 className="text-[11px] font-black tracking-[0.2em] text-zinc-500">{block.label}</h3>
+                 <div className="px-8 py-5 border-b border-zinc-100 flex items-center justify-between bg-[#5486A1]/[0.02]">
+                    <h3 className="text-[11px] font-black tracking-[0.2em] text-[#5486A1]">{block.label}</h3>
                     <button onClick={() => addLogisticsItem(block.id)} className="text-[10px] font-black text-[#5486A1] hover:underline flex items-center gap-1">
                        <span className="material-symbols-outlined text-[16px]">add_circle</span> AÑADIR FILA
                     </button>
@@ -485,8 +447,8 @@ const Planner = () => {
 
         {/* 5. Personal asignado al evento */}
         <section className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
-           <div className="px-8 py-5 border-b border-zinc-100 flex items-center justify-between bg-[#FBAE17]/[0.05]">
-              <h3 className="text-[11px] font-black tracking-[0.2em] text-[#FBAE17]">5. PERSONAL ASIGNADO AL EVENTO</h3>
+           <div className="px-8 py-5 border-b border-zinc-100 flex items-center justify-between bg-[#5486A1]/[0.02]">
+              <h3 className="text-[11px] font-black tracking-[0.2em] text-[#5486A1]">5. PERSONAL ASIGNADO AL EVENTO</h3>
               <button onClick={addPersonnel} className="text-[10px] font-black text-[#5486A1] hover:underline flex items-center gap-1">
                  <span className="material-symbols-outlined text-[16px]">person_add</span> AÑADIR PERSONAL
               </button>
@@ -521,9 +483,47 @@ const Planner = () => {
            </div>
         </section>
 
+        {/* 6. Viáticos */}
+        <section className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+           <div className="px-8 py-5 border-b border-zinc-100 flex items-center justify-between bg-[#5486A1]/[0.02]">
+              <h3 className="text-[11px] font-black tracking-[0.2em] text-[#5486A1]">6. VIÁTICOS</h3>
+              <button onClick={addViaticos} className="text-[10px] font-black text-[#5486A1] hover:underline flex items-center gap-1">
+                 <span className="material-symbols-outlined text-[16px]">add_circle</span> AÑADIR FILA LIBRE
+              </button>
+           </div>
+           <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                 <thead className="bg-zinc-50 text-[9px] font-black tracking-widest text-zinc-400 border-b border-zinc-100">
+                    <tr>
+                       <th className="px-8 py-4">CARGO</th>
+                       <th className="px-4 py-4">NOMBRE</th>
+                       <th className="px-4 py-4 text-right">MONTAJE ($)</th>
+                       <th className="px-4 py-4 text-right">EVENTO ($)</th>
+                       <th className="px-4 py-4 text-right">DESMONTAJE ($)</th>
+                       <th className="px-4 py-4 text-right bg-zinc-100/50">TOTAL ($)</th>
+                       <th className="px-4 py-4 text-center w-[50px]"></th>
+                    </tr>
+                 </thead>
+                 <tbody className="divide-y divide-zinc-50">
+                    {viaticos.map(v => (
+                       <tr key={v.id}>
+                          <td className="px-8 py-4"><input value={v.cargo} onChange={e => updateList(viaticos, setViaticos, v.id, 'cargo', e.target.value)} className="w-full bg-transparent font-black outline-none" placeholder="Ej: Chofer..." /></td>
+                          <td className="px-4 py-4"><input value={v.nombre} onChange={e => updateList(viaticos, setViaticos, v.id, 'nombre', e.target.value)} className="w-full bg-transparent outline-none" placeholder="Nombre..." /></td>
+                          <td className="px-4 py-4 text-right">$ <input type="number" value={v.montaje} onChange={e => updateList(viaticos, setViaticos, v.id, 'montaje', parseFloat(e.target.value) || 0)} className="w-20 text-right outline-none" /></td>
+                          <td className="px-4 py-4 text-right">$ <input type="number" value={v.evento} onChange={e => updateList(viaticos, setViaticos, v.id, 'evento', parseFloat(e.target.value) || 0)} className="w-20 text-right outline-none" /></td>
+                          <td className="px-4 py-4 text-right">$ <input type="number" value={v.desmontaje} onChange={e => updateList(viaticos, setViaticos, v.id, 'desmontaje', parseFloat(e.target.value) || 0)} className="w-20 text-right outline-none" /></td>
+                          <td className="px-4 py-4 text-right font-black bg-zinc-100/30">$ {((parseFloat(v.montaje) || 0) + (parseFloat(v.evento) || 0) + (parseFloat(v.desmontaje) || 0)).toLocaleString()}</td>
+                          <td className="px-4 py-4 text-center"><button onClick={() => removeList(viaticos, setViaticos, v.id)} className="text-zinc-300 hover:text-red-500"><span className="material-symbols-outlined text-[18px]">close</span></button></td>
+                       </tr>
+                    ))}
+                 </tbody>
+              </table>
+           </div>
+        </section>
+
         {/* TABLA DE PRESUPUESTO */}
-        <section className="bg-white rounded-xl border-2 border-zinc-900 shadow-xl overflow-hidden">
-           <div className="px-8 py-6 border-b-2 border-zinc-900 bg-zinc-900 text-white flex justify-between items-center">
+        <section className="bg-white rounded-xl border-2 border-[#FBAE17] shadow-xl overflow-hidden">
+           <div className="px-8 py-6 border-b-2 border-[#FBAE17] bg-[#FBAE17] text-white flex justify-between items-center">
               <h3 className="text-[12px] font-black tracking-[0.2em]">PRESUPUESTO</h3>
               <div className="text-right">
                  <p className="text-[9px] font-black opacity-60 tracking-widest">TOTAL PRESUPUESTO</p>
