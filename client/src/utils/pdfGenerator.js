@@ -357,12 +357,12 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
   doc.setTextColor(24, 24, 27);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text(isReport ? 'SS' : 'REMISIÓN', 15, 45);
+  const refLabel = quotation?.consecutivo ? `SS-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`;
+  doc.text(isReport ? refLabel : `REMISIÓN ${refLabel}`, 15, 45);
 
   doc.setFontSize(8);
-  const refLabel = quotation?.consecutivo ? `SS-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`;
   doc.text(`PROYECTO: ${(quotation.nombre_evento || 'SIN NOMBRE').toUpperCase()}`, 15, 52);
-  doc.text(`REFERENCIA: ${refLabel} | GENERADO: ${new Date().toLocaleString('es-CO')}`, 15, 57);
+  doc.text(`GENERADO: ${new Date().toLocaleString('es-CO')}`, 15, 57);
 
   // 2. Logistics Brief
   let currentY = 65;
@@ -372,7 +372,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
-  doc.text('DATOS CRÍTICOS DE OPERACIÓN', 15, currentY);
+  doc.text('DATOS DE LA OPERACIÓN', 15, currentY);
   currentY += 6;
 
   const logisticsData = [
@@ -396,7 +396,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
   const equipamiento = materiales.filter(m => m.category === 'EQUIPAMIENTO');
 
   doc.setFont('helvetica', 'bold');
-  doc.text('1. INVENTARIO ASIGNADO AL EVENTO', 15, currentY);
+  doc.text('INVENTARIO ASIGNADO AL EVENTO', 15, currentY);
 
   autoTable(doc, {
     startY: currentY + 3,
@@ -412,9 +412,9 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
 
   // 4. Table B: PREPRODUCCION
   const blocks = [
-    { id: 'HERRAMIENTAS', label: '2. OTRAS HERRAMIENTAS Y EQUIPOS DE PREPRODUCCIÓN' },
-    { id: 'INSUMOS', label: '3. MATERIALES E INSUMOS' },
-    { id: 'TRANSPORTE', label: '4. TRANSPORTE' }
+    { id: 'HERRAMIENTAS', label: 'OTRAS HERRAMIENTAS Y EQUIPOS DE PREPRODUCCIÓN' },
+    { id: 'INSUMOS', label: 'MATERIALES E INSUMOS' },
+    { id: 'TRANSPORTE', label: 'TRANSPORTE' }
   ];
 
   blocks.forEach(block => {
@@ -441,7 +441,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
   if (personal.length > 0) {
     if (currentY > 230) { doc.addPage(); currentY = 20; }
     doc.setFont('helvetica', 'bold');
-    doc.text('5. PERSONAL ASIGNADO AL EVENTO', 15, currentY);
+    doc.text('PERSONAL ASIGNADO AL EVENTO', 15, currentY);
 
     const personalBody = personal.map(p => {
       if (isReport) {
@@ -487,7 +487,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
   if (viaticos.length > 0) {
     if (currentY > 230) { doc.addPage(); currentY = 20; }
     doc.setFont('helvetica', 'bold');
-    doc.text('6. VIÁTICOS', 15, currentY);
+    doc.text('VIÁTICOS', 15, currentY);
 
     const viaticosBody = viaticos.map(v => {
       if (isReport) {
@@ -577,7 +577,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
     if (currentY > 240) { doc.addPage(); currentY = 20; }
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    doc.text('7. OBSERVACIONES GENERALES', 15, currentY);
+    doc.text('OBSERVACIONES GENERALES', 15, currentY);
     currentY += 5;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
