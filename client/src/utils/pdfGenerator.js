@@ -534,17 +534,19 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
     doc.setFont('helvetica', 'bold');
     doc.text('PRESUPUESTO', 15, currentY);
 
-    const budgetBody = planning.presupuesto.map(r => {
+    const budgetBody = (planning.presupuesto || []).map(r => {
       const linked = getLinkedSubtotal(r.id, planning.materiales);
       const rowTotal = linked + (parseFloat(r.montaje) || 0) + (parseFloat(r.evento) || 0) + (parseFloat(r.desmontaje) || 0);
 
-      // v54.1: Multi-line content. Title (Concept) + Optional Indications
-      const cellContent = r.indicaciones ? `${r.concepto}\n${r.indicaciones}` : r.concepto;
+      // v54.3: Ensure strict mapping to indications from the row object
+      // Avoid any forced uppercase and ensure data desacoupling
+      const rowIndications = r.indicaciones || '';
+      const cellContent = rowIndications ? `${r.concepto}\n${rowIndications}` : r.concepto;
 
       return [
         {
           content: cellContent,
-          styles: { fontStyle: 'bold' }
+          styles: { fontStyle: 'bold', fontSize: 7 }
         },
         `$ ${r.montaje?.toLocaleString() || 0}`,
         `$ ${r.evento?.toLocaleString() || 0}`,
@@ -579,32 +581,41 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
         }
       },
       didDrawCell: (data) => {
+        // v54.3: Hotfix for Indications style and wrapping
         if (data.section === 'body' && data.column.index === 0) {
           const textLines = data.cell.text;
-          if (textLines.length > 1) {
+          if (textLines && textLines.length > 1) {
              const doc = data.doc;
              const cell = data.cell;
 
-             // v54.2: Refined "white out" and redraw for Indications
-             // 1. Calculate first line offset accurately.
-             // In bold 7pt, lineHeight is usually ~3.5mm
-             const lineHeight = 3.2;
+             // 1. Precise calculation of the title line boundary
+             const titleFontSize = 7;
+             const subtitleFontSize = 6.5;
+             const docLineHeight = 1.15;
+
              const topPadding = cell.padding('top');
-             const firstLineEnd = cell.y + topPadding + lineHeight;
+             const firstLineHeight = (titleFontSize * 0.3527) * docLineHeight;
+             const firstLineBottomY = cell.y + topPadding + firstLineHeight;
 
-             // 2. Clear the area below the first line (white out)
+             // 2. Clear ONLY the area occupied by the secondary lines (the subtitle)
+             // v54.3: Refined inset to avoid borders and discontinuity
              doc.setFillColor(255, 255, 255);
-             // Clear everything below the first line of text
-             doc.rect(cell.x + 0.1, firstLineEnd + 0.2, cell.width - 0.2, cell.height - (firstLineEnd - cell.y) - 0.2, 'F');
+             doc.setDrawColor(255, 255, 255);
+             doc.rect(cell.x + 0.3, firstLineBottomY + 0.1, cell.width - 0.6, cell.height - (firstLineBottomY - cell.y) - 0.4, 'F');
 
-             // 3. Redraw the secondary lines with 7pt italic Zinc-500
-             doc.setFontSize(7);
+             // 3. Redraw secondary lines with 6.5pt italic Zinc-500 (#6b7280)
+             doc.setFontSize(subtitleFontSize);
              doc.setFont('helvetica', 'italic');
-             doc.setTextColor(113, 113, 122); // Zinc-500
+             doc.setTextColor(107, 114, 128);
+
+             // v54.3: Controlled vertical increment based on line splitting
+             let currentSubY = firstLineBottomY + (subtitleFontSize * 0.3527) + 0.3;
 
              for (let i = 1; i < textLines.length; i++) {
-                const lineY = firstLineEnd + (i * lineHeight);
-                doc.text(textLines[i], cell.x + cell.padding('left'), lineY);
+                if (currentSubY < cell.y + cell.height) {
+                   doc.text(textLines[i], cell.x + cell.padding('left'), currentSubY);
+                   currentSubY += (subtitleFontSize * 0.3527) * docLineHeight;
+                }
              }
           }
         }
