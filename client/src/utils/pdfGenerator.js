@@ -346,7 +346,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
   // 1. Header
   const logoUrl = '/logo_sp.png';
   try {
-    doc.addImage(logoUrl, 'PNG', 15, 10, 50, 20);
+    doc.addImage(logoUrl, 'JPEG', 15, 10, 50, 20, undefined, 'FAST');
   } catch (e) {}
 
   doc.setTextColor(113, 113, 122);
@@ -357,10 +357,10 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
   doc.setTextColor(24, 24, 27);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text(isReport ? 'REPORTE OPERATIVO Y PRESUPUESTO' : 'HOJA DE RUTA LOGÍSTICA', 15, 45);
+  doc.text(isReport ? 'SS' : 'REMISIÓN', 15, 45);
 
   doc.setFontSize(8);
-  const refLabel = quotation?.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`;
+  const refLabel = quotation?.consecutivo ? `SS-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`;
   doc.text(`PROYECTO: ${(quotation.nombre_evento || 'SIN NOMBRE').toUpperCase()}`, 15, 52);
   doc.text(`REFERENCIA: ${refLabel} | GENERADO: ${new Date().toLocaleString('es-CO')}`, 15, 57);
 
@@ -538,12 +538,9 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
       const linked = getLinkedSubtotal(r.id, planning.materiales);
       const rowTotal = linked + (parseFloat(r.montaje) || 0) + (parseFloat(r.evento) || 0) + (parseFloat(r.desmontaje) || 0);
 
-      // v54.1: Multi-line content. Title (Concept) + Optional Indications
-      const cellContent = r.indicaciones ? `${r.concepto}\n${r.indicaciones}` : r.concepto;
-
       return [
         {
-          content: cellContent,
+          content: r.concepto,
           styles: { fontStyle: 'bold' }
         },
         `$ ${r.montaje?.toLocaleString() || 0}`,
@@ -571,46 +568,23 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
       columnStyles: {
         4: { halign: 'right' }
       },
-      willDrawCell: (data) => {
-        // v54.1: Secondary line styling for Indications
-        if (data.section === 'body' && data.column.index === 0) {
-           // This logic is hard without drawing line by line.
-           // However, if we know how autoTable splits lines:
-        }
-      },
-      didDrawCell: (data) => {
-        if (data.section === 'body' && data.column.index === 0) {
-          const textLines = data.cell.text;
-          if (textLines.length > 1) {
-             const doc = data.doc;
-             const cell = data.cell;
-
-             // v54.2: Refined "white out" and redraw for Indications
-             // 1. Calculate first line offset accurately.
-             // In bold 7pt, lineHeight is usually ~3.5mm
-             const lineHeight = 3.2;
-             const topPadding = cell.padding('top');
-             const firstLineEnd = cell.y + topPadding + lineHeight;
-
-             // 2. Clear the area below the first line (white out)
-             doc.setFillColor(255, 255, 255);
-             // Clear everything below the first line of text
-             doc.rect(cell.x + 0.1, firstLineEnd + 0.2, cell.width - 0.2, cell.height - (firstLineEnd - cell.y) - 0.2, 'F');
-
-             // 3. Redraw the secondary lines with 7pt italic Zinc-500
-             doc.setFontSize(7);
-             doc.setFont('helvetica', 'italic');
-             doc.setTextColor(113, 113, 122); // Zinc-500
-
-             for (let i = 1; i < textLines.length; i++) {
-                const lineY = firstLineEnd + (i * lineHeight);
-                doc.text(textLines[i], cell.x + cell.padding('left'), lineY);
-             }
-          }
-        }
-      },
     });
     currentY = doc.lastAutoTable.finalY + 10;
+  }
+
+  // 6.5 OBSERVACIONES GENERALES (v55.0)
+  if (planning.observaciones) {
+    if (currentY > 240) { doc.addPage(); currentY = 20; }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text('7. OBSERVACIONES GENERALES', 15, currentY);
+    currentY += 5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(63, 63, 70);
+    const obsLines = doc.splitTextToSize(planning.observaciones, 180);
+    doc.text(obsLines, 15, currentY);
+    currentY += (obsLines.length * 4) + 10;
   }
 
   // 7. Footer: Control
@@ -631,6 +605,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
     doc.text(values[i] || '', sigX[i], currentY + 12);
   });
 
-  const fileName = `${type}_${refLabel}_${(quotation.nombre_evento || 'Evento').replace(/\s+/g, '_')}.pdf`;
+  const eventNameSafe = (quotation.nombre_evento || 'Evento').replace(/\s+/g, '_');
+  const fileName = isReport ? `SS-${quotation.consecutivo || 'REF'}.pdf` : `REM-SS-${quotation.consecutivo || 'REF'}.pdf`;
   doc.save(fileName);
 };

@@ -205,6 +205,7 @@ model PlanningStep {
   transporte  Json?
   materiales  Json?     // v50.0: For exploded materials and manual items
   presupuesto Json?     // v50.3: Budget matrix
+  observaciones String?   // v55.0: Observaciones generales
   footer      Json?     // v50.3: Signature fields
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
