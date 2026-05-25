@@ -470,7 +470,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
       head: [isReport ? ['Cargo', 'Nombre', 'Montaje', 'Evento', 'Desmontaje', 'Total'] : ['Cargo', 'Nombre', 'Mont.', 'Evt.', 'Desm.']],
       body: personalBody,
       theme: 'grid',
-      headStyles: { fillColor: [251, 174, 23], textColor: [0,0,0], fontSize: 7 },
+      headStyles: { fillColor: [84, 134, 161], textColor: [255,255,255], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
       styles: { cellPadding: 2 },
       columnStyles: isReport ? {} : {
@@ -516,7 +516,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
       head: [isReport ? ['Cargo', 'Nombre', 'Montaje', 'Evento', 'Desmontaje', 'Total'] : ['Cargo', 'Nombre', 'Mont.', 'Evt.', 'Desm.']],
       body: viaticosBody,
       theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129], textColor: [255,255,255], fontSize: 7 },
+      headStyles: { fillColor: [84, 134, 161], textColor: [255,255,255], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
       styles: { cellPadding: 2 },
       columnStyles: isReport ? {} : {
@@ -549,8 +549,8 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
     // v52.2: Add Final Summary Row
     const totalValue = overrides.totalPresupuesto || budgetBody.reduce((acc, row) => acc + parseFloat(row[4].replace(/[^0-9.-]+/g, "")), 0);
     budgetBody.push([
-      { content: 'TOTAL PRESUPUESTO OPERATIVO', colSpan: 4, styles: { halign: 'right', fillColor: [24, 24, 27], textColor: [255, 255, 255] } },
-      { content: `$ ${totalValue.toLocaleString()}`, styles: { halign: 'right', fillColor: [24, 24, 27], textColor: [255, 255, 255], fontSize: 9 } }
+      { content: 'TOTAL PRESUPUESTO OPERATIVO', colSpan: 4, styles: { halign: 'right', fillColor: [251, 174, 23], textColor: [0, 0, 0] } },
+      { content: `$ ${totalValue.toLocaleString()}`, styles: { halign: 'right', fillColor: [251, 174, 23], textColor: [0, 0, 0], fontSize: 9 } }
     ]);
 
     autoTable(doc, {
@@ -558,7 +558,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
       head: [['Ítem', 'Montaje', 'Evento', 'Desmontaje', 'Total']],
       body: budgetBody,
       theme: 'grid',
-      headStyles: { fillColor: [24, 24, 27], fontSize: 7 },
+      headStyles: { fillColor: [251, 174, 23], textColor: [0,0,0], fontSize: 7 },
       bodyStyles: { fontSize: 7, fontStyle: 'bold' },
       styles: { cellPadding: 2 },
       columnStyles: {
