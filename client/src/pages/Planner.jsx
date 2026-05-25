@@ -523,7 +523,7 @@ const Planner = () => {
 
         {/* TABLA DE PRESUPUESTO */}
         <section className="bg-white rounded-xl border-2 border-[#FBAE17] shadow-xl overflow-hidden">
-           <div className="px-8 py-6 border-b-2 border-[#FBAE17] bg-[#FBAE17] text-white flex justify-between items-center">
+           <div className="px-8 py-6 border-b-2 border-[#FBAE17] bg-[#FBAE17] text-zinc-900 flex justify-between items-center">
               <h3 className="text-[12px] font-black tracking-[0.2em]">PRESUPUESTO</h3>
               <div className="text-right">
                  <p className="text-[9px] font-black opacity-60 tracking-widest">TOTAL PRESUPUESTO</p>

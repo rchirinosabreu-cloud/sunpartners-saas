@@ -403,7 +403,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
     head: [isReport ? ['Concepto', 'Descripción', 'Cant', 'Proveedor', 'Costo'] : ['Concepto', 'Descripción', 'Cant']],
     body: equipamiento.map(m => isReport ? [m.nombre, m.notas || '', m.cantidad, m.proveedor || '', `$ ${m.costo?.toLocaleString() || 0}`] : [m.nombre, m.notas || '', m.cantidad]),
     theme: 'grid',
-    headStyles: { fillColor: [84, 134, 161], fontSize: 7 },
+    headStyles: { fillColor: [84, 134, 161], textColor: [255, 255, 255], fontSize: 7 },
     bodyStyles: { fontSize: 7 },
     styles: { cellPadding: 2 }
   });
@@ -428,7 +428,7 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
         head: [isReport ? ['Descripción', 'Cant', 'Proveedor', 'Costo'] : ['Descripción', 'Cant']],
         body: items.map(m => isReport ? [m.nombre, m.cantidad, m.proveedor || '', `$ ${m.costo?.toLocaleString() || 0}`] : [m.nombre, m.cantidad]),
         theme: 'grid',
-        headStyles: { fillColor: [113, 113, 122], fontSize: 7 },
+        headStyles: { fillColor: [84, 134, 161], textColor: [255, 255, 255], fontSize: 7 },
         bodyStyles: { fontSize: 7 },
         styles: { cellPadding: 2 }
       });
@@ -538,11 +538,13 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
       const linked = getLinkedSubtotal(r.id, planning.materiales);
       const rowTotal = linked + (parseFloat(r.montaje) || 0) + (parseFloat(r.evento) || 0) + (parseFloat(r.desmontaje) || 0);
 
-      // v54.1: Return an object with content for multi-style cell
+      // v54.1: Multi-line content. Title (Concept) + Optional Indications
+      const cellContent = r.indicaciones ? `${r.concepto}\n${r.indicaciones}` : r.concepto;
+
       return [
         {
-          content: r.indicaciones ? `${r.concepto}\n(${r.indicaciones})` : r.concepto,
-          styles: { fontStyle: 'bold' } // Default style for the cell
+          content: cellContent,
+          styles: { fontStyle: 'bold' }
         },
         `$ ${r.montaje?.toLocaleString() || 0}`,
         `$ ${r.evento?.toLocaleString() || 0}`,
@@ -583,29 +585,30 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
              const doc = data.doc;
              const cell = data.cell;
 
-             // 1. Clear the area of the secondary lines (white out)
-             doc.setFillColor(255, 255, 255);
-             const firstLineHeight = 4; // Approx height of first line
-             doc.rect(cell.x + 0.5, cell.y + firstLineHeight + 1, cell.width - 1, cell.height - firstLineHeight - 1, 'F');
+             // v54.2: Refined "white out" and redraw for Indications
+             // 1. Calculate first line offset accurately.
+             // In bold 7pt, lineHeight is usually ~3.5mm
+             const lineHeight = 3.2;
+             const topPadding = cell.padding('top');
+             const firstLineEnd = cell.y + topPadding + lineHeight;
 
-             // 2. Redraw the secondary lines with 7pt italic Zinc-500
+             // 2. Clear the area below the first line (white out)
+             doc.setFillColor(255, 255, 255);
+             // Clear everything below the first line of text
+             doc.rect(cell.x + 0.1, firstLineEnd + 0.2, cell.width - 0.2, cell.height - (firstLineEnd - cell.y) - 0.2, 'F');
+
+             // 3. Redraw the secondary lines with 7pt italic Zinc-500
              doc.setFontSize(7);
              doc.setFont('helvetica', 'italic');
              doc.setTextColor(113, 113, 122); // Zinc-500
 
              for (let i = 1; i < textLines.length; i++) {
-                doc.text(textLines[i], cell.x + cell.padding('left'), cell.y + firstLineHeight + (i * 3.5) + 1.5);
+                const lineY = firstLineEnd + (i * lineHeight);
+                doc.text(textLines[i], cell.x + cell.padding('left'), lineY);
              }
           }
         }
       },
-      didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index === 0) {
-          if (data.cell.raw.includes('\n')) {
-             // data.cell.styles.fontSize = 7; // This would affect the whole cell.
-          }
-        }
-      }
     });
     currentY = doc.lastAutoTable.finalY + 10;
   }
