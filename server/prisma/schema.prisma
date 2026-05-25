@@ -201,6 +201,7 @@ model PlanningStep {
   quotationId String    @unique
   cronograma  String?
   personal    Json?
+  viaticos    Json?     // v53.0: New Travel/Allowance module
   transporte  Json?
   materiales  Json?     // v50.0: For exploded materials and manual items
   presupuesto Json?     // v50.3: Budget matrix

@@ -437,19 +437,93 @@ export const generatePlannerPDF = (quotation, type = 'ROUTER', overrides = {}) =
   });
 
   // 5. Table 5: PERSONAL
-  const personal = planning.personal || [];
+  const personal = overrides.personal || planning.personal || [];
   if (personal.length > 0) {
     if (currentY > 230) { doc.addPage(); currentY = 20; }
     doc.setFont('helvetica', 'bold');
     doc.text('5. PERSONAL ASIGNADO AL EVENTO', 15, currentY);
+
+    const personalBody = personal.map(p => {
+      if (isReport) {
+        return [
+          p.cargo,
+          p.nombre,
+          `$ ${p.montaje?.toLocaleString() || 0}`,
+          `$ ${p.evento?.toLocaleString() || 0}`,
+          `$ ${p.desmontaje?.toLocaleString() || 0}`,
+          `$ ${(p.montaje + p.evento + p.desmontaje).toLocaleString()}`
+        ];
+      } else {
+        // v53.1: Option A - Indicator Visual (X) for operational use
+        return [
+          p.cargo,
+          p.nombre,
+          (p.montaje > 0 ? 'X' : ''),
+          (p.evento > 0 ? 'X' : ''),
+          (p.desmontaje > 0 ? 'X' : '')
+        ];
+      }
+    });
+
     autoTable(doc, {
       startY: currentY + 3,
-      head: [isReport ? ['Cargo', 'Nombre', 'Montaje', 'Evento', 'Desmontaje', 'Total'] : ['Cargo', 'Nombre']],
-      body: personal.map(p => isReport ? [p.cargo, p.nombre, `$ ${p.montaje?.toLocaleString() || 0}`, `$ ${p.evento?.toLocaleString() || 0}`, `$ ${p.desmontaje?.toLocaleString() || 0}`, `$ ${(p.montaje + p.evento + p.desmontaje).toLocaleString()}`] : [p.cargo, p.nombre]),
+      head: [isReport ? ['Cargo', 'Nombre', 'Montaje', 'Evento', 'Desmontaje', 'Total'] : ['Cargo', 'Nombre', 'Mont.', 'Evt.', 'Desm.']],
+      body: personalBody,
       theme: 'grid',
       headStyles: { fillColor: [251, 174, 23], textColor: [0,0,0], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
-      styles: { cellPadding: 2 }
+      styles: { cellPadding: 2 },
+      columnStyles: isReport ? {} : {
+        2: { halign: 'center' },
+        3: { halign: 'center' },
+        4: { halign: 'center' }
+      }
+    });
+    currentY = doc.lastAutoTable.finalY + 10;
+  }
+
+  // 6. Table 6: VIATICOS (v53.0)
+  const viaticos = overrides.viaticos || planning.viaticos || [];
+  if (viaticos.length > 0) {
+    if (currentY > 230) { doc.addPage(); currentY = 20; }
+    doc.setFont('helvetica', 'bold');
+    doc.text('6. VIÁTICOS', 15, currentY);
+
+    const viaticosBody = viaticos.map(v => {
+      if (isReport) {
+        return [
+          v.cargo,
+          v.nombre,
+          `$ ${v.montaje?.toLocaleString() || 0}`,
+          `$ ${v.evento?.toLocaleString() || 0}`,
+          `$ ${v.desmontaje?.toLocaleString() || 0}`,
+          `$ ${(v.montaje + v.evento + v.desmontaje).toLocaleString()}`
+        ];
+      } else {
+        // v53.1: Option A - Indicator Visual (X) for operational use
+        return [
+          v.cargo,
+          v.nombre,
+          (v.montaje > 0 ? 'X' : ''),
+          (v.evento > 0 ? 'X' : ''),
+          (v.desmontaje > 0 ? 'X' : '')
+        ];
+      }
+    });
+
+    autoTable(doc, {
+      startY: currentY + 3,
+      head: [isReport ? ['Cargo', 'Nombre', 'Montaje', 'Evento', 'Desmontaje', 'Total'] : ['Cargo', 'Nombre', 'Mont.', 'Evt.', 'Desm.']],
+      body: viaticosBody,
+      theme: 'grid',
+      headStyles: { fillColor: [16, 185, 129], textColor: [255,255,255], fontSize: 7 },
+      bodyStyles: { fontSize: 7 },
+      styles: { cellPadding: 2 },
+      columnStyles: isReport ? {} : {
+        2: { halign: 'center' },
+        3: { halign: 'center' },
+        4: { halign: 'center' }
+      }
     });
     currentY = doc.lastAutoTable.finalY + 10;
   }
