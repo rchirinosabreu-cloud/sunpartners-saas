@@ -27,6 +27,7 @@ const Planner = () => {
   const [viaticos, setViaticos] = useState([]);
   const [presupuesto, setPresupuesto] = useState(DEFAULT_BUDGET_ROWS);
   const [cronograma, setCronograma] = useState('');
+  const [observaciones, setObservaciones] = useState('');
   const [footer, setFooter] = useState({ elaboro: '', reviso: '', verifico: '' });
 
   useEffect(() => {
@@ -40,6 +41,7 @@ const Planner = () => {
           setPersonal(q.planning.personal || []);
           setViaticos(q.planning.viaticos || []);
           setCronograma(q.planning.cronograma || '');
+          setObservaciones(q.planning.observaciones || '');
 
           // v53.0: Ensure budget row name is updated even for legacy records
           const currentPresupuesto = q.planning.presupuesto || DEFAULT_BUDGET_ROWS;
@@ -247,10 +249,11 @@ const Planner = () => {
         viaticos,
         presupuesto,
         cronograma,
+        observaciones,
         footer
       }, { withCredentials: true });
 
-      setUiModal({ isOpen: true, title: 'Planeación Guardada', content: 'Hoja de ruta y presupuesto operativo actualizados.', type: 'success' });
+      setUiModal({ isOpen: true, title: 'Planeación Guardada', content: 'Remisión y reporte SS actualizados.', type: 'success' });
     } catch (err) {
        setUiModal({ isOpen: true, title: 'Error', content: 'No se pudo persistir la planeación.', type: 'error' });
     } finally {
@@ -318,20 +321,20 @@ const Planner = () => {
                 <div className="flex items-center gap-3">
                    <h2 className="text-2xl font-black tracking-tighter">Mesa de Trabajo Logística</h2>
                    <span className="px-2 py-1 bg-[#5486A1] text-white text-[10px] font-black rounded tracking-widest uppercase">
-                     {quotation.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${quotation.id.substring(0,6).toUpperCase()}`}
+                     {quotation.consecutivo ? `SS-${quotation.consecutivo}` : `#Q-${quotation.id.substring(0,6).toUpperCase()}`}
                    </span>
                 </div>
                 <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">{quotation.nombre_evento} • {quotation.client.razon_social}</p>
               </div>
            </div>
            <div className="flex gap-3">
-             <button onClick={() => generatePlannerPDF(quotation, 'ROUTER', { materiales, personal, viaticos, presupuesto, footer })} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
+             <button onClick={() => generatePlannerPDF(quotation, 'ROUTER', { materiales, personal, viaticos, presupuesto, observaciones, footer })} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
                <span className="material-symbols-outlined text-[18px]">print</span>
-               HOJA DE RUTA
+               REMISIÓN
              </button>
-             <button onClick={() => generatePlannerPDF(quotation, 'REPORT', { materiales, personal, viaticos, presupuesto, totalPresupuesto, footer })} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
+             <button onClick={() => generatePlannerPDF(quotation, 'REPORT', { materiales, personal, viaticos, presupuesto, totalPresupuesto, observaciones, footer })} className="bg-white border border-zinc-200 text-zinc-600 px-6 py-3 rounded-lg text-[10px] font-black tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2">
                <span className="material-symbols-outlined text-[18px]">analytics</span>
-               REPORTE OPERATIVO
+               SS
              </button>
              <button onClick={handleSync} className={`px-8 py-3 rounded-lg text-[10px] font-black tracking-widest shadow-lg transition-all flex items-center gap-2 ml-4 ${hasDiscrepancy ? 'bg-[#FBAE17] text-white animate-pulse shadow-yellow-900/20' : 'bg-[#5486A1] text-white shadow-blue-900/10 hover:opacity-90'}`}>
                <span className="material-symbols-outlined text-[20px]">{hasDiscrepancy ? 'warning' : 'sync'}</span>
@@ -535,7 +538,6 @@ const Planner = () => {
                  <thead className="bg-zinc-50 text-[9px] font-black tracking-widest text-zinc-400 border-b border-zinc-200">
                     <tr>
                        <th className="px-8 py-4">ÍTEM</th>
-                       <th className="px-4 py-4">INDICACIONES</th>
                        <th className="px-4 py-4 text-right">MONTAJE ($)</th>
                        <th className="px-4 py-4 text-right">EVENTO ($)</th>
                        <th className="px-4 py-4 text-right">DESMONTAJE ($)</th>
@@ -555,14 +557,6 @@ const Planner = () => {
                                 {linkedSubtotal > 0 && (
                                    <div className="text-[8px] text-primary font-black uppercase mt-0.5">Incluye ${linkedSubtotal.toLocaleString()} auto</div>
                                 )}
-                             </td>
-                             <td className="px-4 py-4">
-                                <input
-                                  value={row.indicaciones}
-                                  onChange={e => updateList(presupuesto, setPresupuesto, row.id, 'indicaciones', e.target.value)}
-                                  className="w-full bg-transparent text-[11px] italic outline-none"
-                                  placeholder="Observaciones..."
-                                />
                              </td>
                              <td className="px-4 py-4 text-right">
                                 $ <input
@@ -600,6 +594,17 @@ const Planner = () => {
                  </tbody>
               </table>
            </div>
+        </section>
+
+        {/* 7. OBSERVACIONES GENERALES */}
+        <section className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden p-8">
+           <h3 className="text-[11px] font-black tracking-[0.2em] text-[#5486A1] mb-4">7. OBSERVACIONES GENERALES</h3>
+           <textarea
+             value={observaciones}
+             onChange={e => setObservaciones(e.target.value)}
+             className="w-full h-32 p-4 bg-zinc-50 border border-zinc-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#5486A1]/20 transition-all resize-none"
+             placeholder="Escriba aquí observaciones adicionales, aclaraciones o notas críticas para la operación..."
+           />
         </section>
 
         {/* FOOTER DE CONTROL */}

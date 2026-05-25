@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { NavLink, useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { NavLink, useNavigate, Outlet, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import Avatar from "boring-avatars";
@@ -39,6 +40,66 @@ const AppLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [plannerData, setPlannerData] = useState(null);
+  const [stockData, setStockData] = useState([]);
+
+  // v55.0: Detect if current route is a Planner
+  const isPlannerRoute = location.pathname.includes('/planeador');
+  const plannerId = isPlannerRoute ? location.pathname.split('/')[2] : null;
+
+  useEffect(() => {
+    if (isPlannerRoute && plannerId) {
+       const fetchPlanner = async () => {
+         try {
+           const [qRes, sRes] = await Promise.all([
+             axios.get(`/api/quotations/${plannerId}`),
+             axios.get('/api/inventory/bodega')
+           ]);
+           setPlannerData(qRes.data);
+           setStockData(sRes.data);
+         } catch (e) {
+           console.error("Error fetching alerts data", e);
+         }
+       };
+       fetchPlanner();
+    } else {
+      setPlannerData(null);
+    }
+  }, [isPlannerRoute, plannerId]);
+
+  const inventoryAlerts = useMemo(() => {
+    if (!plannerData || !plannerData.planning || !plannerData.planning.materiales) return [];
+
+    const materiales = plannerData.planning.materiales;
+    const equipamiento = materiales.filter(m => m.category === 'EQUIPAMIENTO' && !m.isExternal);
+
+    // Resolve needed per warehouse item
+    const requirements = {};
+    equipamiento.forEach(m => {
+       // Note: the planner materials already are somewhat exploded, but we need to match names
+       // In a real scenario we'd use IDs, but here we can try matching by name for simplicity
+       // or if the planner material has a link to the original inventory item.
+       // Actually, materials in Planner have 'nombre'.
+       requirements[m.nombre] = (requirements[m.nombre] || 0) + (parseInt(m.cantidad) || 0);
+    });
+
+    const alerts = [];
+    Object.entries(requirements).forEach(([nombre, needed]) => {
+       const stockItem = stockData.find(s => s.nombre.toLowerCase() === nombre.toLowerCase());
+       if (stockItem) {
+          const totalStock = (stockItem.claseA || 0) + (stockItem.claseB || 0) + (stockItem.claseC || 0);
+          if (needed > totalStock) {
+             alerts.push({
+               nombre,
+               needed,
+               available: totalStock
+             });
+          }
+       }
+    });
+
+    return alerts;
+  }, [plannerData, stockData]);
 
   const { firstName, dayName, phrase } = getGreetingInfo(user?.nombre);
 
@@ -84,26 +145,29 @@ const AppLayout = () => {
             ))}
           </ul>
 
-          {/* Stock Alerts Widget */}
-          <div className="mt-8 px-3">
-            <h3 className="mb-3 px-3 text-xs font-semibold tracking-wider text-zinc-500">Alertas de inventario</h3>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-start gap-3 rounded border border-zinc-800 bg-zinc-900 p-3">
-                <span className="material-symbols-outlined mt-0.5 text-[18px] text-alert fill">warning</span>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-zinc-50">Sillas Tiffany</span>
-                  <span className="text-xs text-alert">Stock crítico: 5 disp.</span>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 rounded border border-zinc-800 bg-zinc-900 p-3">
-                <span className="material-symbols-outlined mt-0.5 text-[18px] text-alert fill">warning</span>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-zinc-50">Mesas Redondas 1.5m</span>
-                  <span className="text-xs text-alert">Stock bajo: 12 disp.</span>
-                </div>
+          {/* Stock Alerts Widget (v55.0: Dynamic) */}
+          {isPlannerRoute && (
+            <div className="mt-8 px-3">
+              <h3 className="mb-3 px-3 text-xs font-semibold tracking-wider text-zinc-500 uppercase">Alertas de inventario</h3>
+              <div className="flex flex-col gap-2">
+                {inventoryAlerts.length === 0 ? (
+                  <div className="px-3 py-2 border border-zinc-800/50 rounded bg-zinc-900/30">
+                    <p className="text-[10px] text-zinc-500 font-bold tracking-widest text-center uppercase">Sin quiebres de stock</p>
+                  </div>
+                ) : (
+                  inventoryAlerts.map((alert, idx) => (
+                    <div key={idx} className="flex items-start gap-3 rounded border border-alert/20 bg-alert/5 p-3">
+                      <span className="material-symbols-outlined mt-0.5 text-[18px] text-alert fill">warning</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium text-zinc-50 truncate">{alert.nombre}</span>
+                        <span className="text-[10px] font-bold text-alert uppercase tracking-tighter">Shortage: -{alert.needed - alert.available} (Disp: {alert.available})</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
-          </div>
+          )}
         </nav>
 
         {/* User Profile Area (Bottom) */}

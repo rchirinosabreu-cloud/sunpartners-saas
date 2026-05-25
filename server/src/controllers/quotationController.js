@@ -597,12 +597,12 @@ exports.updateStatus = async (req, res) => {
 exports.upsertPlanning = async (req, res) => {
   try {
     const { id } = req.params;
-    const { cronograma, personal, transporte, materiales, presupuesto, footer } = req.body;
+    const { cronograma, personal, viaticos, transporte, materiales, presupuesto, observaciones, footer } = req.body;
 
     const planning = await prisma.planningStep.upsert({
       where: { quotationId: id },
-      update: { cronograma, personal, transporte, materiales, presupuesto, footer },
-      create: { quotationId: id, cronograma, personal, transporte, materiales, presupuesto, footer }
+      update: { cronograma, personal, viaticos, transporte, materiales, presupuesto, observaciones, footer },
+      create: { quotationId: id, cronograma, personal, viaticos, transporte, materiales, presupuesto, observaciones, footer }
     });
 
     res.json(planning);
