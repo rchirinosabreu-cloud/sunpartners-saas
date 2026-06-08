@@ -5,7 +5,8 @@ const { s3Client, BUCKET_NAME, getSignedUrlHelper } = require('../utils/s3Client
 const { calculateLineTotal, calculateTotals } = require('../utils/quotationUtils');
 
 const includeAll = {
-  client: true,
+  client: { include: { contacts: { where: { isActive: true } } } },
+  clientContact: true,
   consultant: { select: { id: true, nombre: true, email: true } },
   items: { include: { inventory: { include: { compositions: { include: { warehouseItem: true, componentCatalogItem: true } } } }, compositions: { include: { warehouseItem: true, componentCatalogItem: true } } } },
   services: true,
@@ -28,7 +29,8 @@ exports.getAll = async (req, res) => {
     const quotations = await prisma.quotation.findMany({
       where,
       include: {
-        client: true,
+        client: { include: { contacts: { where: { isActive: true } } } },
+        clientContact: true,
         consultant: { select: { nombre: true } },
         items: { include: { inventory: true } }
       },
@@ -139,6 +141,10 @@ exports.create = async (req, res) => {
   try {
     const {
         clientId,
+        clientContactId,
+        contactName,
+        contactEmail,
+        contactPhone,
         nombre_evento,
         tipo_evento,
         ubicacion,
@@ -242,6 +248,10 @@ exports.create = async (req, res) => {
           return await tx.quotation.create({
             data: {
               clientId,
+              clientContactId,
+              contactName,
+              contactEmail,
+              contactPhone,
               consultantId: consultantId || req.userId,
               consecutivo: nextConsecutivo,
               nombre_evento: nombre_evento || 'Evento sin nombre',
@@ -312,6 +322,10 @@ exports.update = async (req, res) => {
 
     const {
         clientId,
+        clientContactId,
+        contactName,
+        contactEmail,
+        contactPhone,
         nombre_evento,
         tipo_evento,
         ubicacion,
@@ -406,6 +420,10 @@ exports.update = async (req, res) => {
       where: { id },
       data: {
         clientId,
+        clientContactId,
+        contactName,
+        contactEmail,
+        contactPhone,
         consultantId: consultantId || undefined,
         nombre_evento: nombre_evento || 'Evento sin nombre',
         tipo_evento: tipo_evento || 'Corporativo',
