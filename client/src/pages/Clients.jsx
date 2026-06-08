@@ -148,10 +148,17 @@ const Clients = () => {
               ) : filteredClients.map((client, idx) => (
                 <tr key={client.id} className="hover:bg-zinc-50/80 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-primary">
                   <td className="px-6 py-5">
-                    <div className="font-black text-zinc-900  tracking-tight text-[13px]">{toTitleCase(client.razon_social)}</div>
+                    <div className="font-black text-zinc-900  tracking-tight text-[13px] flex items-center gap-2">
+                      {toTitleCase(client.razon_social)}
+                      {client.contacts?.length > 1 && (
+                        <span className="bg-zinc-100 text-zinc-500 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-zinc-200">
+                          +{client.contacts.length - 1} más
+                        </span>
+                      )}
+                    </div>
                     <div className="text-[10px] font-bold text-zinc-400 mt-1 flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">mail</span>
-                      {client.email || 'SIN EMAIL'}
+                      {client.contacts?.find(c => c.isPrimary)?.email || client.email || 'SIN EMAIL'}
                     </div>
                   </td>
                   <td className="px-6 py-5">
@@ -160,7 +167,7 @@ const Clients = () => {
                     </span>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="font-bold text-zinc-700 text-[12px] ">{toTitleCase(client.responsable) || 'No asignado'}</div>
+                    <div className="font-bold text-zinc-700 text-[12px] ">{toTitleCase(client.contacts?.find(c => c.isPrimary)?.name) || toTitleCase(client.responsable) || 'No asignado'}</div>
                     <div className="text-[10px] font-medium text-zinc-400 mt-0.5">{toTitleCase(client.ciudad) || '-'}</div>
                   </td>
                   <td className="px-6 py-5 text-center">

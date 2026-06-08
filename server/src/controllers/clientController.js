@@ -14,6 +14,7 @@ const handlePrismaError = (error, res) => {
 exports.getAll = async (req, res) => {
   try {
     const clients = await prisma.client.findMany({
+      include: { contacts: { where: { isActive: true } } },
       orderBy: { razon_social: 'asc' }
     });
     res.json(clients);
@@ -25,7 +26,7 @@ exports.getAll = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nit_id, email } = req.body;
+    const { nit_id, email, contacts, ...rest } = req.body;
 
     // Backend-level duplicate validation (Excluding current client)
     if (nit_id || email) {
@@ -45,10 +46,70 @@ exports.update = async (req, res) => {
       }
     }
 
-    const client = await prisma.client.update({
-      where: { id },
-      data: req.body
+    const client = await prisma.$transaction(async (tx) => {
+      // 1. Update the Client
+      await tx.client.update({
+        where: { id },
+        data: {
+          ...rest,
+          nit_id,
+          email
+        }
+      });
+
+      // 2. Handle contacts if provided (strictly only if the array exists in payload)
+      if (req.body.hasOwnProperty('contacts') && Array.isArray(contacts)) {
+        // Mark existing contacts NOT in the payload as inactive
+        const payloadContactIds = contacts.filter(c => c.id).map(c => c.id);
+        await tx.clientContact.updateMany({
+          where: {
+            clientId: id,
+            id: { notIn: payloadContactIds },
+            isActive: true
+          },
+          data: {
+            deletedAt: new Date(),
+            deletedJustification: 'Removido por actualización de cliente',
+            isActive: false
+          }
+        });
+
+        // Upsert contacts
+        for (const contact of contacts) {
+          if (contact.id) {
+            await tx.clientContact.update({
+              where: { id: contact.id },
+              data: {
+                name: contact.name,
+                email: contact.email,
+                phone: contact.phone,
+                role: contact.role,
+                isPrimary: !!contact.isPrimary,
+                isActive: true,
+                deletedAt: null
+              }
+            });
+          } else {
+            await tx.clientContact.create({
+              data: {
+                clientId: id,
+                name: contact.name,
+                email: contact.email,
+                phone: contact.phone,
+                role: contact.role,
+                isPrimary: !!contact.isPrimary
+              }
+            });
+          }
+        }
+      }
+
+      return await tx.client.findUnique({
+        where: { id },
+        include: { contacts: { where: { isActive: true } } }
+      });
     });
+
     res.json(client);
   } catch (error) {
     handlePrismaError(error, res);
@@ -121,7 +182,7 @@ exports.checkDuplicates = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { nit_id, email } = req.body;
+    const { nit_id, email, contacts, ...rest } = req.body;
 
     const existingNit = nit_id ? await prisma.client.findUnique({ where: { nit_id } }) : null;
     const existingEmail = email ? await prisma.client.findUnique({ where: { email } }) : null;
@@ -130,9 +191,27 @@ exports.create = async (req, res) => {
       return res.status(400).json({ error: 'NIT o Email ya registrados' });
     }
 
-    const client = await prisma.client.create({
-      data: req.body
+    const client = await prisma.$transaction(async (tx) => {
+      const newClient = await tx.client.create({
+        data: {
+          ...rest,
+          nit_id,
+          email,
+          contacts: contacts && Array.isArray(contacts) ? {
+            create: contacts.map(c => ({
+              name: c.name,
+              email: c.email,
+              phone: c.phone,
+              role: c.role,
+              isPrimary: !!c.isPrimary
+            }))
+          } : undefined
+        },
+        include: { contacts: { where: { isActive: true } } }
+      });
+      return newClient;
     });
+
     res.status(201).json(client);
   } catch (error) {
     handlePrismaError(error, res);

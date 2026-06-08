@@ -251,6 +251,10 @@ const NewQuotation = () => {
   // 1. Core Metadata State
   const [formData, setFormData] = useState({
     clientId: '',
+    clientContactId: '',
+    contactName: '',
+    contactEmail: '',
+    contactPhone: '',
     razon_social: '',
     responsable: '',
     direccion_fiscal: '',
@@ -304,11 +308,15 @@ const NewQuotation = () => {
           const q = qRes.data;
           setFormData({
             clientId: q.clientId,
+            clientContactId: q.clientContactId || '',
+            contactName: q.contactName || '',
+            contactEmail: q.contactEmail || '',
+            contactPhone: q.contactPhone || '',
             razon_social: q.client.razon_social || '',
-            responsable: q.client.responsable || '',
+            responsable: q.contactName || q.client.responsable || '',
             direccion_fiscal: q.client.direccion_fiscal || '',
-            email: q.client.email || '',
-            telefono: q.client.telefono || '',
+            email: q.contactEmail || q.client.email || '',
+            telefono: q.contactPhone || q.client.telefono || '',
             ciudad: q.client.ciudad || '',
             evento_nombre: q.nombre_evento || '',
             evento_venue: q.ubicacion || '',
@@ -402,14 +410,19 @@ const NewQuotation = () => {
   const handleClientCreated = async (newClient) => {
     await fetchClients();
     setEditingClient(null);
+    const primaryContact = newClient.contacts?.find(c => c.isPrimary) || newClient.contacts?.[0];
     setFormData({
       ...formData,
       clientId: newClient.id,
+      clientContactId: primaryContact?.id || '',
+      contactName: primaryContact?.name || '',
+      contactEmail: primaryContact?.email || '',
+      contactPhone: primaryContact?.phone || '',
       razon_social: newClient.razon_social,
-      responsable: newClient.responsable,
+      responsable: primaryContact?.name || newClient.responsable || '',
       direccion_fiscal: newClient.direccion_fiscal,
-      email: newClient.email,
-      telefono: newClient.telefono,
+      email: primaryContact?.email || newClient.email || '',
+      telefono: primaryContact?.phone || newClient.telefono || '',
       ciudad: newClient.ciudad
     });
   };
@@ -599,14 +612,19 @@ const NewQuotation = () => {
                           value={formData.clientId}
                           onChange={e => {
                             const c = clients.find(cl => cl.id === e.target.value);
+                            const primaryContact = c?.contacts?.find(con => con.isPrimary) || c?.contacts?.[0];
                             setFormData({
                               ...formData,
                               clientId: e.target.value,
+                              clientContactId: primaryContact?.id || '',
+                              contactName: primaryContact?.name || '',
+                              contactEmail: primaryContact?.email || '',
+                              contactPhone: primaryContact?.phone || '',
                               razon_social: c?.razon_social || '',
-                              responsable: c?.responsable || '',
+                              responsable: primaryContact?.name || c?.responsable || '',
                               direccion_fiscal: c?.direccion_fiscal || '',
-                              email: c?.email || '',
-                              telefono: c?.telefono || '',
+                              email: primaryContact?.email || c?.email || '',
+                              telefono: primaryContact?.phone || c?.telefono || '',
                               ciudad: c?.ciudad || ''
                             });
                           }}
@@ -627,12 +645,43 @@ const NewQuotation = () => {
                      </div>
                      <div>
                         <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Responsable de Cuenta</label>
-                        <input
-                           type="text"
-                           value={formData.responsable}
-                           onChange={e => setFormData({...formData, responsable: e.target.value})}
-                           className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
-                        />
+                        <select
+                          value={formData.clientContactId}
+                          onChange={e => {
+                            const selectedClient = clients.find(c => c.id === formData.clientId);
+                            const contact = selectedClient?.contacts?.find(con => con.id === e.target.value);
+                            if (contact) {
+                              setFormData({
+                                ...formData,
+                                clientContactId: contact.id,
+                                contactName: contact.name,
+                                contactEmail: contact.email || '',
+                                contactPhone: contact.phone || '',
+                                responsable: contact.name,
+                                email: contact.email || '',
+                                telefono: contact.phone || ''
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                clientContactId: '',
+                                contactName: '',
+                                contactEmail: '',
+                                contactPhone: '',
+                                responsable: '',
+                                email: '',
+                                telefono: ''
+                              });
+                            }
+                          }}
+                          disabled={!formData.clientId}
+                          className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs disabled:opacity-50"
+                        >
+                          <option value="">Seleccionar responsable...</option>
+                          {clients.find(c => c.id === formData.clientId)?.contacts?.map(con => (
+                            <option key={con.id} value={con.id}>{con.name} {con.role ? `(${con.role})` : ''}</option>
+                          ))}
+                        </select>
                      </div>
                      <div>
                         <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Dirección Fiscal/Evento</label>
@@ -644,11 +693,11 @@ const NewQuotation = () => {
                         />
                      </div>
                      <div>
-                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Email Corporativo</label>
+                        <label className="block text-[10px] font-black  tracking-widest text-zinc-400 mb-2">Email de Contacto</label>
                         <input
                            type="email"
                            value={formData.email}
-                           onChange={e => setFormData({...formData, email: e.target.value})}
+                           onChange={e => setFormData({...formData, email: e.target.value, contactEmail: e.target.value})}
                            className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
                         />
                      </div>
@@ -658,7 +707,7 @@ const NewQuotation = () => {
                            <input
                               type="text"
                               value={formData.telefono}
-                              onChange={e => setFormData({...formData, telefono: e.target.value})}
+                              onChange={e => setFormData({...formData, telefono: e.target.value, contactPhone: e.target.value})}
                               className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
                            />
                         </div>
