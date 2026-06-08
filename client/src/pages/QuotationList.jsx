@@ -187,17 +187,19 @@ const QuotationList = () => {
 
     const isActive = activePopover?.id === quotation.id;
 
+    const hasStatusEditPermission = user?.role === 'ADMIN' && (user?.email === 'admin@sunpartners.com' || user?.email?.includes('evelyn'));
+
     return (
       <span
         ref={isActive ? refs.setReference : null}
         {...(isActive ? getReferenceProps() : {})}
         onClick={(e) => {
-          if (user?.role === 'ADMIN') {
+          if (hasStatusEditPermission) {
             e.stopPropagation();
             setActivePopover({ id: quotation.id, currentStatus: status });
           }
         }}
-        className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${config.style} ${user?.role === 'ADMIN' ? 'cursor-pointer hover:ring-2 ring-primary/20 transition-all' : ''}`}
+        className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${config.style} ${hasStatusEditPermission ? 'cursor-pointer hover:ring-2 ring-primary/20 transition-all' : ''}`}
       >
         {config.label}
       </span>

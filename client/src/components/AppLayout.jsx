@@ -258,7 +258,7 @@ const AppLayout = () => {
                     <p className="text-base italic text-slate-600 truncate">
                       {globalQuote}
                     </p>
-                    {user?.role === 'ADMIN' && (
+                    {(user?.role === 'ADMIN' && (user?.email === 'admin@sunpartners.com' || user?.email?.includes('evelyn'))) && (
                       <button
                         onClick={() => setIsEditingQuote(true)}
                         className="p-1 text-zinc-300 hover:text-primary transition-colors shrink-0"
