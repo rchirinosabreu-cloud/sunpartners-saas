@@ -28,6 +28,10 @@ exports.getSettingByKey = async (req, res) => {
 exports.updateSetting = async (req, res) => {
   const { key, value } = req.body;
 
+  if (!req.user || !req.user.role) {
+    return res.status(401).json({ error: 'Usuario no autenticado o sin rol definido' });
+  }
+
   if (req.user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'No autorizado' });
   }
