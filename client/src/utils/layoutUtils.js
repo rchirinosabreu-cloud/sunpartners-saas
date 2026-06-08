@@ -2,15 +2,7 @@ const daysOfWeek = [
   'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
 ];
 
-const dayPhrases = {
-  'Lunes': '¡A darle con toda!',
-  'Martes': '¡Mantengamos el ritmo!',
-  'Miércoles': '¡Ya pasamos la cima! Ahora a cerrar con fuerza',
-  'Jueves': '¡Ya estamos en la recta final!',
-  'Viernes': 'A dejar el tablero impecable y celebrar los logros',
-  'Sábado': 'Seguimos construyendo experiencias increíbles',
-  'Domingo': '¡Disfruta el descanso para volver mañana al 100!'
-};
+// v56.0: Hardcoded day phrases moved to dynamic GlobalSetting
 
 export function getGreetingInfo(userName, date = new Date()) {
   const firstName = userName ? userName.split(' ')[0] : 'Operador';

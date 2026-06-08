@@ -229,50 +229,53 @@ const AppLayout = () => {
 
       {/* Main Content Area */}
       <main className="flex flex-1 flex-col overflow-hidden bg-background-light">
-        {/* Header (64px) */}
-        <header className="flex h-[64px] shrink-0 items-center justify-between border-b border-zinc-200 px-8 bg-background-light">
-          <div className="flex items-center gap-4 overflow-hidden">
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-zinc-900 font-medium whitespace-nowrap shrink-0">
-                  ¡Hola, {firstName}! ¡Ya es {dayName}!
-                </p>
-                {isEditingQuote ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={editQuoteValue}
-                      onChange={(e) => setEditQuoteValue(e.target.value)}
-                      className="text-base italic text-slate-600 bg-white border border-zinc-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary w-64"
-                      autoFocus
-                    />
-                    <button onClick={handleSaveQuote} className="text-primary hover:text-primary-hover">
-                      <span className="material-symbols-outlined text-[18px]">check</span>
-                    </button>
-                    <button onClick={() => { setIsEditingQuote(false); setEditQuoteValue(globalQuote); }} className="text-zinc-400 hover:text-zinc-600">
-                      <span className="material-symbols-outlined text-[18px]">close</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 min-w-0">
-                    <p className="text-base italic text-slate-600 truncate">
-                      {globalQuote}
-                    </p>
-                    {(user?.role === 'ADMIN' && (user?.email === 'admin@sunpartners.com' || user?.email?.includes('evelyn'))) && (
-                      <button
-                        onClick={() => setIsEditingQuote(true)}
-                        className="p-1 text-zinc-300 hover:text-primary transition-colors shrink-0"
-                        title="Editar frase del día"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">edit</span>
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+        {/* Header (Increased height for the new callout format) */}
+        <header className="flex h-[120px] shrink-0 items-center justify-between border-b border-zinc-200 px-8 bg-white/50">
+          <div className="flex-1 max-w-4xl">
+             <div className="bg-slate-50/60 border-l-4 border-indigo-600 rounded-2xl p-5 shadow-sm flex items-center justify-between group transition-all hover:bg-slate-50/80">
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">
+                    ¡Hola, {firstName}! • {dayName}, {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
+                  </span>
+                  {isEditingQuote ? (
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={editQuoteValue}
+                        onChange={(e) => setEditQuoteValue(e.target.value)}
+                        className="text-xl italic font-serif text-slate-800 bg-white border border-indigo-100 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 w-full max-w-2xl"
+                        autoFocus
+                      />
+                      <div className="flex gap-1 shrink-0">
+                        <button onClick={handleSaveQuote} className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                          <span className="material-symbols-outlined text-[20px]">check</span>
+                        </button>
+                        <button onClick={() => { setIsEditingQuote(false); setEditQuoteValue(globalQuote); }} className="p-2 bg-white border border-slate-200 text-slate-400 rounded-lg hover:bg-slate-50 transition-colors">
+                          <span className="material-symbols-outlined text-[20px]">close</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4 group/quote min-w-0">
+                      <p className="text-xl lg:text-2xl italic text-slate-800 font-serif leading-tight truncate">
+                        {globalQuote || "La excelencia comienza con un reloj sincronizado. Ser puntuales es nuestra carta de presentación."}
+                      </p>
+                      {(user?.role === 'ADMIN' && (user?.email === 'admin@sunpartners.com' || user?.email?.includes('evelyn'))) && (
+                        <button
+                          onClick={() => setIsEditingQuote(true)}
+                          className="opacity-0 group-hover/quote:opacity-100 p-1.5 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all shrink-0"
+                          title="Editar frase del día"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">edit</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+             </div>
           </div>
-          <div className="flex items-center gap-4 shrink-0">
+
+          <div className="flex items-center gap-4 shrink-0 ml-8">
             <span className="text-sm text-zinc-500 font-medium">
               {new Date().toLocaleDateString('es-ES', {
                 weekday: 'long',

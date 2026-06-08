@@ -60,7 +60,7 @@ const AnnouncementModal = ({ isOpen, onClose, onCreated }) => {
                 onClick={() => setTipo(t)}
                 className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                   tipo === t
-                    ? 'bg-zinc-900 text-white shadow-md'
+                    ? t === 'URGENTE' ? 'bg-red-600 text-white shadow-md' : 'bg-zinc-900 text-white shadow-md'
                     : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
                 }`}
               >
