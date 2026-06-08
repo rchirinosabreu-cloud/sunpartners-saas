@@ -650,6 +650,22 @@ const NewQuotation = () => {
                           onChange={e => {
                             const selectedClient = clients.find(c => c.id === formData.clientId);
                             const contact = selectedClient?.contacts?.find(con => con.id === e.target.value);
+
+                            // v60.1: Logic for legacy data (non-migrated records)
+                            if (e.target.value === 'LEGACY' && selectedClient) {
+                               setFormData({
+                                  ...formData,
+                                  clientContactId: '',
+                                  contactName: selectedClient.responsable || 'Contacto Legacy',
+                                  contactEmail: selectedClient.email || '',
+                                  contactPhone: selectedClient.telefono || '',
+                                  responsable: selectedClient.responsable || 'Contacto Legacy',
+                                  email: selectedClient.email || '',
+                                  telefono: selectedClient.telefono || ''
+                               });
+                               return;
+                            }
+
                             if (contact) {
                               setFormData({
                                 ...formData,
@@ -681,6 +697,11 @@ const NewQuotation = () => {
                           {clients.find(c => c.id === formData.clientId)?.contacts?.map(con => (
                             <option key={con.id} value={con.id}>{con.name} {con.role ? `(${con.role})` : ''}</option>
                           ))}
+                          {/* v60.1: Show legacy option if no contacts exist but legacy data does */}
+                          {formData.clientId && (clients.find(c => c.id === formData.clientId)?.contacts || []).length === 0 &&
+                           (clients.find(c => c.id === formData.clientId)?.responsable) && (
+                            <option value="LEGACY">{clients.find(c => c.id === formData.clientId).responsable} (Registro Antiguo)</option>
+                          )}
                         </select>
                      </div>
                      <div>

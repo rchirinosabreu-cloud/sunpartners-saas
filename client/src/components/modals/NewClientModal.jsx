@@ -19,9 +19,22 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
 
   useEffect(() => {
     if (initialData) {
+      let contacts = initialData.contacts || [];
+
+      // v60.1: Fallback hydration for non-migrated legacy records
+      if (contacts.length === 0 && (initialData.responsable || initialData.email || initialData.telefono)) {
+        contacts = [{
+          name: initialData.responsable || 'Contacto Principal',
+          email: initialData.email || '',
+          phone: initialData.telefono || '',
+          role: 'Migrado (Auto)',
+          isPrimary: true
+        }];
+      }
+
       setClientData({
         ...initialData,
-        contacts: initialData.contacts || []
+        contacts
       });
     } else {
       setClientData({
