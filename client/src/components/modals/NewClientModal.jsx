@@ -188,7 +188,7 @@ const NewClientModal = ({ isOpen, onClose, onClientCreated, initialData = null }
                     className="w-full border-2 border-zinc-100 rounded-lg p-3 font-bold bg-zinc-50 outline-none focus:border-primary transition-all text-xs"
                   >
                     <option value="NIT">NIT</option>
-                    <option value="EIN">EIN</option>
+                    <option value="CC">C.C</option>
                     <option value="OTHER">OTRO</option>
                   </select>
                 </div>

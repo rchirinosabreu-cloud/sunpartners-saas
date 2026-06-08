@@ -141,9 +141,6 @@ const QuotationDetail = () => {
                         <p className="text-[10px] text-zinc-400 font-medium">
                            Teléfono: <span className="text-zinc-500">{quotation.client.telefono || 'PENDIENTE'}</span>
                         </p>
-                        <p className="text-[10px] text-zinc-400 font-medium">
-                           Asesor: <span className="text-zinc-500">{quotation.consultant?.nombre || 'SISTEMA'}</span>
-                        </p>
                      </div>
                      <p className="text-[10px] text-zinc-400 font-medium flex items-center gap-1">
                         <span className="material-symbols-outlined text-[12px]">location_on</span>
@@ -385,7 +382,10 @@ const QuotationDetail = () => {
                        <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 ">
                           {quotation.consultant?.nombre?.substring(0,2) || 'S'}
                        </div>
-                       <span className="text-sm font-bold text-zinc-900 ">{quotation.consultant?.nombre || 'SISTEMA'}</span>
+                       <div className="flex flex-col">
+                          <span className="text-sm font-bold text-zinc-900 ">{quotation.consultant?.nombre || 'SISTEMA'}</span>
+                          <span className="text-[10px] text-zinc-400 font-medium tracking-tight">Cel: +57 301 400 4743</span>
+                       </div>
                     </div>
                   </div>
                   <div>
