@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { toTitleCase } from '../utils/formatters';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import Avatar from 'boring-avatars';
+
+function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
 import AnnouncementModal from '../components/modals/AnnouncementModal';
 import HistoryModal from '../components/modals/HistoryModal';
 
@@ -70,7 +76,10 @@ const AnnouncementItem = ({ id, content, type, author, date, onDelete, canDelete
           </div>
         </div>
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
-        <span className="inline-block mt-2 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-white/50 border border-current opacity-40">
+        <span className={cn(
+          "inline-block mt-2 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border opacity-60",
+          type === 'URGENTE' ? "bg-red-100 border-red-200 text-red-700" : "bg-white/50 border-current"
+        )}>
           {type === 'URGENTE' ? 'ATENCIÓN' : type}
         </span>
       </div>
