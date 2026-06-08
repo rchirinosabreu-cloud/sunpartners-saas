@@ -80,6 +80,15 @@ const bootstrapAdmin = async () => {
       console.log(`[Sunpartners] Migración de motivos completada.`);
     }
 
+    // Emergency Migration: DocumentType EIN -> OTHER
+    try {
+       // v60.4: Using raw SQL to avoid Prisma Client enum validation issues during migration
+       await prisma.$executeRaw`UPDATE "Client" SET "documentType" = 'OTHER' WHERE "documentType" = 'EIN';`;
+       console.log(`[Sunpartners] Migración de DocumentType (EIN -> OTHER) ejecutada.`);
+    } catch (e) {
+       console.warn(`[Sunpartners] No se pudo realizar la migración de EIN: ${e.message}`);
+    }
+
     // Default Motivational Quote
     const quoteKey = 'global_motivational_quote';
     const existingQuote = await prisma.globalSetting.findUnique({ where: { key: quoteKey } });
