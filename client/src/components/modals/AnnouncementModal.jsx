@@ -64,7 +64,7 @@ const AnnouncementModal = ({ isOpen, onClose, onCreated }) => {
                     : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
                 }`}
               >
-                {t}
+                {t === 'URGENTE' ? 'ATENCIÓN' : t}
               </button>
             ))}
           </div>

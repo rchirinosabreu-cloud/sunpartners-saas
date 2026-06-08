@@ -15,8 +15,7 @@ const dayPhrases = {
 export function getGreetingInfo(userName, date = new Date()) {
   const firstName = userName ? userName.split(' ')[0] : 'Operador';
   const dayName = daysOfWeek[date.getDay()];
-  const phrase = dayPhrases[dayName];
-  return { firstName, dayName, phrase };
+  return { firstName, dayName };
 }
 
 export function getDynamicTitle(pathname) {

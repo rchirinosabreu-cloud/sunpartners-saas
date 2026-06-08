@@ -71,7 +71,7 @@ const AnnouncementItem = ({ id, content, type, author, date, onDelete, canDelete
         </div>
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
         <span className="inline-block mt-2 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-white/50 border border-current opacity-40">
-          {type}
+          {type === 'URGENTE' ? 'ATENCIÓN' : type}
         </span>
       </div>
     </div>
@@ -171,35 +171,37 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Announcements Feed */}
           <div className="lg:col-span-7 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-zinc-900 tracking-tight flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">campaign</span>
-                Anuncios del Equipo
+                Anuncios
               </h2>
             </div>
-            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-              {announcements.length === 0 ? (
-                <div className="py-20 text-center rounded-2xl border-2 border-dashed border-zinc-100 bg-white">
-                  <span className="material-symbols-outlined text-zinc-200 text-[48px] mb-4">notifications_off</span>
-                  <p className="text-sm text-zinc-400 font-medium italic">No hay anuncios recientes</p>
-                </div>
-              ) : (
-                announcements.map(ann => (
-                  <AnnouncementItem
-                    key={ann.id}
-                    id={ann.id}
-                    content={ann.contenido}
-                    type={ann.tipo}
-                    author={ann.author}
-                    date={ann.createdAt}
-                    onDelete={handleDeleteAnnouncement}
-                    canDelete={user?.role === 'ADMIN' || user?.id === ann.authorId}
-                  />
-                ))
-              )}
+            <div className="bg-white rounded-2xl border border-zinc-100 p-8 shadow-sm h-[600px] flex flex-col relative overflow-hidden">
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                {announcements.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center">
+                    <span className="material-symbols-outlined text-zinc-200 text-[48px] mb-4">notifications_off</span>
+                    <p className="text-sm text-zinc-400 font-medium italic">No hay anuncios recientes</p>
+                  </div>
+                ) : (
+                  announcements.map(ann => (
+                    <AnnouncementItem
+                      key={ann.id}
+                      id={ann.id}
+                      content={ann.contenido}
+                      type={ann.tipo}
+                      author={ann.author}
+                      date={ann.createdAt}
+                      onDelete={handleDeleteAnnouncement}
+                      canDelete={user?.role === 'ADMIN' || user?.id === ann.authorId}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
@@ -211,43 +213,45 @@ const Dashboard = () => {
                 Logros Recientes
               </h2>
             </div>
-            <div className="bg-white rounded-2xl border border-zinc-100 p-8 shadow-sm space-y-6 relative overflow-hidden">
-              <div className="relative space-y-6">
-                {/* Vertical Timeline Line */}
-                {stats.logrosRecientes.length > 1 && (
-                  <div className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-100 z-0"></div>
-                )}
+            <div className="bg-white rounded-2xl border border-zinc-100 p-8 shadow-sm h-[600px] flex flex-col relative overflow-hidden">
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="relative space-y-6">
+                  {/* Vertical Timeline Line */}
+                  {stats.logrosRecientes.length > 1 && (
+                    <div className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-100 z-0"></div>
+                  )}
 
-                {stats.logrosRecientes.length === 0 ? (
-                  <p className="text-center py-8 text-xs text-zinc-400 font-medium italic">Sin logros registrados esta semana</p>
-                ) : (
-                  stats.logrosRecientes.slice(0, 5).map((logro, idx) => (
-                    <div key={logro.id} className="flex items-start gap-3 relative z-10 group">
-                      <div className="size-8 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm ring-4 ring-white">
-                         <Avatar size={32} name={logro.user.nombre} variant="beam" />
-                      </div>
-                      <div className="flex-1 min-w-0 pt-0.5">
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                          {toTitleCase(logro.user.nombre)} completó:
-                        </p>
-                        <p className="text-sm font-black text-zinc-900 mb-1 leading-tight">{logro.titulo}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold text-zinc-300">
-                             {new Date(logro.updatedAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                          </span>
-                          {logro.client && (
-                            <>
-                              <span className="text-[10px] text-zinc-200">•</span>
-                              <span className="text-[10px] font-bold text-zinc-400 truncate max-w-[150px]">
-                                {logro.client.razon_social}
-                              </span>
-                            </>
-                          )}
+                  {stats.logrosRecientes.length === 0 ? (
+                    <p className="text-center py-8 text-xs text-zinc-400 font-medium italic">Sin logros registrados esta semana</p>
+                  ) : (
+                    stats.logrosRecientes.slice(0, 5).map((logro, idx) => (
+                      <div key={logro.id} className="flex items-start gap-3 relative z-10 group">
+                        <div className="size-8 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm ring-4 ring-white">
+                           <Avatar size={32} name={logro.user.nombre} variant="beam" />
+                        </div>
+                        <div className="flex-1 min-w-0 pt-0.5">
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            {toTitleCase(logro.user.nombre)} completó:
+                          </p>
+                          <p className="text-sm font-black text-zinc-900 mb-1 leading-tight">{logro.titulo}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-zinc-300">
+                               {new Date(logro.updatedAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                            </span>
+                            {logro.client && (
+                              <>
+                                <span className="text-[10px] text-zinc-200">•</span>
+                                <span className="text-[10px] font-bold text-zinc-400 truncate max-w-[150px]">
+                                  {logro.client.razon_social}
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
 
               <div className="pt-4">

@@ -42,12 +42,28 @@ const AppLayout = () => {
   const location = useLocation();
   const [plannerData, setPlannerData] = useState(null);
   const [stockData, setStockData] = useState([]);
+  const [globalQuote, setGlobalQuote] = useState('');
+  const [isEditingQuote, setIsEditingQuote] = useState(false);
+  const [editQuoteValue, setEditQuoteValue] = useState('');
 
   // v55.0: Detect if current route is a Planner
   const isPlannerRoute = location.pathname.includes('/planeador');
   const plannerId = isPlannerRoute ? location.pathname.split('/')[2] : null;
 
   useEffect(() => {
+    const fetchQuote = async () => {
+      try {
+        const response = await axios.get('/api/settings/global_motivational_quote');
+        if (response.data) {
+          setGlobalQuote(response.data.value);
+          setEditQuoteValue(response.data.value);
+        }
+      } catch (e) {
+        console.error("Error fetching global quote", e);
+      }
+    };
+    fetchQuote();
+
     if (isPlannerRoute && plannerId) {
        const fetchPlanner = async () => {
          try {
@@ -101,11 +117,24 @@ const AppLayout = () => {
     return alerts;
   }, [plannerData, stockData]);
 
-  const { firstName, dayName, phrase } = getGreetingInfo(user?.nombre);
+  const { firstName, dayName } = getGreetingInfo(user?.nombre);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
+  };
+
+  const handleSaveQuote = async () => {
+    try {
+      await axios.post('/api/settings', {
+        key: 'global_motivational_quote',
+        value: editQuoteValue
+      });
+      setGlobalQuote(editQuoteValue);
+      setIsEditingQuote(false);
+    } catch (e) {
+      console.error("Error updating quote", e);
+    }
   };
 
   const menuItems = [
@@ -202,12 +231,48 @@ const AppLayout = () => {
       <main className="flex flex-1 flex-col overflow-hidden bg-background-light">
         {/* Header (64px) */}
         <header className="flex h-[64px] shrink-0 items-center justify-between border-b border-zinc-200 px-8 bg-background-light">
-          <div className="flex flex-col">
-            <p className="text-sm text-zinc-800 font-medium">
-              ¡Hola, {firstName}! ¡Ya es {dayName}! {phrase}
-            </p>
+          <div className="flex items-center gap-4 overflow-hidden">
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-zinc-900 font-medium whitespace-nowrap shrink-0">
+                  ¡Hola, {firstName}! ¡Ya es {dayName}!
+                </p>
+                {isEditingQuote ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editQuoteValue}
+                      onChange={(e) => setEditQuoteValue(e.target.value)}
+                      className="text-base italic text-slate-600 bg-white border border-zinc-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary w-64"
+                      autoFocus
+                    />
+                    <button onClick={handleSaveQuote} className="text-primary hover:text-primary-hover">
+                      <span className="material-symbols-outlined text-[18px]">check</span>
+                    </button>
+                    <button onClick={() => { setIsEditingQuote(false); setEditQuoteValue(globalQuote); }} className="text-zinc-400 hover:text-zinc-600">
+                      <span className="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 min-w-0">
+                    <p className="text-base italic text-slate-600 truncate">
+                      {globalQuote}
+                    </p>
+                    {user?.role === 'ADMIN' && (
+                      <button
+                        onClick={() => setIsEditingQuote(true)}
+                        className="p-1 text-zinc-300 hover:text-primary transition-colors shrink-0"
+                        title="Editar frase del día"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">edit</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 shrink-0">
             <span className="text-sm text-zinc-500 font-medium">
               {new Date().toLocaleDateString('es-ES', {
                 weekday: 'long',
