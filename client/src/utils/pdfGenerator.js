@@ -87,9 +87,6 @@ export const generateQuotationPDF = (quotation) => {
   leftY += 4;
   doc.text(`Responsable: ${quotation.contactName || quotation.client.contacts?.find(c => c.isPrimary)?.name || quotation.client.responsable || 'No asignado'}`, 15, leftY);
 
-  leftY += 4;
-  doc.text(`Asesor: ${quotation.consultant?.nombre || 'SISTEMA'}`, 15, leftY);
-
   // B. Right Column: DATOS DEL EVENTO (Symmetric Reset)
   let rightY = gridBaseY + 10;
   doc.setFontSize(7);
@@ -291,6 +288,12 @@ export const generateQuotationPDF = (quotation) => {
   doc.text('FORMA DE PAGO:', 20, paymentY + 6);
   doc.setTextColor(24, 24, 27);
   doc.text((quotation.pago_metodo || 'CONTADO').toUpperCase(), 20, paymentY + 11);
+
+  // v60.3: Advisor re-location
+  doc.setFontSize(7.5);
+  doc.setTextColor(24, 24, 27);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Asesor: ${quotation.consultant?.nombre || 'SISTEMA'} | Cel: +57 301 400 4743`, 15, paymentY + 22);
 
   // 6. Terms & Conditions (v42.1: Absolute Anchoring at bottom)
   doc.setFontSize(8);
