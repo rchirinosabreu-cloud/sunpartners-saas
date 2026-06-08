@@ -8,18 +8,16 @@ describe('AppLayout Logic', () => {
       expect(info.firstName).toBe('Rodny');
     });
 
-    it('should return correct phrase for Monday', () => {
+    it('should return correct day name for Monday', () => {
       const monday = new Date('2025-05-12'); // Monday
       const info = getGreetingInfo('Rodny', monday);
       expect(info.dayName).toBe('Lunes');
-      expect(info.phrase).toBe('¡A darle con toda!');
     });
 
-    it('should return correct phrase for Wednesday', () => {
+    it('should return correct day name for Wednesday', () => {
       const wednesday = new Date('2025-05-14'); // Wednesday
       const info = getGreetingInfo('Rodny', wednesday);
       expect(info.dayName).toBe('Miércoles');
-      expect(info.phrase).toContain('cima');
     });
   });
 

@@ -80,6 +80,19 @@ const bootstrapAdmin = async () => {
       console.log(`[Sunpartners] Migración de motivos completada.`);
     }
 
+    // Default Motivational Quote
+    const quoteKey = 'global_motivational_quote';
+    const existingQuote = await prisma.globalSetting.findUnique({ where: { key: quoteKey } });
+    if (!existingQuote) {
+      await prisma.globalSetting.create({
+        data: {
+          key: quoteKey,
+          value: '¡A darle con toda!'
+        }
+      });
+      console.log(`[Sunpartners] Frase motivacional por defecto creada.`);
+    }
+
   } catch (err) {
     console.error(`[Sunpartners] Error en bootstrap: ${err.message}`);
   }

@@ -10,6 +10,7 @@ const quotationRoutes = require('./routes/quotations');
 const userRoutes = require('./routes/users');
 const taskRoutes = require('./routes/tasks');
 const announcementRoutes = require('./routes/announcements');
+const settingRoutes = require('./routes/settings');
 const bootstrapAdmin = require('./bootstrap');
 
 dotenv.config();
@@ -56,6 +57,7 @@ app.use('/api/quotations', quotationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/settings', settingRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
