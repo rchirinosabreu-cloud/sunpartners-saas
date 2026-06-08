@@ -6,7 +6,6 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import Avatar from "boring-avatars";
 import { toTitleCase } from '../utils/formatters';
-import { getGreetingInfo } from '../utils/layoutUtils';
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -42,28 +41,12 @@ const AppLayout = () => {
   const location = useLocation();
   const [plannerData, setPlannerData] = useState(null);
   const [stockData, setStockData] = useState([]);
-  const [globalQuote, setGlobalQuote] = useState('');
-  const [isEditingQuote, setIsEditingQuote] = useState(false);
-  const [editQuoteValue, setEditQuoteValue] = useState('');
 
   // v55.0: Detect if current route is a Planner
   const isPlannerRoute = location.pathname.includes('/planeador');
   const plannerId = isPlannerRoute ? location.pathname.split('/')[2] : null;
 
   useEffect(() => {
-    const fetchQuote = async () => {
-      try {
-        const response = await axios.get('/api/settings/global_motivational_quote');
-        if (response.data) {
-          setGlobalQuote(response.data.value);
-          setEditQuoteValue(response.data.value);
-        }
-      } catch (e) {
-        console.error("Error fetching global quote", e);
-      }
-    };
-    fetchQuote();
-
     if (isPlannerRoute && plannerId) {
        const fetchPlanner = async () => {
          try {
@@ -117,24 +100,9 @@ const AppLayout = () => {
     return alerts;
   }, [plannerData, stockData]);
 
-  const { firstName, dayName } = getGreetingInfo(user?.nombre);
-
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-  };
-
-  const handleSaveQuote = async () => {
-    try {
-      await axios.post('/api/settings', {
-        key: 'global_motivational_quote',
-        value: editQuoteValue
-      });
-      setGlobalQuote(editQuoteValue);
-      setIsEditingQuote(false);
-    } catch (e) {
-      console.error("Error updating quote", e);
-    }
   };
 
   const menuItems = [
@@ -229,50 +197,10 @@ const AppLayout = () => {
 
       {/* Main Content Area */}
       <main className="flex flex-1 flex-col overflow-hidden bg-background-light">
-        {/* Header (Increased height for the new callout format) */}
-        <header className="flex h-[120px] shrink-0 items-center justify-between border-b border-zinc-200 px-8 bg-white/50">
-          <div className="flex-1 max-w-4xl">
-             <div className="bg-slate-50/60 border-l-4 border-indigo-600 rounded-2xl p-5 shadow-sm flex items-center justify-between group transition-all hover:bg-slate-50/80">
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">
-                    ¡Hola, {firstName}! • {dayName}, {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
-                  </span>
-                  {isEditingQuote ? (
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="text"
-                        value={editQuoteValue}
-                        onChange={(e) => setEditQuoteValue(e.target.value)}
-                        className="text-xl italic font-serif text-slate-800 bg-white border border-indigo-100 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 w-full max-w-2xl"
-                        autoFocus
-                      />
-                      <div className="flex gap-1 shrink-0">
-                        <button onClick={handleSaveQuote} className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                          <span className="material-symbols-outlined text-[20px]">check</span>
-                        </button>
-                        <button onClick={() => { setIsEditingQuote(false); setEditQuoteValue(globalQuote); }} className="p-2 bg-white border border-slate-200 text-slate-400 rounded-lg hover:bg-slate-50 transition-colors">
-                          <span className="material-symbols-outlined text-[20px]">close</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-4 group/quote min-w-0">
-                      <p className="text-xl lg:text-2xl italic text-slate-800 font-serif leading-tight truncate">
-                        {globalQuote || "La excelencia comienza con un reloj sincronizado. Ser puntuales es nuestra carta de presentación."}
-                      </p>
-                      {(user?.role === 'ADMIN' && (user?.email === 'admin@sunpartners.com' || user?.email?.includes('evelyn'))) && (
-                        <button
-                          onClick={() => setIsEditingQuote(true)}
-                          className="opacity-0 group-hover/quote:opacity-100 p-1.5 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all shrink-0"
-                          title="Editar frase del día"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">edit</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-             </div>
+        {/* Header (Clean 64px) */}
+        <header className="flex h-[64px] shrink-0 items-center justify-between border-b border-zinc-200 px-8 bg-background-light">
+          <div className="flex-1">
+             {/* Empty space for search or other header items if needed later */}
           </div>
 
           <div className="flex items-center gap-4 shrink-0 ml-8">

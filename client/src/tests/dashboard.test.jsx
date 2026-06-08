@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import axios from 'axios';
 import Dashboard from '../pages/Dashboard';
 
+vi.mock('axios');
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     user: { nombre: 'Test User', email: 'test@example.com' },
@@ -12,6 +14,11 @@ vi.mock('../context/AuthContext', () => ({
 
 describe('Dashboard Page', () => {
   it('renders metrics and announcements section', async () => {
+    // Mock axios
+    axios.get.mockResolvedValue({
+      data: { key: 'global_motivational_quote', value: 'Test Quote' }
+    });
+
     // Mock global fetch
     global.fetch = vi.fn().mockImplementation((url) => {
       if (url === '/api/tasks/dashboard-stats') {

@@ -4,6 +4,7 @@ import { toTitleCase } from '../utils/formatters';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import Avatar from 'boring-avatars';
+import axios from 'axios';
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -91,15 +92,19 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ progresoMes: 0, totalRealizados: 0, logrosRecientes: [] });
   const [announcements, setAnnouncements] = useState([]);
+  const [globalQuote, setGlobalQuote] = useState('');
+  const [isEditingQuote, setIsEditingQuote] = useState(false);
+  const [editQuoteValue, setEditQuoteValue] = useState('');
   const [isAnnounceModalOpen, setIsAnnounceModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [statsRes, annRes] = await Promise.all([
+      const [statsRes, annRes, quoteRes] = await Promise.all([
         fetch('/api/tasks/dashboard-stats'),
-        fetch('/api/announcements')
+        fetch('/api/announcements'),
+        axios.get('/api/settings/global_motivational_quote')
       ]);
 
       if (statsRes.ok) {
@@ -111,6 +116,11 @@ const Dashboard = () => {
         const annData = await annRes.json();
         setAnnouncements(annData);
       }
+
+      if (quoteRes.data) {
+        setGlobalQuote(quoteRes.data.value);
+        setEditQuoteValue(quoteRes.data.value);
+      }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -121,6 +131,19 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
+
+  const handleSaveQuote = async () => {
+    try {
+      await axios.post('/api/settings', {
+        key: 'global_motivational_quote',
+        value: editQuoteValue
+      });
+      setGlobalQuote(editQuoteValue);
+      setIsEditingQuote(false);
+    } catch (e) {
+      console.error("Error updating quote", e);
+    }
+  };
 
   const handleDeleteAnnouncement = async (id) => {
     if (!window.confirm('¿Estás seguro de eliminar este anuncio?')) return;
@@ -146,8 +169,52 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-8 pb-16 bg-zinc-50/30 min-h-full">
-      <div className="mx-auto max-w-7xl space-y-8">
+    <div className="p-8 pb-16 bg-zinc-50/30 min-h-full font-body">
+      <div className="mx-auto max-w-7xl space-y-12">
+
+        {/* Welcome Header Section (v56.0: Structured re-location & Zero-Box Design) */}
+        <div className="flex flex-col">
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
+            ¡Hola, {user?.nombre?.split(' ')[0] || 'Operador'}!
+          </h1>
+
+          <div className="group relative flex items-start">
+            {isEditingQuote ? (
+              <div className="flex items-center gap-3 w-full max-w-3xl">
+                <input
+                  type="text"
+                  value={editQuoteValue}
+                  onChange={(e) => setEditQuoteValue(e.target.value)}
+                  className="text-xl text-slate-600 font-medium bg-white border-2 border-primary/20 rounded-xl px-4 py-2 focus:outline-none focus:border-primary transition-all w-full shadow-sm"
+                  autoFocus
+                />
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={handleSaveQuote} className="p-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-all shadow-md active:scale-95">
+                    <span className="material-symbols-outlined text-[24px]">check</span>
+                  </button>
+                  <button onClick={() => { setIsEditingQuote(false); setEditQuoteValue(globalQuote); }} className="p-3 bg-white border-2 border-zinc-100 text-zinc-400 rounded-xl hover:bg-zinc-50 transition-all active:scale-95">
+                    <span className="material-symbols-outlined text-[24px]">close</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-4xl italic">
+                  "{globalQuote || "La excelencia comienza con un reloj sincronizado. Ser puntuales es nuestra carta de presentación."}"
+                </p>
+                {(user?.role === 'ADMIN' && (user?.email === 'admin@sunpartners.com' || user?.email?.includes('evelyn'))) && (
+                  <button
+                    onClick={() => setIsEditingQuote(true)}
+                    className="opacity-0 group-hover:opacity-100 p-2 text-zinc-300 hover:text-primary hover:bg-white rounded-full transition-all shrink-0 shadow-sm border border-zinc-100"
+                    title="Editar frase del día"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
