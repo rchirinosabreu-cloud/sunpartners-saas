@@ -40,8 +40,8 @@ export const generateQuotationPDF = (quotation) => {
   doc.text('COTIZACIÓN', 15, 45);
 
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(161, 161, 170); // Zinc-400 (Suttle grey)
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0); // v60.2: Pure Black for high contrast
   const refLabel = quotation?.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`;
   doc.text(`REF: ${refLabel}`, 15, 50);
   doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 15, 54);
@@ -185,7 +185,7 @@ export const generateQuotationPDF = (quotation) => {
   ];
 
   autoTable(doc, {
-    startY: currentY + 25, // At least 25px after logistics (v36.1)
+    startY: currentY + 15, // v60.2: Reduced from 25 to 15 to save space
     head: [['Detalles del servicio', 'Cant.', 'Días', 'Inversión Un.', 'Subtotal']],
     body: tableData,
     headStyles: {
@@ -244,9 +244,10 @@ export const generateQuotationPDF = (quotation) => {
 
   // 5. "Bloque de Cierre" Indivisible (v42.1)
   // Totals + Payment must jump together if they don't fit before the Terms anchor
-  let closingY = doc.lastAutoTable.finalY + 15;
+  let closingY = doc.lastAutoTable.finalY + 10; // v60.2: Reduced margin
 
-  if (closingY + TOTALS_PAYMENT_HEIGHT > ANCHOR_Y_TERMS - 5) {
+  // v60.2: Flexibilize page break logic. Only jump if really necessary.
+  if (closingY + TOTALS_PAYMENT_HEIGHT > ANCHOR_Y_TERMS - 2) {
     doc.addPage();
     closingY = 25; // Start on new page with margin
   }
