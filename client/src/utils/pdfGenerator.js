@@ -16,6 +16,7 @@ export const generateQuotationPDF = (quotation) => {
 
   // 1. Header - Institutional Symmetry (v25.0)
   const isNaturalPerson = quotation.client?.documentType === 'CC';
+  const headerOffset = isNaturalPerson ? -30 : 0; // v60.5: Optimized vertical space for natural person
 
   if (!isNaturalPerson) {
     const logoUrl = '/logo_sp.png';
@@ -34,10 +35,10 @@ export const generateQuotationPDF = (quotation) => {
   if (isNaturalPerson) {
     doc.setTextColor(0, 0, 0); // Pure Black
     doc.setFontSize(9);
-    doc.text('Evelyn Pérez', 195, 45, { align: 'right' });
+    doc.text('Evelyn Pérez', 195, 45 + headerOffset, { align: 'right' });
     doc.setFont('helvetica', 'normal');
-    doc.text('NIT: 22.793.894-1', 195, 50, { align: 'right' });
-    doc.text('+57 301 400 4743', 195, 55, { align: 'right' });
+    doc.text('NIT: 22.793.894-1', 195, 50 + headerOffset, { align: 'right' });
+    doc.text('+57 301 400 4743', 195, 55 + headerOffset, { align: 'right' });
   } else {
     doc.setTextColor(113, 113, 122); // Zinc-500
     doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 195, 13, { align: 'right' });
@@ -51,17 +52,17 @@ export const generateQuotationPDF = (quotation) => {
   doc.setTextColor(24, 24, 27); // Zinc-900
   doc.setFontSize(12); // Reduced size for elegance
   doc.setFont('helvetica', 'bold');
-  doc.text('COTIZACIÓN', 15, 45);
+  doc.text('COTIZACIÓN', 15, 45 + headerOffset);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0); // v60.2: Pure Black for high contrast
   const refLabel = quotation?.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`;
-  doc.text(`REF: ${refLabel}`, 15, 50);
-  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 15, 54);
+  doc.text(`REF: ${refLabel}`, 15, 50 + headerOffset);
+  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 15, 54 + headerOffset);
 
   // 2. Client & Logistics Grid (v51.4: Symmetric Block System)
-  const gridBaseY = 58;
+  const gridBaseY = 58 + headerOffset;
   doc.setDrawColor(244, 244, 245);
   doc.line(15, gridBaseY, 195, gridBaseY);
 
