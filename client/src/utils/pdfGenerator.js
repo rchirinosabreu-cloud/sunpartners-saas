@@ -36,7 +36,7 @@ export const generateQuotationPDF = (quotation) => {
     doc.text('Evelyn Pérez', 195, 13, { align: 'right' });
     doc.setFont('helvetica', 'normal');
     doc.text('NIT: 22.793.894-1', 195, 17, { align: 'right' });
-    doc.text('Teléfono: +57 301 400 4743', 195, 21, { align: 'right' });
+    doc.text('+57 301 400 4743', 195, 21, { align: 'right' });
   } else {
     doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 195, 13, { align: 'right' });
     doc.setFont('helvetica', 'normal');
