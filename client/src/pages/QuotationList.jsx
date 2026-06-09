@@ -187,7 +187,7 @@ const QuotationList = () => {
 
     const isActive = activePopover?.id === quotation.id;
 
-    const hasStatusEditPermission = user?.role === 'ADMIN' && (user?.email === 'admin@sunpartners.com' || user?.email?.includes('evelyn'));
+    const hasStatusEditPermission = user?.role === 'ADMIN' || user?.id === quotation.consultantId;
 
     return (
       <span

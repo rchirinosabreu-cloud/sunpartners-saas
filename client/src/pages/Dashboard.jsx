@@ -202,7 +202,7 @@ const Dashboard = () => {
                 <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-4xl italic">
                   "{globalQuote || "La excelencia comienza con un reloj sincronizado. Ser puntuales es nuestra carta de presentación."}"
                 </p>
-                {(user?.role === 'ADMIN' && (user?.email === 'admin@sunpartners.com' || user?.email?.includes('evelyn'))) && (
+                {(user?.role === 'ADMIN') && (
                   <button
                     onClick={() => setIsEditingQuote(true)}
                     className="opacity-0 group-hover:opacity-100 p-2 text-zinc-300 hover:text-primary hover:bg-white rounded-full transition-all shrink-0 shadow-sm border border-zinc-100"
