@@ -28,16 +28,18 @@ export const generateQuotationPDF = (quotation) => {
   }
 
   // Institutional Info (Top Right, aligned with logo)
-  doc.setTextColor(113, 113, 122); // Zinc-500
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
 
   if (isNaturalPerson) {
-    doc.text('Evelyn Pérez', 195, 13, { align: 'right' });
+    doc.setTextColor(0, 0, 0); // Pure Black
+    doc.setFontSize(9);
+    doc.text('Evelyn Pérez', 195, 45, { align: 'right' });
     doc.setFont('helvetica', 'normal');
-    doc.text('NIT: 22.793.894-1', 195, 17, { align: 'right' });
-    doc.text('+57 301 400 4743', 195, 21, { align: 'right' });
+    doc.text('NIT: 22.793.894-1', 195, 50, { align: 'right' });
+    doc.text('+57 301 400 4743', 195, 55, { align: 'right' });
   } else {
+    doc.setTextColor(113, 113, 122); // Zinc-500
     doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 195, 13, { align: 'right' });
     doc.setFont('helvetica', 'normal');
     doc.text('Cra. 15 No. 15-25, local 2, Cartagena de Indias.', 195, 17, { align: 'right' });
