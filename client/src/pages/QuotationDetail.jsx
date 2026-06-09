@@ -187,8 +187,18 @@ const QuotationDetail = () => {
             </button>
 
             <div className="flex items-start gap-10">
-              <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
-              <div className="h-14 w-px bg-zinc-100"></div>
+              {quotation.client?.documentType !== 'CC' ? (
+                <>
+                  <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
+                  <div className="h-14 w-px bg-zinc-100"></div>
+                </>
+              ) : (
+                <div className="flex flex-col items-end text-right min-w-[200px]">
+                  <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Evelyn Pérez</h3>
+                  <p className="text-[10px] font-bold text-zinc-400 mt-1">NIT: 22.793.894-1</p>
+                  <p className="text-[10px] font-bold text-zinc-400">Teléfono: +57 301 400 4743</p>
+                </div>
+              )}
               <div className="space-y-3">
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-3">
@@ -441,6 +451,26 @@ const QuotationDetail = () => {
 
               <div className="bg-white border border-zinc-200 rounded p-6">
                 <h3 className="text-xs font-black  tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
+                   <span className="material-symbols-outlined text-[18px]">payments</span>
+                   Forma de Pago
+                </h3>
+                <div className="mb-6">
+                  <span className="text-sm font-bold text-zinc-900">{(quotation.pago_metodo || 'CONTADO').toUpperCase()}</span>
+                </div>
+                <div className="h-px bg-zinc-100 w-full mb-4" />
+                <div className="flex items-center gap-2">
+                   <div className="size-6 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-500 border border-zinc-200">
+                      {quotation.consultant?.nombre?.substring(0,2) || 'S'}
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-zinc-900">Asesor: {quotation.consultant?.nombre || 'SISTEMA'}</span>
+                      <span className="text-[10px] text-zinc-400 font-medium tracking-tight">Cel: +57 301 400 4743</span>
+                   </div>
+                </div>
+              </div>
+
+              <div className="bg-white border border-zinc-200 rounded p-6">
+                <h3 className="text-xs font-black  tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
                    <span className="material-symbols-outlined text-[18px]">location_on</span>
                    Detalles del Evento
                 </h3>
@@ -453,18 +483,6 @@ const QuotationDetail = () => {
                     <span className="text-[10px]  font-black text-zinc-400 block">Contacto Cliente</span>
                     <span className="text-sm font-bold text-zinc-900">{quotation.client.responsable}</span>
                     <span className="text-xs text-zinc-500 block">{quotation.client.ciudad}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px]  font-black text-zinc-400 block">Consultor Responsable</span>
-                    <div className="flex items-center gap-2 mt-1">
-                       <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 ">
-                          {quotation.consultant?.nombre?.substring(0,2) || 'S'}
-                       </div>
-                       <div className="flex flex-col">
-                          <span className="text-sm font-bold text-zinc-900 ">{quotation.consultant?.nombre || 'SISTEMA'}</span>
-                          <span className="text-[10px] text-zinc-400 font-medium tracking-tight">Cel: +57 301 400 4743</span>
-                       </div>
-                    </div>
                   </div>
                   <div>
                     <span className="text-[10px]  font-black text-zinc-400 block">Fecha Principal</span>

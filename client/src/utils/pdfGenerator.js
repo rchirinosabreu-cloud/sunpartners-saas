@@ -15,23 +15,35 @@ export const generateQuotationPDF = (quotation) => {
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
   // 1. Header - Institutional Symmetry (v25.0)
-  const logoUrl = '/logo_sp.png';
-  try {
-    // Logo on the top left
-    doc.addImage(logoUrl, 'PNG', 15, 10, 60, 24);
-  } catch (e) {
-    console.warn('Logo could not be loaded for PDF', e);
+  const isNaturalPerson = quotation.client?.documentType === 'CC';
+
+  if (!isNaturalPerson) {
+    const logoUrl = '/logo_sp.png';
+    try {
+      // Logo on the top left
+      doc.addImage(logoUrl, 'PNG', 15, 10, 60, 24);
+    } catch (e) {
+      console.warn('Logo could not be loaded for PDF', e);
+    }
   }
 
   // Institutional Info (Top Right, aligned with logo)
   doc.setTextColor(113, 113, 122); // Zinc-500
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
-  doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 195, 13, { align: 'right' });
-  doc.setFont('helvetica', 'normal');
-  doc.text('Cra. 15 No. 15-25, local 2, Cartagena de Indias.', 195, 17, { align: 'right' });
-  doc.text('Cel: +57 301 400 4743 | sunpartnersco@gmail.com', 195, 21, { align: 'right' });
-  doc.text('@sunpartners | www.sunpartners.com.co', 195, 25, { align: 'right' });
+
+  if (isNaturalPerson) {
+    doc.text('Evelyn Pérez', 195, 13, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('NIT: 22.793.894-1', 195, 17, { align: 'right' });
+    doc.text('Teléfono: +57 301 400 4743', 195, 21, { align: 'right' });
+  } else {
+    doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 195, 13, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('Cra. 15 No. 15-25, local 2, Cartagena de Indias.', 195, 17, { align: 'right' });
+    doc.text('Cel: +57 301 400 4743 | sunpartnersco@gmail.com', 195, 21, { align: 'right' });
+    doc.text('@sunpartners | www.sunpartners.com.co', 195, 25, { align: 'right' });
+  }
 
   // Title Area (Below Logo, Left Side)
   doc.setTextColor(24, 24, 27); // Zinc-900
@@ -310,7 +322,7 @@ export const generateQuotationPDF = (quotation) => {
     "2. Esta cotización tiene una vigencia de 24 horas a partir de su emisión.",
     "3. Precios sujetos a disponibilidad al momento de formalizar el pago.",
     "4. El cliente es responsable por daños, pérdida o robo de equipos.",
-    "5. Sunpartners no responde por fallas eléctricas externas.",
+    isNaturalPerson ? "5. No se responde por fallas eléctricas externas." : "5. Sunpartners no responde por fallas eléctricas externas.",
     "6. Cancelaciones < 48h incurren en penalidad del 50%.",
     "7. Horarios de montaje y desmontaje deben cumplirse estrictamente.",
     "8. Prohibido subarriendo o traslado de equipos sin autorización.",
