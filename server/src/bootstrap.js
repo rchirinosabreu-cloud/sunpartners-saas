@@ -1,7 +1,12 @@
 const bcrypt = require('bcrypt');
 const prisma = require('./db');
 
+const migrateMissingContacts = require('../scripts/populateMissingContacts');
+
 const bootstrapAdmin = async () => {
+  // v60.5: Self-healing data migration for contacts
+  await migrateMissingContacts();
+
   const adminEmail = process.env.ADMIN_USER;
   const adminPassword = process.env.ADMIN_PASSWORD;
 

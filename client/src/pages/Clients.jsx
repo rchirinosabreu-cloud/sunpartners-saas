@@ -158,7 +158,7 @@ const Clients = () => {
                     </div>
                     <div className="text-[10px] font-bold text-zinc-400 mt-1 flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">mail</span>
-                      {client.contacts?.find(c => c.isPrimary)?.email || client.email || 'SIN EMAIL'}
+                      {(client.contacts || []).find(c => c.isPrimary)?.email || client.email || 'SIN EMAIL'}
                     </div>
                   </td>
                   <td className="px-6 py-5">
@@ -167,7 +167,7 @@ const Clients = () => {
                     </span>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="font-bold text-zinc-700 text-[12px] ">{toTitleCase(client.contacts?.find(c => c.isPrimary)?.name) || toTitleCase(client.responsable) || 'No asignado'}</div>
+                    <div className="font-bold text-zinc-700 text-[12px] ">{toTitleCase((client.contacts || []).find(c => c.isPrimary)?.name || client.responsable || 'No asignado')}</div>
                     <div className="text-[10px] font-medium text-zinc-400 mt-0.5">{toTitleCase(client.ciudad) || '-'}</div>
                   </td>
                   <td className="px-6 py-5 text-center">
