@@ -1,5 +1,18 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useDismiss,
+  useRole,
+  useClick,
+  useInteractions,
+  FloatingPortal,
+  FloatingFocusManager,
+} from '@floating-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { generateQuotationPDF } from '../utils/pdfGenerator';
@@ -7,7 +20,7 @@ import { calculateLineTotal, calculateTotals } from '../utils/quotationUtils';
 import Modal from '../components/ui/Modal';
 
 const QuotationDetail = () => {
-  const { user: currentUser } = useAuth();
+  const { user } = useAuth();
   const { id } = useParams();
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,7 +28,29 @@ const QuotationDetail = () => {
   const [updating, setUpdating] = useState(false);
   const [linkData, setLinkData] = useState(null);
   const [modal, setModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
+  const [showStatusPopover, setShowStatusPopover] = useState(false);
   const navigate = useNavigate();
+
+  const { refs, floatingStyles, context } = useFloating({
+    open: showStatusPopover,
+    onOpenChange: setShowStatusPopover,
+    middleware: [
+      offset(8),
+      flip({ fallbackAxisSideDirection: 'end' }),
+      shift({ padding: 8 }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
+
+  const click = useClick(context);
+  const dismiss = useDismiss(context);
+  const role = useRole(context);
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    click,
+    dismiss,
+    role,
+  ]);
 
   useEffect(() => {
     fetchQuotation();
@@ -35,13 +70,45 @@ const QuotationDetail = () => {
     }
   };
 
-  const handleStatusChange = async (newStatus) => {
+  const handleStatusChange = async (newStatus, force = false) => {
     setUpdating(true);
     try {
-      await axios.put(`/api/quotations/${id}/status`, { estado: newStatus }, { withCredentials: true });
+      await axios.put(`/api/quotations/${id}/status`, {
+        estado: newStatus,
+        details: 'Estado cambiado manualmente',
+        force: force
+      }, { withCredentials: true });
+
+      setShowStatusPopover(false);
       setModal({ isOpen: true, title: 'Estado Actualizado', content: `La cotización ahora está en estado: ${newStatus}`, type: 'success' });
       await fetchQuotation();
     } catch (err) {
+      // Handle availability conflict with bypass option (consistent with QuotationList)
+      if (err.response?.status === 400 && err.response?.data?.error === 'Conflicto de disponibilidad') {
+        setShowStatusPopover(false);
+        setModal({
+          isOpen: true,
+          title: 'Conflicto de disponibilidad',
+          content: (
+            <div className="space-y-4">
+              <p className="text-zinc-600 text-xs font-medium leading-relaxed">{err.response.data.details}</p>
+              <div className="h-px bg-zinc-100 w-full" />
+              <p className="text-zinc-900 font-black text-[11px] tracking-tight">¿Deseas aprobar la propuesta de todas formas?</p>
+            </div>
+          ),
+          type: 'warning',
+          action: {
+            label: 'Sí, aprobar con conflicto',
+            onClick: () => {
+              setModal({ ...modal, isOpen: false });
+              handleStatusChange(newStatus, true);
+            },
+            color: 'primary'
+          }
+        });
+        return;
+      }
+
       const errorMsg = err.response?.data?.details || err.response?.data?.error || 'No se pudo cambiar el estado.';
       setModal({
         isOpen: true,
@@ -151,13 +218,24 @@ const QuotationDetail = () => {
 
                 {/* Status Badges Group (LEFT SIDE) */}
                 <div className="flex items-center gap-2 pt-1">
-                  <span className={`badge-status ${
-                    quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
-                    quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                    quotation.estado === 'REVISION_SOLICITADA' ? 'bg-red-50 border-red-200 text-red-600' :
-                    quotation.estado === 'ACCEPTED_PENDING_OC' ? 'bg-amber-50 border-amber-200 text-amber-600' :
-                    'bg-zinc-50 border-zinc-200 text-zinc-500'
-                  }`}>
+                  <span
+                    ref={refs.setReference}
+                    {...getReferenceProps()}
+                    onClick={(e) => {
+                      const hasStatusEditPermission = user?.role === 'ADMIN' || user?.id === quotation.consultantId;
+                      if (hasStatusEditPermission) {
+                        e.stopPropagation();
+                        setShowStatusPopover(!showStatusPopover);
+                      }
+                    }}
+                    className={`badge-status ${
+                      quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
+                      quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                      quotation.estado === 'REVISION_SOLICITADA' ? 'bg-red-50 border-red-200 text-red-600' :
+                      quotation.estado === 'ACCEPTED_PENDING_OC' ? 'bg-amber-50 border-amber-200 text-amber-600' :
+                      'bg-zinc-50 border-zinc-200 text-zinc-500'
+                    } ${ (user?.role === 'ADMIN' || user?.id === quotation.consultantId) ? 'cursor-pointer hover:ring-2 ring-primary/20 transition-all' : '' }`}
+                  >
                     {
                       quotation.estado === 'REVISION_SOLICITADA' ? 'CAMBIOS SOLICITADOS' :
                       quotation.estado === 'ACCEPTED_PENDING_OC' ? 'PENDIENTE OC' :
@@ -242,9 +320,9 @@ const QuotationDetail = () => {
              )}
 
              <button
-              disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
+              disabled={!!quotation.archivedAt || (user?.role === 'CONSULTOR' && quotation.consultantId !== user?.id)}
               onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-              className={`btn-action bg-primary text-white hover:opacity-90 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`btn-action bg-primary text-white hover:opacity-90 ${(quotation.archivedAt || (user?.role === 'CONSULTOR' && quotation.consultantId !== user?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
              >
                <span className="material-symbols-outlined">edit</span>
                EDITAR
@@ -459,6 +537,43 @@ const QuotationDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Admin Status Popover (Consistent with QuotationList) */}
+      {showStatusPopover && (
+        <FloatingPortal>
+          <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
+            <div
+              ref={refs.setFloating}
+              style={floatingStyles}
+              {...getFloatingProps()}
+              className="z-[200] bg-white border border-zinc-200 rounded-lg shadow-2xl p-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150 outline-none"
+              onClick={e => e.stopPropagation()}
+            >
+              <p className="px-3 py-2 text-[9px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-50 mb-1">
+                Cambiar Estado
+              </p>
+              <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                {[
+                  { val: 'BORRADOR', label: 'BORRADOR' },
+                  { val: 'ENVIADA', label: 'ENVIADA' },
+                  { val: 'APROBADA', label: 'APROBADA' },
+                  { val: 'REVISION_SOLICITADA', label: 'CAMBIOS SOLICITADOS' },
+                  { val: 'ACCEPTED_PENDING_OC', label: 'PENDIENTE OC' },
+                  { val: 'CANCELADA', label: 'CANCELADA' }
+                ].map(opt => (
+                  <button
+                    key={opt.val}
+                    onClick={() => handleStatusChange(opt.val)}
+                    className={`w-full text-left px-3 py-2.5 text-[11px] font-bold rounded-md transition-all hover:bg-zinc-50 ${quotation.estado === opt.val ? 'text-primary bg-primary/5' : 'text-zinc-600'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </FloatingFocusManager>
+        </FloatingPortal>
+      )}
     </div>
   );
 };

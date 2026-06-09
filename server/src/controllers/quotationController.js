@@ -312,14 +312,6 @@ exports.update = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Security check for CONSULTOR
-    if (req.userRole === 'CONSULTOR') {
-      const existing = await prisma.quotation.findUnique({ where: { id } });
-      if (existing.consultantId !== req.userId) {
-        return res.status(403).json({ error: 'Acceso Denegado. Los consultores solo pueden editar sus propias cotizaciones.' });
-      }
-    }
-
     const {
         clientId,
         clientContactId,
