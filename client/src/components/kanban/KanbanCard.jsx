@@ -3,9 +3,9 @@ import { CSS } from '@dnd-kit/utilities';
 import { format, isBefore, startOfDay, differenceInDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { normalizeData, toTitleCase } from '../../utils/formatters';
-import Avatar from "boring-avatars";
+import UserAvatarPopover from '../UserAvatarPopover';
 import { CalendarDays, Zap } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const COLOMBIA_TZ = 'America/Bogota';
 
@@ -38,7 +38,7 @@ const KanbanCard = ({ task, onClick }) => {
       : 'border-2 border-zinc-100 shadow-sm hover:border-primary/30';
 
   return (
-    <motion.div
+    <Motion.div
       layout
       ref={setNodeRef}
       style={style}
@@ -91,23 +91,18 @@ const KanbanCard = ({ task, onClick }) => {
         <div className="flex items-center justify-between mt-2 pt-3 border-t border-zinc-50">
           <div className="flex items-center gap-2">
             <div className="flex -space-x-2">
-              <div className="size-7 rounded-full overflow-hidden border-2 border-white flex items-center justify-center bg-zinc-50 shrink-0 z-20" title={`Responsable: ${task.user?.nombre || 'Sin asignar'}`}>
-                <Avatar
-                  size={28}
-                  name={task.user?.nombre || 'Guest'}
-                  variant="beam"
-                  colors={['#5486A1', '#FBAE17', '#222222', '#F2F2F2', '#EAEAEA']}
-                />
-              </div>
+              <UserAvatarPopover
+                user={task.user}
+                relationship="Responsable"
+                className="z-20"
+              />
               {task.collaborator && (
-                <div className="size-7 rounded-full overflow-hidden border-2 border-white flex items-center justify-center bg-zinc-50 shrink-0 z-10" title={`Colaborador: ${task.collaborator.nombre}`}>
-                  <Avatar
-                    size={28}
-                    name={task.collaborator.nombre}
-                    variant="beam"
-                    colors={['#FBAE17', '#5486A1', '#EAEAEA', '#F2F2F2', '#222222']}
-                  />
-                </div>
+                <UserAvatarPopover
+                  user={task.collaborator}
+                  relationship="Colaborador"
+                  colors={['#FBAE17', '#5486A1', '#EAEAEA', '#F2F2F2', '#222222']}
+                  className="z-10"
+                />
               )}
             </div>
             <span className="text-sm font-bold text-zinc-800">
@@ -125,7 +120,7 @@ const KanbanCard = ({ task, onClick }) => {
           </div>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 };
 
