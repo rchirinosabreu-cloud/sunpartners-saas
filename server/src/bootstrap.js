@@ -4,6 +4,14 @@ const prisma = require('./db');
 const migrateMissingContacts = require('../scripts/populateMissingContacts');
 
 const bootstrapAdmin = async () => {
+  // v60.6: Emergency raw SQL cleanup for DocumentType before any model queries
+  try {
+     await prisma.$executeRaw`UPDATE "Client" SET "documentType" = 'OTHER' WHERE "documentType" = 'EIN';`;
+     console.log(`[Sunpartners] Data cleanup (EIN -> OTHER) completed.`);
+  } catch (e) {
+     console.warn(`[Sunpartners] Warning: Could not run raw SQL cleanup: ${e.message}`);
+  }
+
   // v60.5: Self-healing data migration for contacts
   await migrateMissingContacts();
 
@@ -85,14 +93,6 @@ const bootstrapAdmin = async () => {
       console.log(`[Sunpartners] Migración de motivos completada.`);
     }
 
-    // Emergency Migration: DocumentType EIN -> OTHER
-    try {
-       // v60.4: Using raw SQL to avoid Prisma Client enum validation issues during migration
-       await prisma.$executeRaw`UPDATE "Client" SET "documentType" = 'OTHER' WHERE "documentType" = 'EIN';`;
-       console.log(`[Sunpartners] Migración de DocumentType (EIN -> OTHER) ejecutada.`);
-    } catch (e) {
-       console.warn(`[Sunpartners] No se pudo realizar la migración de EIN: ${e.message}`);
-    }
 
     // Default Motivational Quote
     const quoteKey = 'global_motivational_quote';
