@@ -176,7 +176,7 @@ const QuotationDetail = () => {
       </Modal>
 
       {/* Detail Header (v20.0: Absolute Normalization) */}
-      <div className="bg-white border-b border-zinc-100 px-12 py-10 shadow-sm">
+      <div className={`bg-white border-b border-zinc-100 px-12 shadow-sm ${quotation.client?.documentType === 'CC' ? 'py-6' : 'py-10'}`}>
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-10">
             <button
