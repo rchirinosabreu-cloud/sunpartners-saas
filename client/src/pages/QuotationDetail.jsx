@@ -193,10 +193,10 @@ const QuotationDetail = () => {
                   <div className="h-14 w-px bg-zinc-100"></div>
                 </>
               ) : (
-                <div className="flex flex-col items-end text-right min-w-[200px]">
-                  <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Evelyn Pérez</h3>
-                  <p className="text-[10px] font-bold text-zinc-400 mt-1">NIT: 22.793.894-1</p>
-                  <p className="text-[10px] font-bold text-zinc-400">+57 301 400 4743</p>
+                <div className="flex flex-col items-end text-right min-w-[200px] pt-1">
+                  <h3 className="text-[15px] font-black text-zinc-900 uppercase tracking-widest leading-none">Evelyn Pérez</h3>
+                  <p className="text-[11px] font-bold text-zinc-900 mt-2">NIT: 22.793.894-1</p>
+                  <p className="text-[11px] font-bold text-zinc-900">+57 301 400 4743</p>
                 </div>
               )}
               <div className="space-y-3">

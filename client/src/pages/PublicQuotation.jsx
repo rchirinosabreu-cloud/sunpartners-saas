@@ -144,8 +144,16 @@ const PublicQuotation = () => {
         {/* Public Header - Institutional Symmetry (v26.0: Seamless Transition) */}
         <div className="p-12 md:p-20 pb-0 md:pb-0 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
            <div>
-              <div className="flex items-center gap-6 mb-12">
-                 <img src="/logo_sp.png" alt="Sunpartners" className="w-[300px] h-auto object-contain" />
+              <div className="flex items-center gap-6 mb-12 min-h-[60px]">
+                 {quotation.client?.documentType !== 'CC' ? (
+                   <img src="/logo_sp.png" alt="Sunpartners" className="w-[300px] h-auto object-contain" />
+                 ) : (
+                   <div className="flex flex-col">
+                      <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-widest leading-none">Evelyn Pérez</h3>
+                      <p className="text-sm font-bold text-zinc-900 mt-2">NIT: 22.793.894-1</p>
+                      <p className="text-sm font-bold text-zinc-900">+57 301 400 4743</p>
+                   </div>
+                 )}
               </div>
               <div className="space-y-3 pt-6 border-t border-zinc-50 max-w-xs">
                  <div className="flex items-center gap-3">
@@ -172,10 +180,19 @@ const PublicQuotation = () => {
               </div>
            </div>
            <div className="flex flex-col items-start md:items-end gap-2 text-left md:text-right">
-              <p className="text-[10px] font-black text-zinc-400 tracking-[0.2em] uppercase">SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2</p>
-              <p className="text-[10px] font-medium text-zinc-400">Cra. 15 No. 15-25, local 2, Cartagena de Indias.</p>
-              <p className="text-[10px] font-medium text-zinc-400">Cel: +57 301 400 4743 | sunpartnersco@gmail.com</p>
-              <p className="text-[10px] font-medium text-zinc-400">@sunpartners | www.sunpartners.com.co</p>
+              {quotation.client?.documentType !== 'CC' ? (
+                <>
+                  <p className="text-[10px] font-black text-zinc-400 tracking-[0.2em] uppercase">SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2</p>
+                  <p className="text-[10px] font-medium text-zinc-400">Cra. 15 No. 15-25, local 2, Cartagena de Indias.</p>
+                  <p className="text-[10px] font-medium text-zinc-400">Cel: +57 301 400 4743 | sunpartnersco@gmail.com</p>
+                  <p className="text-[10px] font-medium text-zinc-400">@sunpartners | www.sunpartners.com.co</p>
+                </>
+              ) : (
+                <div className="flex flex-col items-start md:items-end gap-1.5 md:pt-1">
+                   <p className="text-xs font-black text-zinc-900 tracking-widest uppercase">Propuesta de Servicios</p>
+                   <p className="text-[10px] font-bold text-zinc-400">Documento privado de carácter comercial</p>
+                </div>
+              )}
            </div>
         </div>
            <div className="p-12 md:p-20 pt-10 md:pt-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
@@ -191,7 +208,6 @@ const PublicQuotation = () => {
                     <div className="pt-2 border-t border-zinc-50 space-y-1">
                        <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Email:</span> <span className="font-medium text-zinc-500">{quotation.client.email || 'PENDIENTE'}</span></p>
                        <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Teléfono:</span> <span className="font-medium text-zinc-500">{quotation.client.telefono || 'PENDIENTE'}</span></p>
-                       <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Asesor:</span> <span className="font-medium text-zinc-500">{quotation.consultant?.nombre || 'SISTEMA'}</span></p>
                     </div>
                  </div>
               </div>
@@ -298,7 +314,7 @@ const PublicQuotation = () => {
                   "Esta cotización tiene una vigencia de 24 horas a partir de su emisión.",
                   "Precios sujetos a disponibilidad al momento de la formalización del pago.",
                   "El cliente es responsable por cualquier daño, pérdida o robo de los equipos.",
-                  "Sunpartners no se hace responsable por fallas eléctricas externas.",
+                  quotation.client?.documentType === 'CC' ? "No se hace responsable por fallas eléctricas externas." : "Sunpartners no se hace responsable por fallas eléctricas externas.",
                   "Cancelaciones con menos de 48 horas incurren en penalidad del 50%.",
                   "Los horarios de montaje y desmontaje deben cumplirse estrictamente.",
                   "No se permite el subarriendo ni traslado de equipos sin autorización.",
@@ -310,6 +326,15 @@ const PublicQuotation = () => {
                     <p className="text-[10px] leading-relaxed text-zinc-400 font-bold  tracking-tight">{text}</p>
                   </div>
                 ))}
+              </div>
+              <div className="mt-12 pt-6 border-t border-zinc-100 flex items-center gap-3">
+                 <div className="size-8 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-500 border border-zinc-200">
+                    {quotation.consultant?.nombre?.substring(0,2) || 'S'}
+                 </div>
+                 <div className="flex flex-col">
+                    <span className="text-[11px] font-bold text-zinc-900">Asesor Comercial: {quotation.consultant?.nombre || 'SISTEMA'}</span>
+                    <span className="text-[10px] text-zinc-400 font-medium tracking-tight">Móvil: +57 301 400 4743</span>
+                 </div>
               </div>
            </div>
            <div className="min-w-[320px] space-y-6 lg:border-l lg:border-zinc-200 lg:pl-16">
