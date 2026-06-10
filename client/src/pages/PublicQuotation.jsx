@@ -119,6 +119,11 @@ const PublicQuotation = () => {
 
   const { subtotal, iva, total } = calculateTotals(quotation?.items, quotation?.services, quotation?.client?.isTaxExempt);
 
+  // v60.7: Fallback logic for client contact information
+  const primaryContact = quotation?.clientContact || quotation?.client?.contacts?.find(c => c.isPrimary) || quotation?.client?.contacts?.[0];
+  const displayEmail = quotation?.contactEmail || primaryContact?.email || quotation?.client?.email || 'PENDIENTE';
+  const displayPhone = quotation?.contactPhone || primaryContact?.phone || quotation?.client?.telefono || 'PENDIENTE';
+
   const formatPublicDate = (dateString) => {
     if (!dateString) return 'PENDIENTE';
     return new Intl.DateTimeFormat('es-CO', {
@@ -206,8 +211,8 @@ const PublicQuotation = () => {
                     </p>
                     <p className="text-[9px] text-zinc-400">{quotation.client.ciudad || 'Ciudad no especificada'}</p>
                     <div className="pt-2 border-t border-zinc-50 space-y-1">
-                       <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Email:</span> <span className="font-medium text-zinc-500">{quotation.client.email || 'PENDIENTE'}</span></p>
-                       <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Teléfono:</span> <span className="font-medium text-zinc-500">{quotation.client.telefono || 'PENDIENTE'}</span></p>
+                       <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Email:</span> <span className="font-medium text-zinc-500">{displayEmail}</span></p>
+                       <p className="text-[9px] text-zinc-400"><span className="font-black uppercase tracking-tight">Teléfono:</span> <span className="font-medium text-zinc-500">{displayPhone}</span></p>
                     </div>
                  </div>
               </div>

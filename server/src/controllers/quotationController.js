@@ -404,48 +404,61 @@ exports.update = async (req, res) => {
       };
     }));
 
-    // Delete existing items and services to replace them
-    await prisma.quotationItem.deleteMany({ where: { quotationId: id } });
-    await prisma.quotationService.deleteMany({ where: { quotationId: id } });
+    // v60.7: Selective update to prevent data loss when only status changes
+    // Delete and recreate items/services only if they are explicitly sent in payload
+    if (items) {
+      await prisma.quotationItem.deleteMany({ where: { quotationId: id } });
+    }
+    if (services) {
+      await prisma.quotationService.deleteMany({ where: { quotationId: id } });
+    }
 
-    const quotation = await prisma.quotation.update({
-      where: { id },
-      data: {
+    const updateData = {
         clientId,
         clientContactId,
         contactName,
         contactEmail,
         contactPhone,
         consultantId: consultantId || undefined,
-        nombre_evento: nombre_evento || 'Evento sin nombre',
-        tipo_evento: tipo_evento || 'Corporativo',
-        ubicacion: ubicacion || 'Por definir',
-        montaje_inicio: new Date(montaje_inicio),
-        montaje_fin: new Date(montaje_fin),
-        evento_inicio: new Date(evento_inicio),
-        evento_fin: new Date(evento_fin),
-        desmontaje_inicio: new Date(desmontaje_inicio),
-        desmontaje_fin: new Date(desmontaje_fin),
+        nombre_evento: nombre_evento || undefined,
+        tipo_evento: tipo_evento || undefined,
+        ubicacion: ubicacion || undefined,
+        montaje_inicio: montaje_inicio ? new Date(montaje_inicio) : undefined,
+        montaje_fin: montaje_fin ? new Date(montaje_fin) : undefined,
+        evento_inicio: evento_inicio ? new Date(evento_inicio) : undefined,
+        evento_fin: evento_fin ? new Date(evento_fin) : undefined,
+        desmontaje_inicio: desmontaje_inicio ? new Date(desmontaje_inicio) : undefined,
+        desmontaje_fin: desmontaje_fin ? new Date(desmontaje_fin) : undefined,
         pago_metodo,
         evento_servicio,
         evento_duracion,
         bitacora,
         estado,
-        vlrNeto,
-        vlrTotal,
-        items: {
-          create: processedItems
-        },
-        services: {
-          create: (services || []).map(svc => ({
-            tipo: svc.tipo,
-            descripcion: svc.descripcion,
-            cantidad: parseInt(svc.cantidad || 1),
-            dias: parseInt(svc.dias || 1),
-            precio_pactado: parseFloat(svc.precio_pactado),
-            precio_dia_adicional: parseFloat(svc.precio_dia_adicional || 0)
-          }))
-        },
+        vlrNeto: items || services ? vlrNeto : undefined,
+        vlrTotal: items || services ? vlrTotal : undefined
+    };
+
+    if (items) {
+      updateData.items = { create: processedItems };
+    }
+
+    if (services) {
+      updateData.services = {
+        create: services.map(svc => ({
+          tipo: svc.tipo,
+          descripcion: svc.descripcion,
+          cantidad: parseInt(svc.cantidad || 1),
+          dias: parseInt(svc.dias || 1),
+          precio_pactado: parseFloat(svc.precio_pactado),
+          precio_dia_adicional: parseFloat(svc.precio_dia_adicional || 0)
+        }))
+      };
+    }
+
+    const quotation = await prisma.quotation.update({
+      where: { id },
+      data: {
+        ...updateData,
         logs: {
           create: {
             message: 'Cotización actualizada y modificada en el sistema',

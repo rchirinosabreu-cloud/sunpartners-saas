@@ -143,6 +143,11 @@ const QuotationDetail = () => {
 
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
+  // v60.7: Fallback logic for client contact information
+  const primaryContact = quotation.clientContact || quotation.client.contacts?.find(c => c.isPrimary) || quotation.client.contacts?.[0];
+  const displayEmail = quotation.contactEmail || primaryContact?.email || quotation.client.email || 'PENDIENTE';
+  const displayPhone = quotation.contactPhone || primaryContact?.phone || quotation.client.telefono || 'PENDIENTE';
+
   const tabs = [
     { id: 'cotizador', label: 'Cotizador', icon: 'receipt_long' },
     { id: 'fechas', label: 'Logística Fechas', icon: 'calendar_today' },
@@ -213,10 +218,10 @@ const QuotationDetail = () => {
                      </p>
                      <div className="flex flex-wrap gap-x-3 gap-y-1">
                         <p className="text-[10px] text-zinc-400 font-medium">
-                           Email: <span className="text-zinc-500">{quotation.client.email || 'PENDIENTE'}</span>
+                           Email: <span className="text-zinc-500">{displayEmail}</span>
                         </p>
                         <p className="text-[10px] text-zinc-400 font-medium">
-                           Teléfono: <span className="text-zinc-500">{quotation.client.telefono || 'PENDIENTE'}</span>
+                           Teléfono: <span className="text-zinc-500">{displayPhone}</span>
                         </p>
                      </div>
                      <p className="text-[10px] text-zinc-400 font-medium flex items-center gap-1">
@@ -481,7 +486,7 @@ const QuotationDetail = () => {
                   </div>
                   <div>
                     <span className="text-[10px]  font-black text-zinc-400 block">Contacto Cliente</span>
-                    <span className="text-sm font-bold text-zinc-900">{quotation.client.responsable}</span>
+                    <span className="text-sm font-bold text-zinc-900">{quotation.contactName || primaryContact?.name || quotation.client.responsable || 'No asignado'}</span>
                     <span className="text-xs text-zinc-500 block">{quotation.client.ciudad}</span>
                   </div>
                   <div>
