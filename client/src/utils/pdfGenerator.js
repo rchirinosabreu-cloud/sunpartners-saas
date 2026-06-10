@@ -94,13 +94,14 @@ export const generateQuotationPDF = (quotation) => {
   doc.text(`Ciudad: ${quotation.client.ciudad || 'PENDIENTE'}`, 15, leftY);
 
   leftY += 4;
-  doc.text(`Email: ${quotation.contactEmail || quotation.client.contacts?.find(c => c.isPrimary)?.email || quotation.client.email || 'PENDIENTE'}`, 15, leftY);
+  const primaryContact = quotation.clientContact || quotation.client.contacts?.find(c => c.isPrimary) || quotation.client.contacts?.[0];
+  doc.text(`Email: ${quotation.contactEmail || primaryContact?.email || quotation.client.email || 'PENDIENTE'}`, 15, leftY);
 
   leftY += 4;
-  doc.text(`Teléfono: ${quotation.contactPhone || quotation.client.contacts?.find(c => c.isPrimary)?.phone || quotation.client.telefono || 'PENDIENTE'}`, 15, leftY);
+  doc.text(`Teléfono: ${quotation.contactPhone || primaryContact?.phone || quotation.client.telefono || 'PENDIENTE'}`, 15, leftY);
 
   leftY += 4;
-  doc.text(`Responsable: ${quotation.contactName || quotation.client.contacts?.find(c => c.isPrimary)?.name || quotation.client.responsable || 'No asignado'}`, 15, leftY);
+  doc.text(`Responsable: ${quotation.contactName || primaryContact?.name || quotation.client.responsable || 'No asignado'}`, 15, leftY);
 
   // B. Right Column: DATOS DEL EVENTO (Symmetric Reset)
   let rightY = gridBaseY + 10;
