@@ -5,7 +5,7 @@ const { s3Client, BUCKET_NAME, getSignedUrlHelper } = require('../utils/s3Client
 const { calculateLineTotal, calculateTotals } = require('../utils/quotationUtils');
 
 const includeAll = {
-  client: { include: { contacts: { where: { isActive: true } } } },
+  client: { include: { contacts: true } },
   clientContact: true,
   consultant: { select: { id: true, nombre: true, email: true } },
   items: { include: { inventory: { include: { compositions: { include: { warehouseItem: true, componentCatalogItem: true } } } }, compositions: { include: { warehouseItem: true, componentCatalogItem: true } } } },
@@ -17,7 +17,16 @@ const includeAll = {
 exports.getAll = async (req, res) => {
   try {
     const { estado, archived } = req.query;
-    const where = estado ? { estado } : {};
+    const where = {};
+
+    // v60.8: Flexible retrieval for Admins and Ownership filter for Consultants
+    if (req.userRole === 'CONSULTOR') {
+        where.consultantId = req.userId;
+    }
+
+    if (estado) {
+        where.estado = estado;
+    }
 
     // Default: only non-archived. If archived='true', only archived.
     if (archived === 'true') {
@@ -29,7 +38,7 @@ exports.getAll = async (req, res) => {
     const quotations = await prisma.quotation.findMany({
       where,
       include: {
-        client: { include: { contacts: { where: { isActive: true } } } },
+        client: { include: { contacts: true } },
         clientContact: true,
         consultant: { select: { nombre: true } },
         items: { include: { inventory: true } }
