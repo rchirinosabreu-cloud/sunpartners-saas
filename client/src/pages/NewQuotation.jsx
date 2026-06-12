@@ -238,6 +238,7 @@ const NewQuotation = () => {
   const [users, setUsers] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [criticalError, setCriticalError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [modal, setModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -294,18 +295,11 @@ const NewQuotation = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [cRes, iRes, uRes] = await Promise.all([
-          axios.get('/api/clients', { withCredentials: true }),
-          axios.get('/api/inventory/commercial', { withCredentials: true }),
-          axios.get('/api/users', { withCredentials: true })
-        ]);
-        setClients(Array.isArray(cRes.data) ? cRes.data : []);
-        setInventory(Array.isArray(iRes.data) ? iRes.data : []);
-        setUsers(Array.isArray(uRes.data) ? uRes.data : []);
-
+        // v60.9: Critical First Load Strategy - Quotation Data Priority
         if (isEditing) {
-          const qRes = await axios.get(`/api/quotations/${id}`, { withCredentials: true });
-          const q = qRes.data;
+          try {
+             const qRes = await axios.get(`/api/quotations/${id}`, { withCredentials: true });
+             const q = qRes.data;
           setFormData({
             clientId: q.clientId,
             clientContactId: q.clientContactId || '',
@@ -352,18 +346,35 @@ const NewQuotation = () => {
               precio_dia_adicional: sv.precio_dia_adicional
             }))
           });
-          if (q.montaje_inicio) setMI(new Date(q.montaje_inicio));
-          if (q.montaje_fin) setMF(new Date(q.montaje_fin));
-          if (q.evento_inicio) setEI(new Date(q.evento_inicio));
-          if (q.evento_fin) setEF(new Date(q.evento_fin));
-          if (q.desmontaje_inicio) setDI(new Date(q.desmontaje_inicio));
-          if (q.desmontaje_fin) setDF(new Date(q.desmontaje_fin));
-          } else {
-            // New quotation, default to current user
-            setFormData(prev => ({ ...prev, consultantId: currentUser?.id || '' }));
+             if (q.montaje_inicio) setMI(new Date(q.montaje_inicio));
+             if (q.montaje_fin) setMF(new Date(q.montaje_fin));
+             if (q.evento_inicio) setEI(new Date(q.evento_inicio));
+             if (q.evento_fin) setEF(new Date(q.evento_fin));
+             if (q.desmontaje_inicio) setDI(new Date(q.desmontaje_inicio));
+             if (q.desmontaje_fin) setDF(new Date(q.desmontaje_fin));
+          } catch (e) {
+             console.error("Error cargando cotización:", e);
+             setCriticalError("Error crítico: No fue posible cargar los datos de la cotización. No intente guardar este formulario.");
+             setLoading(false);
+             return;
           }
-        } catch (err) {
-        console.error(err);
+        } else {
+           // New quotation, default to current user
+           setFormData(prev => ({ ...prev, consultantId: currentUser?.id || '' }));
+        }
+
+        // Secondary resources - Promise.all for speed, with individual fallbacks
+        const [cRes, iRes, uRes] = await Promise.all([
+          axios.get('/api/clients', { withCredentials: true }).catch(() => ({ data: [] })),
+          axios.get('/api/inventory/commercial', { withCredentials: true }).catch(() => ({ data: [] })),
+          axios.get('/api/users', { withCredentials: true }).catch(() => ({ data: [] }))
+        ]);
+        setClients(Array.isArray(cRes.data) ? cRes.data : []);
+        setInventory(Array.isArray(iRes.data) ? iRes.data : []);
+        setUsers(Array.isArray(uRes.data) ? uRes.data : []);
+
+      } catch (err) {
+        console.error("Error en carga de recursos:", err);
       } finally {
         setLoading(false);
       }
@@ -438,7 +449,20 @@ const NewQuotation = () => {
     setDeleteConfirm({ isOpen: false, type: '', index: null });
   };
 
-  if (loading) return <div className="p-20 text-center font-display text-zinc-400">CARGANDO...</div>;
+  if (criticalError) {
+    return (
+       <div className="min-h-screen flex items-center justify-center bg-red-50 p-8">
+          <div className="max-w-md w-full bg-white border border-red-200 p-12 rounded-xl text-center shadow-2xl space-y-6">
+             <span className="material-symbols-outlined text-red-500 text-6xl">dangerous</span>
+             <h2 className="text-xl font-black text-zinc-900">{criticalError}</h2>
+             <p className="text-zinc-500 text-xs font-medium leading-relaxed">Por favor, regrese a la lista de cotizaciones e intente abrir el registro nuevamente. Si el error persiste, contacte a soporte técnico.</p>
+             <button onClick={() => navigate('/cotizaciones')} className="w-full bg-zinc-900 text-white py-4 rounded-lg text-xs font-black tracking-widest uppercase">Volver al listado</button>
+          </div>
+       </div>
+    );
+  }
+
+  if (loading) return <div className="p-20 text-center font-display text-zinc-400 animate-pulse uppercase tracking-[0.4em]">Sincronizando recursos...</div>;
 
   return (
     <div className="p-8 max-w-7xl mx-auto font-body bg-[#F8FAFC] min-h-screen">
@@ -1070,7 +1094,11 @@ const NewQuotation = () => {
              {activeTab < 4 ? (
                 <button type="button" onClick={() => setActiveTab(p => Math.min(4, p + 1))} className="bg-primary text-white px-14 py-4 rounded-lg text-[11px] font-black  tracking-widest hover:opacity-90 shadow-lg shadow-primary/20 transition-all">Siguiente Estación</button>
              ) : (
-                <button type="submit" disabled={saving} className="bg-primary text-white px-20 py-4 rounded-lg text-[11px] font-black  tracking-widest shadow-xl shadow-primary/20 hover:opacity-90 transition-all">
+                <button
+                  type="submit"
+                  disabled={saving || clients.length === 0 || inventory.length === 0}
+                  className={`bg-primary text-white px-20 py-4 rounded-lg text-[11px] font-black tracking-widest shadow-xl shadow-primary/20 hover:opacity-90 transition-all ${ (clients.length === 0 || inventory.length === 0) ? 'opacity-50 cursor-not-allowed' : '' }`}
+                >
                    {saving ? 'Procesando...' : 'Finalizar Propuesta Maestro'}
                 </button>
              )}

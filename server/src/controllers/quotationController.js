@@ -413,69 +413,73 @@ exports.update = async (req, res) => {
       };
     }));
 
-    // v60.7: Selective update to prevent data loss when only status changes
-    // Delete and recreate items/services only if they are explicitly sent in payload
-    if (items) {
-      await prisma.quotationItem.deleteMany({ where: { quotationId: id } });
-    }
-    if (services) {
-      await prisma.quotationService.deleteMany({ where: { quotationId: id } });
-    }
-
-    const updateData = {
-        clientId,
-        clientContactId,
-        contactName,
-        contactEmail,
-        contactPhone,
-        consultantId: consultantId || undefined,
-        nombre_evento: nombre_evento || undefined,
-        tipo_evento: tipo_evento || undefined,
-        ubicacion: ubicacion || undefined,
-        montaje_inicio: montaje_inicio ? new Date(montaje_inicio) : undefined,
-        montaje_fin: montaje_fin ? new Date(montaje_fin) : undefined,
-        evento_inicio: evento_inicio ? new Date(evento_inicio) : undefined,
-        evento_fin: evento_fin ? new Date(evento_fin) : undefined,
-        desmontaje_inicio: desmontaje_inicio ? new Date(desmontaje_inicio) : undefined,
-        desmontaje_fin: desmontaje_fin ? new Date(desmontaje_fin) : undefined,
-        pago_metodo,
-        evento_servicio,
-        evento_duracion,
-        bitacora,
-        estado,
-        vlrNeto: items || services ? vlrNeto : undefined,
-        vlrTotal: items || services ? vlrTotal : undefined
-    };
-
-    if (items) {
-      updateData.items = { create: processedItems };
-    }
-
-    if (services) {
-      updateData.services = {
-        create: services.map(svc => ({
-          tipo: svc.tipo,
-          descripcion: svc.descripcion,
-          cantidad: parseInt(svc.cantidad || 1),
-          dias: parseInt(svc.dias || 1),
-          precio_pactado: parseFloat(svc.precio_pactado),
-          precio_dia_adicional: parseFloat(svc.precio_dia_adicional || 0)
-        }))
-      };
-    }
-
-    const quotation = await prisma.quotation.update({
-      where: { id },
-      data: {
-        ...updateData,
-        logs: {
-          create: {
-            message: 'Cotización actualizada y modificada en el sistema',
-            userId: req.userId
-          }
+    // v60.9: Secured update via Transaction to prevent accidental data loss
+    const quotation = await prisma.$transaction(async (tx) => {
+        // 1. Selective cleanup
+        if (items) {
+          await tx.quotationItem.deleteMany({ where: { quotationId: id } });
         }
-      },
-      include: { items: true, services: true }
+        if (services) {
+          await tx.quotationService.deleteMany({ where: { quotationId: id } });
+        }
+
+        // 2. Data Sanitization (convert '' to null for FKs)
+        const updateData = {
+            clientId,
+            clientContactId: clientContactId === '' ? null : clientContactId,
+            contactName,
+            contactEmail,
+            contactPhone,
+            consultantId: consultantId || undefined,
+            nombre_evento: nombre_evento || undefined,
+            tipo_evento: tipo_evento || undefined,
+            ubicacion: ubicacion || undefined,
+            montaje_inicio: montaje_inicio ? new Date(montaje_inicio) : undefined,
+            montaje_fin: montaje_fin ? new Date(montaje_fin) : undefined,
+            evento_inicio: evento_inicio ? new Date(evento_inicio) : undefined,
+            evento_fin: evento_fin ? new Date(evento_fin) : undefined,
+            desmontaje_inicio: desmontaje_inicio ? new Date(desmontaje_inicio) : undefined,
+            desmontaje_fin: desmontaje_fin ? new Date(desmontaje_fin) : undefined,
+            pago_metodo,
+            evento_servicio,
+            evento_duracion,
+            bitacora,
+            estado,
+            vlrNeto: (items || services) ? vlrNeto : undefined,
+            vlrTotal: (items || services) ? vlrTotal : undefined
+        };
+
+        if (items) {
+          updateData.items = { create: processedItems };
+        }
+
+        if (services) {
+          updateData.services = {
+            create: services.map(svc => ({
+              tipo: svc.tipo,
+              descripcion: svc.descripcion,
+              cantidad: parseInt(svc.cantidad || 1),
+              dias: parseInt(svc.dias || 1),
+              precio_pactado: parseFloat(svc.precio_pactado),
+              precio_dia_adicional: parseFloat(svc.precio_dia_adicional || 0)
+            }))
+          };
+        }
+
+        // 3. Final atomic update
+        return await tx.quotation.update({
+          where: { id },
+          data: {
+            ...updateData,
+            logs: {
+              create: {
+                message: 'Cotización actualizada y modificada en el sistema',
+                userId: req.userId
+              }
+            }
+          },
+          include: { items: true, services: true }
+        });
     });
 
     res.json(quotation);
@@ -595,11 +599,14 @@ exports.rejectByHash = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { estado, details, force } = req.body;
-    const current = await prisma.quotation.findUnique({ where: { id: req.params.id } });
+    const { id } = req.params;
+
+    const current = await prisma.quotation.findUnique({ where: { id } });
+    if (!current) return res.status(404).json({ error: 'Cotización no encontrada' });
 
     // Bypass check if force is true (v47.0: Freedom for Admin)
     if (!force && (estado === 'APROBADA' || estado === 'EJECUCION')) {
-      const conflict = await checkAvailability(req.params.id);
+      const conflict = await checkAvailability(id);
       if (conflict) {
         return res.status(400).json({
           error: 'Conflicto de disponibilidad',
@@ -608,8 +615,9 @@ exports.updateStatus = async (req, res) => {
       }
     }
 
+    // v60.9: Simple status change doesn't need a complex transaction but still benefits from atomicity
     const updated = await prisma.quotation.update({
-      where: { id: req.params.id },
+      where: { id },
       data: {
         estado,
         logs: {
