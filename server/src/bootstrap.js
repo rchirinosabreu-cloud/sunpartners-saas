@@ -26,25 +26,15 @@ const bootstrapAdmin = async () => {
   }
 
   // Clean up all users to match new schema (Roles/Departments)
-  const FIXED_PASSWORD = "SunBTL2026_Premium";
   try {
     const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
-    const hashedPassword = await bcrypt.hash(FIXED_PASSWORD, 10);
 
     if (existing) {
-        // Force update the password to the new one
-        await prisma.user.update({
-          where: { email: adminEmail },
-          data: {
-            username: 'admin',
-            password: hashedPassword,
-            department: 'DIRECCION_COMERCIAL'
-          }
-        });
-        console.log(`[Sunpartners] Admin updated successfully.`);
+        console.log(`[Sunpartners] Admin already exists. Skipping creation.`);
         return;
     }
 
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     await prisma.user.create({
       data: {
         username: 'admin',

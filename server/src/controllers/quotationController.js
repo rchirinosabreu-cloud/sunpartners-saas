@@ -415,18 +415,26 @@ exports.update = async (req, res) => {
 
     // v60.9: Secured update via Transaction to prevent accidental data loss
     const quotation = await prisma.$transaction(async (tx) => {
+        // 0. Payload Validation - Defensive approach to avoid emptyings
+        if (items !== undefined && !Array.isArray(items)) {
+           throw new Error("El campo 'items' debe ser un arreglo válido.");
+        }
+        if (services !== undefined && !Array.isArray(services)) {
+           throw new Error("El campo 'services' debe ser un arreglo válido.");
+        }
+
         // 1. Selective cleanup
-        if (items) {
+        if (items && items.length > 0) {
           await tx.quotationItem.deleteMany({ where: { quotationId: id } });
         }
-        if (services) {
+        if (services && services.length > 0) {
           await tx.quotationService.deleteMany({ where: { quotationId: id } });
         }
 
         // 2. Data Sanitization (convert '' to null for FKs)
         const updateData = {
             clientId,
-            clientContactId: clientContactId === '' ? null : clientContactId,
+            clientContactId: (clientContactId === '' || clientContactId === undefined) ? null : clientContactId,
             contactName,
             contactEmail,
             contactPhone,
@@ -449,11 +457,11 @@ exports.update = async (req, res) => {
             vlrTotal: (items || services) ? vlrTotal : undefined
         };
 
-        if (items) {
+        if (items && items.length > 0) {
           updateData.items = { create: processedItems };
         }
 
-        if (services) {
+        if (services && services.length > 0) {
           updateData.services = {
             create: services.map(svc => ({
               tipo: svc.tipo,
