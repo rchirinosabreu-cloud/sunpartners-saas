@@ -140,7 +140,14 @@ exports.getById = async (req, res) => {
       include: includeAll
     });
     if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
-    res.json(quotation);
+
+    // v60.9.1: Auto-detection of legacy corruption
+    const materialsCount = Array.isArray(quotation.planning?.materiales) ? quotation.planning.materiales.length : 0;
+    const isLegacyCorrupted = ['APROBADA', 'ENVIADA', 'EJECUCION', 'CONFIRMED'].includes(quotation.estado) &&
+                              quotation.items.length === 0 &&
+                              materialsCount > 0;
+
+    res.json({ ...quotation, isLegacyCorrupted });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -535,7 +542,14 @@ exports.getByHash = async (req, res) => {
     });
 
     if (!quotation) return res.status(404).json({ error: 'Cotización no válida o expirada' });
-    res.json(quotation);
+
+    // v60.9.1: Auto-detection of legacy corruption
+    const materialsCount = Array.isArray(quotation.planning?.materiales) ? quotation.planning.materiales.length : 0;
+    const isLegacyCorrupted = ['APROBADA', 'ENVIADA', 'EJECUCION'].includes(quotation.estado) &&
+                              quotation.items.length === 0 &&
+                              materialsCount > 0;
+
+    res.json({ ...quotation, isLegacyCorrupted });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -811,6 +825,80 @@ exports.archive = async (req, res) => {
     });
 
     res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.healFromLogistics = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const quotation = await prisma.quotation.findUnique({
+      where: { id },
+      include: { planning: true }
+    });
+
+    if (!quotation || !quotation.planning?.materiales) {
+      return res.status(404).json({ error: 'No se encontraron datos logísticos para reconstruir.' });
+    }
+
+    const materiales = quotation.planning.materiales;
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Clear any existing items (defensive)
+      await tx.quotationItem.deleteMany({ where: { quotationId: id } });
+
+      // 2. Map logistics materials back to commercial items
+      const newItems = [];
+      for (const mat of materiales) {
+        // Find catalog item by name or id if available
+        const catalogItem = await tx.inventory_Commercial.findFirst({
+           where: {
+             OR: [
+               { id: mat.originalQuotationItemId || undefined },
+               { nombre_comercial: { equals: mat.nombre, mode: 'insensitive' } }
+             ]
+           }
+        });
+
+        newItems.push({
+          quotationId: id,
+          inventoryId: catalogItem?.id || null,
+          customName: catalogItem ? null : mat.nombre,
+          cantidad: parseInt(mat.cantidad) || 1,
+          dias: 1, // Default fallback
+          precio_pactado: catalogItem?.valor_alquiler || 0,
+          precio_dia_adicional: (catalogItem?.valor_alquiler || 0) * 0.5,
+          isExternal: !!mat.isExternal,
+          isComposition: catalogItem?.isComposition || false,
+          vendorCost: mat.costo ? parseFloat(mat.costo) : null,
+          vendorName: mat.proveedor || null
+        });
+      }
+
+      await tx.quotationItem.createMany({ data: newItems });
+
+      // 3. Recalculate totals
+      const itemsForCalc = await tx.quotationItem.findMany({ where: { quotationId: id } });
+      const client = await tx.client.findUnique({ where: { id: quotation.clientId } });
+      const { subtotal, total } = calculateTotals(itemsForCalc, [], client?.isTaxExempt);
+
+      await tx.quotation.update({
+        where: { id },
+        data: {
+          vlrNeto: subtotal,
+          vlrTotal: total,
+          logs: {
+            create: {
+              message: 'RECONSTRUCCIÓN AUTOMÁTICA: Ítems comerciales recuperados desde la Mesa de Trabajo Logística.',
+              userId: req.userId
+            }
+          }
+        }
+      });
+    });
+
+    res.json({ message: 'Cotización reconstruida con éxito.' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

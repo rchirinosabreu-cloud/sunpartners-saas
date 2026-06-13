@@ -70,6 +70,19 @@ const QuotationDetail = () => {
     }
   };
 
+  const handleHeal = async () => {
+    setUpdating(true);
+    try {
+      await axios.put(`/api/quotations/${id}/heal-from-logistics`, {}, { withCredentials: true });
+      setModal({ isOpen: true, title: 'Reconstrucción Exitosa', content: 'Los ítems comerciales han sido restaurados desde la mesa de logística.', type: 'success' });
+      await fetchQuotation();
+    } catch (err) {
+      setModal({ isOpen: true, title: 'Error', content: 'No se pudo reconstruir la cotización.', type: 'error' });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const handleStatusChange = async (newStatus, force = false) => {
     setUpdating(true);
     try {
@@ -179,6 +192,24 @@ const QuotationDetail = () => {
       >
         {modal.content}
       </Modal>
+
+      {quotation.isLegacyCorrupted && (
+        <div className="bg-gradient-to-r from-amber-600 to-red-600 p-4 text-white text-center flex flex-col md:flex-row items-center justify-center gap-4 shadow-lg z-50">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined animate-pulse">warning</span>
+            <p className="text-xs font-black tracking-widest uppercase">
+              Alerta de Registro Legacy: Esta cotización histórica perdió sus detalles comerciales. Los datos logísticos están intactos.
+            </p>
+          </div>
+          <button
+            onClick={handleHeal}
+            disabled={updating}
+            className="bg-white text-red-600 px-6 py-2 rounded-full text-[10px] font-black uppercase hover:bg-zinc-100 transition-all shadow-md disabled:opacity-50"
+          >
+            {updating ? 'Procesando...' : 'Reconstruir Base Comercial desde Logística'}
+          </button>
+        </div>
+      )}
 
       {/* Detail Header (v20.0: Absolute Normalization) */}
       <div className={`bg-white border-b border-zinc-100 px-12 shadow-sm ${quotation.client?.documentType === 'CC' ? 'py-6' : 'py-10'}`}>
