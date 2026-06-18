@@ -1,6 +1,6 @@
 const { S3Client, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-require('dotenv').config();
+try { require('dotenv').config(); } catch (e) {}
 
 // Railway Bucket Credentials (v36.3 definitive mapping)
 const s3Client = new S3Client({
