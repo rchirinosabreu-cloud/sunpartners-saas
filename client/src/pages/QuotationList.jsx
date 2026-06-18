@@ -136,24 +136,39 @@ const QuotationList = () => {
       setActivePopover(null);
       fetchQuotations();
     } catch (err) {
-      // v47.0: Handle availability conflict with bypass option
+      // v67.0: Enhanced decision flow for multi-item conflicts
       if (err.response?.status === 400 && err.response?.data?.error === 'Conflicto de disponibilidad') {
         setActivePopover(null);
+        const conflicts = err.response.data.conflicts || [];
+
         setMessageModal({
           isOpen: true,
-          title: 'Conflicto de disponibilidad',
+          title: 'Conflictos de Disponibilidad',
           content: (
             <div className="space-y-4">
-              <p className="text-zinc-600 text-xs font-medium leading-relaxed">{err.response.data.details}</p>
+              <p className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">Se detectaron los siguientes déficits:</p>
+              <div className="max-h-60 overflow-y-auto border border-zinc-100 rounded-lg divide-y divide-zinc-50">
+                {conflicts.map((c, i) => (
+                  <div key={i} className="p-3 flex justify-between items-center bg-white">
+                    <div>
+                      <p className="text-xs font-black text-zinc-900">{c.productName}</p>
+                      <p className="text-[10px] text-zinc-400 font-bold">Déficit: <span className="text-red-500">-{c.deficit} und</span></p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-zinc-400 tracking-tighter">REQ: {c.needed} | DISP: {c.available}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
               <div className="h-px bg-zinc-100 w-full" />
-              <p className="text-zinc-900 font-black text-[11px] tracking-tight">¿Deseas aprobar la propuesta de todas formas?</p>
+              <p className="text-zinc-900 font-black text-[11px] tracking-tight">¿Deseas aprobar con sobreventa y generar alertas de abastecimiento?</p>
             </div>
           ),
           type: 'warning',
           action: {
-            label: 'Sí, aprobar con conflicto',
+            label: 'Sí, aprobar con sobreventa',
             onClick: () => {
-              setMessageModal({ ...messageModal, isOpen: false });
+              setMessageModal(prev => ({ ...prev, isOpen: false }));
               handleInPlaceStatusChange(quotationId, newStatus, true);
             },
             color: 'primary'

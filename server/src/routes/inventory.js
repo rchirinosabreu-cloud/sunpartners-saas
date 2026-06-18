@@ -2,12 +2,36 @@ const express = require('express');
 const router = express.Router();
 const inventoryController = require('../controllers/inventoryController');
 const { authMiddleware, checkRole } = require('../middleware/auth');
+const prisma = require('../db');
 
 // v60.9: Closed inventory security gaps - require authentication for all routes
 router.use(authMiddleware);
 
 // Helper for write permissions
 const canWrite = checkRole(['ADMIN', 'EDITOR']);
+
+// Inventory Alerts (v67.0: Aggregate supply alerts for Ojo al Dato)
+router.get('/alerts', async (req, res) => {
+  try {
+    const alerts = await prisma.inventoryAlert.findMany({
+      where: { resolvedAt: null },
+      include: {
+        quotation: {
+          select: {
+            id: true,
+            nombre_evento: true,
+            consecutivo: true,
+            client: { select: { razon_social: true } }
+          }
+        }
+      },
+      orderBy: { startDate: 'asc' }
+    });
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Bodega routes
 router.get('/bodega', inventoryController.getAllBodega);
