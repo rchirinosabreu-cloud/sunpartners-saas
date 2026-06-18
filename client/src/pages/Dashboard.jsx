@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 import { toTitleCase } from '../utils/formatters';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -100,7 +101,11 @@ const InventoryAlertWidget = ({ alerts }) => {
       </h2>
       <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 max-h-[400px]">
         {alerts.map((alert) => (
-          <div key={alert.id} className="p-4 rounded-xl border border-alert/10 bg-alert/[0.02] flex items-start gap-4">
+          <Link
+             to={`/cotizaciones/${alert.quotationId}`}
+             key={alert.id}
+             className="p-4 rounded-xl border border-alert/10 bg-alert/[0.02] flex items-start gap-4 hover:border-alert/30 hover:bg-alert/[0.04] transition-all cursor-pointer block"
+          >
              <div className="size-10 rounded-lg bg-alert/10 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-alert text-[20px]">shopping_cart_checkout</span>
              </div>
@@ -109,24 +114,29 @@ const InventoryAlertWidget = ({ alerts }) => {
                    <p className="text-xs font-black text-zinc-900 truncate">{alert.productName}</p>
                    <span className="text-[10px] font-black text-alert bg-alert/10 px-2 py-0.5 rounded">-{alert.deficit} und</span>
                 </div>
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate mb-2">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate mb-1">
                    {alert.quotation.client.razon_social} • {alert.quotation.nombre_evento}
                 </p>
+                <div className="flex items-center gap-2 mb-2">
+                   <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-tighter">
+                      {alert.motivo || "Déficit Detectado"}
+                   </span>
+                </div>
                 <div className="flex items-center gap-3">
                    <div className="flex items-center gap-1 text-[9px] font-black text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded">
                       <span className="material-symbols-outlined text-[12px]">calendar_today</span>
                       {new Date(alert.startDate).toLocaleDateString()}
                    </div>
                    <div className="h-3 w-px bg-zinc-200"></div>
-                   <p className="text-[9px] font-bold text-zinc-400 italic">ID: SP-{alert.quotation.consecutivo}</p>
+                   <p className="text-[9px] font-bold text-zinc-400 italic underline decoration-zinc-200">ID: SP-{alert.quotation.consecutivo}</p>
                 </div>
              </div>
-          </div>
+          </Link>
         ))}
       </div>
       <div className="mt-6 pt-6 border-t border-zinc-50">
          <p className="text-[10px] font-medium text-zinc-400 leading-relaxed italic">
-            Estas alertas representan déficits aceptados manualmente. Gestionar compras o subarriendos para estas fechas.
+            Estas alertas representan déficits aceptados manualmente. Haz clic en una tarjeta para revisar la propuesta.
          </p>
       </div>
     </div>

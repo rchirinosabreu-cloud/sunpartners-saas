@@ -375,6 +375,7 @@ model InventoryAlert {
   startDate       DateTime
   endDate         DateTime
   resolvedAt      DateTime?
+  motivo          String?   // v69.0: "Déficit físico en bodega" or "Conflicto por cruce de fechas"
   createdAt       DateTime  @default(now())
   quotation       Quotation @relation(fields: [quotationId], references: [id])
 }
