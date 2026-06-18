@@ -29,7 +29,8 @@ router.get('/alerts', async (req, res) => {
     });
     res.json(alerts);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.warn(`[InventoryAlerts] Dashboard fetch suppressed: ${error.message}`);
+    res.json([]); // Return empty array to avoid Dashboard crash
   }
 });
 

@@ -147,30 +147,32 @@ const Dashboard = () => {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [statsRes, annRes, quoteRes, alertsRes] = await Promise.all([
-        fetch('/api/tasks/dashboard-stats'),
-        fetch('/api/announcements'),
+      // v67.1: Isolated fetches to prevent single-endpoint failures from crashing entire Dashboard
+      const [statsRes, annRes, quoteRes, alertsRes] = await Promise.allSettled([
+        axios.get('/api/tasks/dashboard-stats'),
+        axios.get('/api/announcements'),
         axios.get('/api/settings/global_motivational_quote'),
         axios.get('/api/inventory/alerts')
       ]);
 
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setStats(statsData);
+      if (statsRes.status === 'fulfilled') {
+        setStats(statsRes.value.data);
       }
 
-      if (annRes.ok) {
-        const annData = await annRes.json();
-        setAnnouncements(annData);
+      if (annRes.status === 'fulfilled') {
+        setAnnouncements(annRes.value.data);
       }
 
-      if (quoteRes.data) {
-        setGlobalQuote(quoteRes.data.value);
-        setEditQuoteValue(quoteRes.data.value);
+      if (quoteRes.status === 'fulfilled' && quoteRes.value.data) {
+        setGlobalQuote(quoteRes.value.data.value);
+        setEditQuoteValue(quoteRes.value.data.value);
       }
 
-      if (alertsRes.data) {
-        setInventoryAlerts(alertsRes.data);
+      if (alertsRes.status === 'fulfilled') {
+        setInventoryAlerts(alertsRes.value.data || []);
+      } else {
+        console.warn("[InventoryAlerts] Failed to load, defaulting to empty list.");
+        setInventoryAlerts([]);
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
