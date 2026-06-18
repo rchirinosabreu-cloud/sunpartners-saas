@@ -1,5 +1,8 @@
 const prisma = require('../db');
 const bcrypt = require('bcrypt');
+const { s3Client, BUCKET_NAME, getSignedUrlHelper, DeleteObjectCommand } = require('../utils/s3Client');
+const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const path = require('path');
 
 exports.getAll = async (req, res) => {
   try {
@@ -12,12 +15,27 @@ exports.getAll = async (req, res) => {
         position: true,
         role: true,
         isActive: true,
+        fotoPerfilUrl: true,
         createdAt: true,
         department: true
       },
       orderBy: { nombre: 'asc' }
     });
-    res.json(users);
+
+    // Generate signed URLs for users with profile pictures
+    const usersWithUrls = await Promise.all(users.map(async (user) => {
+      if (user.fotoPerfilUrl) {
+        try {
+          user.fotoPerfilUrl = await getSignedUrlHelper(user.fotoPerfilUrl);
+        } catch (err) {
+          console.error(`Error generating signed URL for user ${user.id}:`, err);
+          user.fotoPerfilUrl = null;
+        }
+      }
+      return user;
+    }));
+
+    res.json(usersWithUrls);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -77,11 +95,72 @@ exports.update = async (req, res) => {
     const user = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, nombre: true, username: true, email: true, role: true, isActive: true }
+      select: { id: true, nombre: true, username: true, email: true, role: true, isActive: true, fotoPerfilUrl: true }
     });
+
+    if (user.fotoPerfilUrl) {
+      user.fotoPerfilUrl = await getSignedUrlHelper(user.fotoPerfilUrl);
+    }
 
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+exports.uploadProfilePicture = async (req, res) => {
+  try {
+    const userId = req.userId; // From authMiddleware
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se proporcionó ningún archivo.' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, fotoPerfilUrl: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    // 1. Delete old photo if it exists
+    if (user.fotoPerfilUrl) {
+      try {
+        await s3Client.send(new DeleteObjectCommand({
+          Bucket: BUCKET_NAME,
+          Key: user.fotoPerfilUrl
+        }));
+      } catch (err) {
+        console.error('Error deleting old profile picture from S3:', err);
+        // Continue anyway
+      }
+    }
+
+    // 2. Upload new photo
+    const fileExtension = path.extname(req.file.originalname);
+    const key = `profiles/user-${userId}-${Date.now()}${fileExtension}`;
+
+    await s3Client.send(new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    }));
+
+    // 3. Update database
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { fotoPerfilUrl: key },
+      select: { id: true, fotoPerfilUrl: true }
+    });
+
+    // 4. Return signed URL
+    const signedUrl = await getSignedUrlHelper(key);
+    res.json({ fotoPerfilUrl: signedUrl });
+
+  } catch (error) {
+    console.error('Error en uploadProfilePicture:', error);
+    res.status(500).json({ error: 'Error al cargar la fotografía de perfil.' });
   }
 };

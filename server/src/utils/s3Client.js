@@ -1,4 +1,4 @@
-const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 require('dotenv').config();
 
@@ -29,4 +29,4 @@ const getSignedUrlHelper = async (key, expiresIn = 86400) => {
   return await getSignedUrl(s3Client, command, { expiresIn });
 };
 
-module.exports = { s3Client, BUCKET_NAME, getSignedUrlHelper };
+module.exports = { s3Client, BUCKET_NAME, getSignedUrlHelper, DeleteObjectCommand };
