@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import Avatar from 'boring-avatars';
+import SharedUserAvatar from '../components/SharedUserAvatar';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -796,11 +796,9 @@ const NewQuotation = () => {
                               ))}
                            </select>
                            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                              <Avatar
+                              <SharedUserAvatar
                                  size={24}
-                                 name={users.find(u => u.id === formData.consultantId)?.nombre || 'S'}
-                                 variant="beam"
-                                 colors={['#5486A1', '#FBAE17', '#2D4A5A', '#E5E7EB']}
+                                 user={users.find(u => u.id === formData.consultantId)}
                               />
                            </div>
                            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">expand_more</span>

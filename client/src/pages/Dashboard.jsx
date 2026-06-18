@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { toTitleCase } from '../utils/formatters';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import Avatar from 'boring-avatars';
+import SharedUserAvatar from '../components/SharedUserAvatar';
 import axios from 'axios';
 
 function cn(...inputs) {
@@ -56,9 +56,7 @@ const AnnouncementItem = ({ id, content, type, author, date, onDelete, canDelete
 
   return (
     <div className={`p-4 rounded-xl border ${typeColors[type] || typeColors.INFO} flex items-start gap-4 animate-in slide-in-from-right-4 duration-300 relative group`}>
-      <div className="size-10 rounded-lg overflow-hidden shrink-0 border border-white shadow-sm">
-        <Avatar size={40} name={author.nombre} variant="beam" />
-      </div>
+      <SharedUserAvatar user={author} size={40} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
           <span className="text-xs font-bold text-zinc-900 truncate">{toTitleCase(author.nombre)}</span>
@@ -302,9 +300,7 @@ const Dashboard = () => {
                   ) : (
                     stats.logrosRecientes.slice(0, 5).map((logro, idx) => (
                       <div key={logro.id} className="flex items-start gap-3 relative z-10 group">
-                        <div className="size-8 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm ring-4 ring-white">
-                           <Avatar size={32} name={logro.user.nombre} variant="beam" />
-                        </div>
+                        <SharedUserAvatar user={logro.user} size={32} className="ring-4 ring-white" />
                         <div className="flex-1 min-w-0 pt-0.5">
                           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
                             {toTitleCase(logro.user.nombre)} completó:

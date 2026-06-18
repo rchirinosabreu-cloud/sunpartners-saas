@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
-import Avatar from 'boring-avatars';
+import SharedUserAvatar from '../SharedUserAvatar';
 import { toTitleCase } from '../../utils/formatters';
 
 const HistoryModal = ({ isOpen, onClose }) => {
@@ -87,7 +87,7 @@ const HistoryModal = ({ isOpen, onClose }) => {
               <div key={group.worker.id} className="space-y-4">
                 <div className="flex items-center gap-3 border-b border-zinc-50 pb-2">
                   <div className="size-8 rounded-lg overflow-hidden border border-zinc-200">
-                    <Avatar size={32} name={group.worker.nombre} variant="beam" />
+                    <SharedUserAvatar user={group.worker} size={32} />
                   </div>
                   <h4 className="text-sm font-bold text-zinc-900">{toTitleCase(group.worker.nombre)}</h4>
                   <span className="text-[10px] font-bold bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full ml-auto">
