@@ -8,7 +8,7 @@
   "scripts": {
     "postinstall": "npm run postinstall --workspaces",
     "build": "npm run build --workspaces",
-    "start": "node server/src/app.js",
+    "start": "npm start --workspace=server",
     "test": "npm test --workspaces"
   },
   "dependencies": {

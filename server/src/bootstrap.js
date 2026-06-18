@@ -4,12 +4,15 @@ const prisma = require('./db');
 const migrateMissingContacts = require('../scripts/populateMissingContacts');
 
 const bootstrapAdmin = async () => {
-  // v60.6: Emergency raw SQL cleanup for DocumentType before any model queries
+  // v70.0: Comprehensive raw SQL cleanup for DocumentType before any model queries
   try {
-     // Ensure 'CC' exists in the native Postgres Enum
+     // Ensure mandatory Enum values exist in native Postgres
      await prisma.$executeRaw`ALTER TYPE "DocumentType" ADD VALUE IF NOT EXISTS 'CC';`;
-     await prisma.$executeRaw`UPDATE "Client" SET "documentType" = 'OTHER' WHERE "documentType" = 'EIN';`;
-     console.log(`[Sunpartners] Data cleanup (EIN -> OTHER & CC Enum) completed.`);
+     await prisma.$executeRaw`ALTER TYPE "DocumentType" ADD VALUE IF NOT EXISTS 'OTHER';`;
+
+     // Sane data mapping (raw SQL to bypass Prisma model validation)
+     await prisma.$executeRaw`UPDATE "Client" SET "documentType" = 'OTHER' WHERE "documentType" NOT IN ('NIT', 'CC', 'OTHER');`;
+     console.log(`[Sunpartners] Data cleanup (Enum Sync & Type Sanitization) completed.`);
   } catch (e) {
      console.warn(`[Sunpartners] Warning: Could not run raw SQL cleanup: ${e.message}`);
   }
