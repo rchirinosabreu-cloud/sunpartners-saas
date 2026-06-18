@@ -15,7 +15,7 @@ const bootstrapAdmin = require('./bootstrap');
 const prisma = require('./db');
 const ensureSchemaCompatibility = require('./schemaCompatibility');
 
-dotenv.config();
+try { dotenv.config(); } catch (e) {}
 
 // Sincronizar todas las fechas en UTC-5 (Bogotá/Colombia)
 process.env.TZ = 'America/Bogota';

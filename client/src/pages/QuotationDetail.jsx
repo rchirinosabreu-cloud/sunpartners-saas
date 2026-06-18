@@ -1,5 +1,18 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useDismiss,
+  useRole,
+  useClick,
+  useInteractions,
+  FloatingPortal,
+  FloatingFocusManager,
+} from '@floating-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { generateQuotationPDF } from '../utils/pdfGenerator';
@@ -7,7 +20,7 @@ import { calculateLineTotal, calculateTotals } from '../utils/quotationUtils';
 import Modal from '../components/ui/Modal';
 
 const QuotationDetail = () => {
-  const { user: currentUser } = useAuth();
+  const { user } = useAuth();
   const { id } = useParams();
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,7 +28,29 @@ const QuotationDetail = () => {
   const [updating, setUpdating] = useState(false);
   const [linkData, setLinkData] = useState(null);
   const [modal, setModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
+  const [showStatusPopover, setShowStatusPopover] = useState(false);
   const navigate = useNavigate();
+
+  const { refs, floatingStyles, context } = useFloating({
+    open: showStatusPopover,
+    onOpenChange: setShowStatusPopover,
+    middleware: [
+      offset(8),
+      flip({ fallbackAxisSideDirection: 'end' }),
+      shift({ padding: 8 }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
+
+  const click = useClick(context);
+  const dismiss = useDismiss(context);
+  const role = useRole(context);
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    click,
+    dismiss,
+    role,
+  ]);
 
   useEffect(() => {
     fetchQuotation();
@@ -35,13 +70,58 @@ const QuotationDetail = () => {
     }
   };
 
-  const handleStatusChange = async (newStatus) => {
+  const handleHeal = async () => {
     setUpdating(true);
     try {
-      await axios.put(`/api/quotations/${id}/status`, { estado: newStatus }, { withCredentials: true });
+      await axios.put(`/api/quotations/${id}/heal-from-logistics`, {}, { withCredentials: true });
+      setModal({ isOpen: true, title: 'Reconstrucción Exitosa', content: 'Los ítems comerciales han sido restaurados desde la mesa de logística.', type: 'success' });
+      await fetchQuotation();
+    } catch (err) {
+      setModal({ isOpen: true, title: 'Error', content: 'No se pudo reconstruir la cotización.', type: 'error' });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus, force = false) => {
+    setUpdating(true);
+    try {
+      await axios.put(`/api/quotations/${id}/status`, {
+        estado: newStatus,
+        details: 'Estado cambiado manualmente',
+        force: force
+      }, { withCredentials: true });
+
+      setShowStatusPopover(false);
       setModal({ isOpen: true, title: 'Estado Actualizado', content: `La cotización ahora está en estado: ${newStatus}`, type: 'success' });
       await fetchQuotation();
     } catch (err) {
+      // Handle availability conflict with bypass option (consistent with QuotationList)
+      if (err.response?.status === 400 && err.response?.data?.error === 'Conflicto de disponibilidad') {
+        setShowStatusPopover(false);
+        setModal({
+          isOpen: true,
+          title: 'Conflicto de disponibilidad',
+          content: (
+            <div className="space-y-4">
+              <p className="text-zinc-600 text-xs font-medium leading-relaxed">{err.response.data.details}</p>
+              <div className="h-px bg-zinc-100 w-full" />
+              <p className="text-zinc-900 font-black text-[11px] tracking-tight">¿Deseas aprobar la propuesta de todas formas?</p>
+            </div>
+          ),
+          type: 'warning',
+          action: {
+            label: 'Sí, aprobar con conflicto',
+            onClick: () => {
+              setModal({ ...modal, isOpen: false });
+              handleStatusChange(newStatus, true);
+            },
+            color: 'primary'
+          }
+        });
+        return;
+      }
+
       const errorMsg = err.response?.data?.details || err.response?.data?.error || 'No se pudo cambiar el estado.';
       setModal({
         isOpen: true,
@@ -76,6 +156,11 @@ const QuotationDetail = () => {
 
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
+  // v60.7: Fallback logic for client contact information
+  const primaryContact = quotation.clientContact || quotation.client.contacts?.find(c => c.isPrimary) || quotation.client.contacts?.[0];
+  const displayEmail = quotation.contactEmail || primaryContact?.email || quotation.client.email || 'PENDIENTE';
+  const displayPhone = quotation.contactPhone || primaryContact?.phone || quotation.client.telefono || 'PENDIENTE';
+
   const tabs = [
     { id: 'cotizador', label: 'Cotizador', icon: 'receipt_long' },
     { id: 'fechas', label: 'Logística Fechas', icon: 'calendar_today' },
@@ -108,8 +193,26 @@ const QuotationDetail = () => {
         {modal.content}
       </Modal>
 
+      {quotation.isLegacyCorrupted && (
+        <div className="bg-gradient-to-r from-amber-600 to-red-600 p-4 text-white text-center flex flex-col md:flex-row items-center justify-center gap-4 shadow-lg z-50">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined animate-pulse">warning</span>
+            <p className="text-xs font-black tracking-widest uppercase">
+              Alerta de Registro Legacy: Esta cotización histórica perdió sus detalles comerciales. Los datos logísticos están intactos.
+            </p>
+          </div>
+          <button
+            onClick={handleHeal}
+            disabled={updating}
+            className="bg-white text-red-600 px-6 py-2 rounded-full text-[10px] font-black uppercase hover:bg-zinc-100 transition-all shadow-md disabled:opacity-50"
+          >
+            {updating ? 'Procesando...' : 'Reconstruir Base Comercial desde Logística'}
+          </button>
+        </div>
+      )}
+
       {/* Detail Header (v20.0: Absolute Normalization) */}
-      <div className="bg-white border-b border-zinc-100 px-12 py-10 shadow-sm">
+      <div className={`bg-white border-b border-zinc-100 px-12 shadow-sm ${quotation.client?.documentType === 'CC' ? 'py-6' : 'py-10'}`}>
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-10">
             <button
@@ -120,8 +223,18 @@ const QuotationDetail = () => {
             </button>
 
             <div className="flex items-start gap-10">
-              <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
-              <div className="h-14 w-px bg-zinc-100"></div>
+              {quotation.client?.documentType !== 'CC' ? (
+                <>
+                  <img src="/logo_sp.png" alt="Sunpartners" className="h-16 w-auto" />
+                  <div className="h-14 w-px bg-zinc-100"></div>
+                </>
+              ) : (
+                <div className="flex flex-col items-end text-right min-w-[200px] pt-1">
+                  <h3 className="text-[15px] font-black text-zinc-900 uppercase tracking-widest leading-none">Evelyn Pérez</h3>
+                  <p className="text-[11px] font-bold text-zinc-900 mt-2">NIT: 22.793.894-1</p>
+                  <p className="text-[11px] font-bold text-zinc-900">+57 301 400 4743</p>
+                </div>
+              )}
               <div className="space-y-3">
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-3">
@@ -136,10 +249,10 @@ const QuotationDetail = () => {
                      </p>
                      <div className="flex flex-wrap gap-x-3 gap-y-1">
                         <p className="text-[10px] text-zinc-400 font-medium">
-                           Email: <span className="text-zinc-500">{quotation.client.email || 'PENDIENTE'}</span>
+                           Email: <span className="text-zinc-500">{displayEmail}</span>
                         </p>
                         <p className="text-[10px] text-zinc-400 font-medium">
-                           Teléfono: <span className="text-zinc-500">{quotation.client.telefono || 'PENDIENTE'}</span>
+                           Teléfono: <span className="text-zinc-500">{displayPhone}</span>
                         </p>
                      </div>
                      <p className="text-[10px] text-zinc-400 font-medium flex items-center gap-1">
@@ -151,13 +264,24 @@ const QuotationDetail = () => {
 
                 {/* Status Badges Group (LEFT SIDE) */}
                 <div className="flex items-center gap-2 pt-1">
-                  <span className={`badge-status ${
-                    quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
-                    quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                    quotation.estado === 'REVISION_SOLICITADA' ? 'bg-red-50 border-red-200 text-red-600' :
-                    quotation.estado === 'ACCEPTED_PENDING_OC' ? 'bg-amber-50 border-amber-200 text-amber-600' :
-                    'bg-zinc-50 border-zinc-200 text-zinc-500'
-                  }`}>
+                  <span
+                    ref={refs.setReference}
+                    {...getReferenceProps()}
+                    onClick={(e) => {
+                      const hasStatusEditPermission = user?.role === 'ADMIN' || user?.id === quotation.consultantId;
+                      if (hasStatusEditPermission) {
+                        e.stopPropagation();
+                        setShowStatusPopover(!showStatusPopover);
+                      }
+                    }}
+                    className={`badge-status ${
+                      quotation.estado === 'APROBADA' ? 'bg-green-50 border-green-200 text-green-700' :
+                      quotation.estado === 'ENVIADA' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                      quotation.estado === 'REVISION_SOLICITADA' ? 'bg-red-50 border-red-200 text-red-600' :
+                      quotation.estado === 'ACCEPTED_PENDING_OC' ? 'bg-amber-50 border-amber-200 text-amber-600' :
+                      'bg-zinc-50 border-zinc-200 text-zinc-500'
+                    } ${ (user?.role === 'ADMIN' || user?.id === quotation.consultantId) ? 'cursor-pointer hover:ring-2 ring-primary/20 transition-all' : '' }`}
+                  >
                     {
                       quotation.estado === 'REVISION_SOLICITADA' ? 'CAMBIOS SOLICITADOS' :
                       quotation.estado === 'ACCEPTED_PENDING_OC' ? 'PENDIENTE OC' :
@@ -242,9 +366,9 @@ const QuotationDetail = () => {
              )}
 
              <button
-              disabled={!!quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)}
+              disabled={!!quotation.archivedAt || (user?.role === 'CONSULTOR' && quotation.consultantId !== user?.id)}
               onClick={() => navigate(`/cotizaciones/editar/${id}`)}
-              className={`btn-action bg-primary text-white hover:opacity-90 ${(quotation.archivedAt || (currentUser?.role === 'CONSULTOR' && quotation.consultantId !== currentUser?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`btn-action bg-primary text-white hover:opacity-90 ${(quotation.archivedAt || (user?.role === 'CONSULTOR' && quotation.consultantId !== user?.id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
              >
                <span className="material-symbols-outlined">edit</span>
                EDITAR
@@ -363,6 +487,26 @@ const QuotationDetail = () => {
 
               <div className="bg-white border border-zinc-200 rounded p-6">
                 <h3 className="text-xs font-black  tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
+                   <span className="material-symbols-outlined text-[18px]">payments</span>
+                   Forma de Pago
+                </h3>
+                <div className="mb-6">
+                  <span className="text-sm font-bold text-zinc-900">{(quotation.pago_metodo || 'CONTADO').toUpperCase()}</span>
+                </div>
+                <div className="h-px bg-zinc-100 w-full mb-4" />
+                <div className="flex items-center gap-2">
+                   <div className="size-6 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-500 border border-zinc-200">
+                      {quotation.consultant?.nombre?.substring(0,2) || 'S'}
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-zinc-900">Asesor: {quotation.consultant?.nombre || 'SISTEMA'}</span>
+                      <span className="text-[10px] text-zinc-400 font-medium tracking-tight">Cel: +57 301 400 4743</span>
+                   </div>
+                </div>
+              </div>
+
+              <div className="bg-white border border-zinc-200 rounded p-6">
+                <h3 className="text-xs font-black  tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
                    <span className="material-symbols-outlined text-[18px]">location_on</span>
                    Detalles del Evento
                 </h3>
@@ -373,20 +517,8 @@ const QuotationDetail = () => {
                   </div>
                   <div>
                     <span className="text-[10px]  font-black text-zinc-400 block">Contacto Cliente</span>
-                    <span className="text-sm font-bold text-zinc-900">{quotation.client.responsable}</span>
+                    <span className="text-sm font-bold text-zinc-900">{quotation.contactName || primaryContact?.name || quotation.client.responsable || 'No asignado'}</span>
                     <span className="text-xs text-zinc-500 block">{quotation.client.ciudad}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px]  font-black text-zinc-400 block">Consultor Responsable</span>
-                    <div className="flex items-center gap-2 mt-1">
-                       <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 ">
-                          {quotation.consultant?.nombre?.substring(0,2) || 'S'}
-                       </div>
-                       <div className="flex flex-col">
-                          <span className="text-sm font-bold text-zinc-900 ">{quotation.consultant?.nombre || 'SISTEMA'}</span>
-                          <span className="text-[10px] text-zinc-400 font-medium tracking-tight">Cel: +57 301 400 4743</span>
-                       </div>
-                    </div>
                   </div>
                   <div>
                     <span className="text-[10px]  font-black text-zinc-400 block">Fecha Principal</span>
@@ -459,6 +591,43 @@ const QuotationDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Admin Status Popover (Consistent with QuotationList) */}
+      {showStatusPopover && (
+        <FloatingPortal>
+          <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
+            <div
+              ref={refs.setFloating}
+              style={floatingStyles}
+              {...getFloatingProps()}
+              className="z-[200] bg-white border border-zinc-200 rounded-lg shadow-2xl p-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150 outline-none"
+              onClick={e => e.stopPropagation()}
+            >
+              <p className="px-3 py-2 text-[9px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-50 mb-1">
+                Cambiar Estado
+              </p>
+              <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                {[
+                  { val: 'BORRADOR', label: 'BORRADOR' },
+                  { val: 'ENVIADA', label: 'ENVIADA' },
+                  { val: 'APROBADA', label: 'APROBADA' },
+                  { val: 'REVISION_SOLICITADA', label: 'CAMBIOS SOLICITADOS' },
+                  { val: 'ACCEPTED_PENDING_OC', label: 'PENDIENTE OC' },
+                  { val: 'CANCELADA', label: 'CANCELADA' }
+                ].map(opt => (
+                  <button
+                    key={opt.val}
+                    onClick={() => handleStatusChange(opt.val)}
+                    className={`w-full text-left px-3 py-2.5 text-[11px] font-bold rounded-md transition-all hover:bg-zinc-50 ${quotation.estado === opt.val ? 'text-primary bg-primary/5' : 'text-zinc-600'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </FloatingFocusManager>
+        </FloatingPortal>
+      )}
     </div>
   );
 };

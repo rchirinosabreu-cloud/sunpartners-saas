@@ -15,39 +15,54 @@ export const generateQuotationPDF = (quotation) => {
   const { subtotal, iva, total } = calculateTotals(quotation.items, quotation.services, quotation.client.isTaxExempt);
 
   // 1. Header - Institutional Symmetry (v25.0)
-  const logoUrl = '/logo_sp.png';
-  try {
-    // Logo on the top left
-    doc.addImage(logoUrl, 'PNG', 15, 10, 60, 24);
-  } catch (e) {
-    console.warn('Logo could not be loaded for PDF', e);
+  const isNaturalPerson = quotation.client?.documentType === 'CC';
+  const headerOffset = isNaturalPerson ? -30 : 0; // v60.5: Optimized vertical space for natural person
+
+  if (!isNaturalPerson) {
+    const logoUrl = '/logo_sp.png';
+    try {
+      // Logo on the top left
+      doc.addImage(logoUrl, 'PNG', 15, 10, 60, 24);
+    } catch (e) {
+      console.warn('Logo could not be loaded for PDF', e);
+    }
   }
 
   // Institutional Info (Top Right, aligned with logo)
-  doc.setTextColor(113, 113, 122); // Zinc-500
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
-  doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 195, 13, { align: 'right' });
-  doc.setFont('helvetica', 'normal');
-  doc.text('Cra. 15 No. 15-25, local 2, Cartagena de Indias.', 195, 17, { align: 'right' });
-  doc.text('Cel: +57 301 400 4743 | sunpartnersco@gmail.com', 195, 21, { align: 'right' });
-  doc.text('@sunpartners | www.sunpartners.com.co', 195, 25, { align: 'right' });
+
+  if (isNaturalPerson) {
+    doc.setTextColor(0, 0, 0); // Pure Black
+    doc.setFontSize(9);
+    doc.text('Evelyn Pérez', 195, 45 + headerOffset, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('NIT: 22.793.894-1', 195, 50 + headerOffset, { align: 'right' });
+    doc.text('+57 301 400 4743', 195, 55 + headerOffset, { align: 'right' });
+  } else {
+    doc.setTextColor(113, 113, 122); // Zinc-500
+    doc.text('SUN PARTNERS GLOBAL LOGISTIC S.A.S. | NIT: 901480536-2', 195, 13, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('Cra. 15 No. 15-25, local 2, Cartagena de Indias.', 195, 17, { align: 'right' });
+    doc.text('Cel: +57 301 400 4743 | sunpartnersco@gmail.com', 195, 21, { align: 'right' });
+    doc.text('@sunpartners | www.sunpartners.com.co', 195, 25, { align: 'right' });
+  }
 
   // Title Area (Below Logo, Left Side)
   doc.setTextColor(24, 24, 27); // Zinc-900
   doc.setFontSize(12); // Reduced size for elegance
   doc.setFont('helvetica', 'bold');
-  doc.text('COTIZACIÓN', 15, 45);
+  doc.text('COTIZACIÓN', 15, 45 + headerOffset);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0); // v60.2: Pure Black for high contrast
   const refLabel = quotation?.consecutivo ? `SP-${quotation.consecutivo}` : `#Q-${(quotation?.id || 'REF').substring(0, 6).toUpperCase()}`;
-  doc.text(`REF: ${refLabel}`, 15, 50);
-  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 15, 54);
+  doc.text(`REF: ${refLabel}`, 15, 50 + headerOffset);
+  doc.text(`EMISIÓN: ${new Date().toLocaleDateString('es-CO')}`, 15, 54 + headerOffset);
 
   // 2. Client & Logistics Grid (v51.4: Symmetric Block System)
-  const gridBaseY = 58;
+  const gridBaseY = 58 + headerOffset;
   doc.setDrawColor(244, 244, 245);
   doc.line(15, gridBaseY, 195, gridBaseY);
 
@@ -79,13 +94,14 @@ export const generateQuotationPDF = (quotation) => {
   doc.text(`Ciudad: ${quotation.client.ciudad || 'PENDIENTE'}`, 15, leftY);
 
   leftY += 4;
-  doc.text(`Email: ${quotation.contactEmail || quotation.client.contacts?.find(c => c.isPrimary)?.email || quotation.client.email || 'PENDIENTE'}`, 15, leftY);
+  const primaryContact = quotation.clientContact || quotation.client.contacts?.find(c => c.isPrimary) || quotation.client.contacts?.[0];
+  doc.text(`Email: ${quotation.contactEmail || primaryContact?.email || quotation.client.email || 'PENDIENTE'}`, 15, leftY);
 
   leftY += 4;
-  doc.text(`Teléfono: ${quotation.contactPhone || quotation.client.contacts?.find(c => c.isPrimary)?.phone || quotation.client.telefono || 'PENDIENTE'}`, 15, leftY);
+  doc.text(`Teléfono: ${quotation.contactPhone || primaryContact?.phone || quotation.client.telefono || 'PENDIENTE'}`, 15, leftY);
 
   leftY += 4;
-  doc.text(`Responsable: ${quotation.contactName || quotation.client.contacts?.find(c => c.isPrimary)?.name || quotation.client.responsable || 'No asignado'}`, 15, leftY);
+  doc.text(`Responsable: ${quotation.contactName || primaryContact?.name || quotation.client.responsable || 'No asignado'}`, 15, leftY);
 
   // B. Right Column: DATOS DEL EVENTO (Symmetric Reset)
   let rightY = gridBaseY + 10;
@@ -310,7 +326,7 @@ export const generateQuotationPDF = (quotation) => {
     "2. Esta cotización tiene una vigencia de 24 horas a partir de su emisión.",
     "3. Precios sujetos a disponibilidad al momento de formalizar el pago.",
     "4. El cliente es responsable por daños, pérdida o robo de equipos.",
-    "5. Sunpartners no responde por fallas eléctricas externas.",
+    isNaturalPerson ? "5. No se responde por fallas eléctricas externas." : "5. Sunpartners no responde por fallas eléctricas externas.",
     "6. Cancelaciones < 48h incurren en penalidad del 50%.",
     "7. Horarios de montaje y desmontaje deben cumplirse estrictamente.",
     "8. Prohibido subarriendo o traslado de equipos sin autorización.",

@@ -6,8 +6,10 @@ const migrateMissingContacts = require('../scripts/populateMissingContacts');
 const bootstrapAdmin = async () => {
   // v60.6: Emergency raw SQL cleanup for DocumentType before any model queries
   try {
+     // Ensure 'CC' exists in the native Postgres Enum
+     await prisma.$executeRaw`ALTER TYPE "DocumentType" ADD VALUE IF NOT EXISTS 'CC';`;
      await prisma.$executeRaw`UPDATE "Client" SET "documentType" = 'OTHER' WHERE "documentType" = 'EIN';`;
-     console.log(`[Sunpartners] Data cleanup (EIN -> OTHER) completed.`);
+     console.log(`[Sunpartners] Data cleanup (EIN -> OTHER & CC Enum) completed.`);
   } catch (e) {
      console.warn(`[Sunpartners] Warning: Could not run raw SQL cleanup: ${e.message}`);
   }
@@ -24,25 +26,15 @@ const bootstrapAdmin = async () => {
   }
 
   // Clean up all users to match new schema (Roles/Departments)
-  const FIXED_PASSWORD = "SunBTL2026_Premium";
   try {
     const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
-    const hashedPassword = await bcrypt.hash(FIXED_PASSWORD, 10);
 
     if (existing) {
-        // Force update the password to the new one
-        await prisma.user.update({
-          where: { email: adminEmail },
-          data: {
-            username: 'admin',
-            password: hashedPassword,
-            department: 'DIRECCION_COMERCIAL'
-          }
-        });
-        console.log(`[Sunpartners] Admin updated successfully.`);
+        console.log(`[Sunpartners] Admin (${adminEmail}) already exists. Skipping bootstrap to prevent credential overwrite.`);
         return;
     }
 
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     await prisma.user.create({
       data: {
         username: 'admin',

@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../db');
+const { getSignedUrlHelper } = require('../utils/s3Client');
 
 const login = async (req, res) => {
   const { identifier, password } = req.body;
@@ -55,6 +56,15 @@ const login = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
+    let fotoPerfilUrl = null;
+    if (user.fotoPerfilUrl) {
+      try {
+        fotoPerfilUrl = await getSignedUrlHelper(user.fotoPerfilUrl);
+      } catch (err) {
+        console.error('Error generating signed URL on login:', err);
+      }
+    }
+
     res.json({
       user: {
         id: user.id,
@@ -62,6 +72,7 @@ const login = async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        fotoPerfilUrl
       },
     });
   } catch (error) {
@@ -82,11 +93,20 @@ const getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, nombre: true, username: true, email: true, role: true },
+      select: { id: true, nombre: true, username: true, email: true, role: true, fotoPerfilUrl: true },
     });
 
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    if (user.fotoPerfilUrl) {
+      try {
+        user.fotoPerfilUrl = await getSignedUrlHelper(user.fotoPerfilUrl);
+      } catch (err) {
+        console.error('Error generating signed URL in getMe:', err);
+        user.fotoPerfilUrl = null;
+      }
     }
 
     res.json(user);

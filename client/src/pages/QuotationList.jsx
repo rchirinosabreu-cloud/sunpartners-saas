@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
 import { toTitleCase, matchesSearch } from '../utils/formatters';
-import Avatar from "boring-avatars";
+import SharedUserAvatar from '../components/SharedUserAvatar';
 
 const QuotationList = () => {
   const { user } = useAuth();
@@ -187,7 +187,7 @@ const QuotationList = () => {
 
     const isActive = activePopover?.id === quotation.id;
 
-    const hasStatusEditPermission = user?.role === 'ADMIN' && (user?.email === 'admin@sunpartners.com' || user?.email?.includes('evelyn'));
+    const hasStatusEditPermission = user?.role === 'ADMIN' || user?.id === quotation.consultantId;
 
     return (
       <span
@@ -326,14 +326,11 @@ const QuotationList = () => {
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-2">
-                       <div className="size-7 rounded-full overflow-hidden flex items-center justify-center border border-zinc-200" title={toTitleCase(q.consultant?.nombre) || 'Sistema'}>
-                          <Avatar
-                            size={28}
-                            name={q.consultant?.nombre || 'System'}
-                            variant="beam"
-                            colors={['#5486A1', '#FBAE17', '#222222', '#F2F2F2', '#EAEAEA']}
-                          />
-                       </div>
+                       <SharedUserAvatar
+                         user={q.consultant}
+                         size={28}
+                         title={toTitleCase(q.consultant?.nombre) || 'Sistema'}
+                       />
                        <span className="text-[11px] font-bold text-zinc-600 tracking-tight">{toTitleCase(q.consultant?.nombre) || 'SISTEMA'}</span>
                     </div>
                   </td>
