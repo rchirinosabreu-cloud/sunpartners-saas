@@ -18,7 +18,7 @@ const authMiddleware = async (req, res, next) => {
     // Check if user is still active
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { isActive: true }
+      select: { isActive: true, email: true, username: true }
     });
 
     if (!user || !user.isActive) {
@@ -26,7 +26,7 @@ const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ message: 'User account is inactive or not found' });
     }
 
-    req.user = decoded;
+    req.user = { ...decoded, email: user.email, username: user.username };
     req.userId = decoded.userId;
     req.userRole = decoded.role;
     next();

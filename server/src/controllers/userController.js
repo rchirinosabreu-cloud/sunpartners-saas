@@ -110,13 +110,23 @@ exports.update = async (req, res) => {
 
 exports.uploadProfilePicture = async (req, res) => {
   try {
-    const userId = req.userId; // From authMiddleware
+    const targetUserId = req.params.id || req.userId;
+    const currentUser = req.user; // Full user payload from authMiddleware
+
+    // 0. Strict Authorization Lock
+    const isSelf = currentUser.userId === targetUserId;
+    const isMasterAdmin = currentUser.email === process.env.ADMIN_USER || currentUser.username === 'admin';
+
+    if (!isSelf && !isMasterAdmin) {
+      return res.status(403).json({ error: 'No tienes autorización para cambiar la foto de este usuario.' });
+    }
+
     if (!req.file) {
       return res.status(400).json({ error: 'No se proporcionó ningún archivo.' });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: targetUserId },
       select: { id: true, fotoPerfilUrl: true }
     });
 
@@ -139,7 +149,7 @@ exports.uploadProfilePicture = async (req, res) => {
 
     // 2. Upload new photo
     const fileExtension = path.extname(req.file.originalname);
-    const key = `profiles/user-${userId}-${Date.now()}${fileExtension}`;
+    const key = `profiles/user-${targetUserId}-${Date.now()}${fileExtension}`;
 
     await s3Client.send(new PutObjectCommand({
       Bucket: BUCKET_NAME,
@@ -150,7 +160,7 @@ exports.uploadProfilePicture = async (req, res) => {
 
     // 3. Update database
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: targetUserId },
       data: { fotoPerfilUrl: key },
       select: { id: true, fotoPerfilUrl: true }
     });
