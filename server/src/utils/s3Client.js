@@ -15,6 +15,9 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
 
+// v67.0: In-memory cache for signed URLs to prevent flicker/browser cache busting
+const urlCache = new Map();
+
 /**
  * Generates a temporary signed URL for a private S3 object (v38.0)
  * @param {string} key - The object key in the bucket
@@ -22,11 +25,23 @@ const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
  */
 const getSignedUrlHelper = async (key, expiresIn = 86400) => {
   if (!key) return null;
+
+  // Check cache (v67.0: Use 1-hour cache window to keep URLs stable for browser)
+  const cached = urlCache.get(key);
+  const now = Date.now();
+  if (cached && (now - cached.timestamp < 3600000)) {
+    return cached.url;
+  }
+
   const command = new GetObjectCommand({
     Bucket: BUCKET_NAME,
     Key: key,
   });
-  return await getSignedUrl(s3Client, command, { expiresIn });
+  const url = await getSignedUrl(s3Client, command, { expiresIn });
+
+  // Update cache
+  urlCache.set(key, { url, timestamp: now });
+  return url;
 };
 
 module.exports = { s3Client, BUCKET_NAME, getSignedUrlHelper, DeleteObjectCommand };
