@@ -30,7 +30,7 @@ const bootstrapAdmin = async () => {
     const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
 
     if (existing) {
-        console.log(`[Sunpartners] Admin already exists. Skipping creation.`);
+        console.log(`[Sunpartners] Admin (${adminEmail}) already exists. Skipping bootstrap to prevent credential overwrite.`);
         return;
     }
 
