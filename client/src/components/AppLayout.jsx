@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import Avatar from "boring-avatars";
+import SharedUserAvatar from './SharedUserAvatar';
 import { toTitleCase } from '../utils/formatters';
 
 function cn(...inputs) {
@@ -173,12 +173,11 @@ const AppLayout = () => {
             onClick={() => navigate('/perfil')}
             className="flex w-full items-center gap-3 rounded border border-transparent p-2 hover:bg-zinc-800/50 transition-colors group cursor-pointer"
           >
-            <div className="size-9 rounded-lg overflow-hidden flex items-center justify-center border border-zinc-700" title={user?.nombre || 'Usuario'}>
-              <Avatar
+            <div className="size-9" title={user?.nombre || 'Usuario'}>
+              <SharedUserAvatar
+                user={user}
                 size={36}
-                name={user?.nombre || 'Admin'}
-                variant="beam"
-                colors={['#5486A1', '#FBAE17', '#222222', '#F2F2F2', '#EAEAEA']}
+                className="!border-zinc-700"
               />
             </div>
             <div className="flex flex-1 flex-col items-start min-w-0">

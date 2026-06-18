@@ -1,13 +1,56 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import axios from 'axios';
+import imageCompression from 'browser-image-compression';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/ui/Modal';
+import SharedUserAvatar from '../components/SharedUserAvatar';
 
 const Profile = () => {
   const { user, checkAuth } = useAuth();
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [modal, setModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validation
+    if (!file.type.startsWith('image/')) {
+      return setModal({ isOpen: true, title: 'Error', content: 'Por favor selecciona una imagen válida.', type: 'error' });
+    }
+
+    setUploading(true);
+    try {
+      // Compression options
+      const options = {
+        maxSizeMB: 0.3, // Max 300KB
+        maxWidthOrHeight: 800,
+        useWebWorker: true
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
+      const formData = new FormData();
+      formData.append('foto', compressedFile, file.name);
+
+      await axios.post('/api/users/profile-picture', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
+      });
+
+      await checkAuth(); // Refresh user data to get the new signed URL
+      setModal({ isOpen: true, title: 'Éxito', content: 'Tu foto de perfil ha sido actualizada.', type: 'success' });
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      setModal({ isOpen: true, title: 'Error', content: 'No se pudo cargar la imagen.', type: 'error' });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -47,23 +90,48 @@ const Profile = () => {
         </header>
 
         <div className="bg-white border-2 border-zinc-100 rounded-xl p-8 shadow-sm">
-          <h3 className="text-[11px] font-black  tracking-widest text-zinc-400 mb-8 flex items-center gap-2">
-             <span className="material-symbols-outlined text-[18px]">account_circle</span> Información del Sistema
-          </h3>
-          <div className="grid grid-cols-2 gap-8">
-            <div>
-              <span className="block text-[10px] font-black  text-zinc-400 mb-1">Nombre completo</span>
-              <p className="font-black text-zinc-900 ">{user?.nombre}</p>
+          <div className="flex flex-col md:flex-row gap-8 items-start">
+            <div className="relative group">
+              <SharedUserAvatar user={user} size={120} className="border-4 border-white shadow-md" />
+              <button
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform disabled:opacity-50 cursor-pointer"
+                title="Cambiar foto de perfil"
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  {uploading ? 'sync' : 'photo_camera'}
+                </span>
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                accept="image/*"
+                className="hidden"
+              />
             </div>
-            <div>
-              <span className="block text-[10px] font-black  text-zinc-400 mb-1">Correo electrónico</span>
-              <p className="font-bold text-zinc-600">{user?.email}</p>
-            </div>
-            <div>
-              <span className="block text-[10px] font-black  text-zinc-400 mb-1">Rol asignado</span>
-              <span className="inline-block px-3 py-1 rounded bg-primary/10 text-primary text-[10px] font-black  tracking-widest border border-primary/20 mt-1">
-                {user?.role}
-              </span>
+
+            <div className="flex-1 w-full">
+              <h3 className="text-[11px] font-black tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">account_circle</span> Información del Sistema
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <span className="block text-[10px] font-black text-zinc-400 mb-1">Nombre completo</span>
+                  <p className="font-black text-zinc-900">{user?.nombre}</p>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-black text-zinc-400 mb-1">Correo electrónico</span>
+                  <p className="font-bold text-zinc-600">{user?.email}</p>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-black text-zinc-400 mb-1">Rol asignado</span>
+                  <span className="inline-block px-3 py-1 rounded bg-primary/10 text-primary text-[10px] font-black tracking-widest border border-primary/20 mt-1">
+                    {user?.role}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

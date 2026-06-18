@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import Avatar from 'boring-avatars';
 import { toTitleCase } from '../utils/formatters';
+import SharedUserAvatar from './SharedUserAvatar';
 
 const DEFAULT_COLORS = ['#5486A1', '#FBAE17', '#222222', '#F2F2F2', '#EAEAEA'];
 
@@ -44,12 +44,7 @@ const UserAvatarPopover = ({
         onBlur={hidePopover}
         tabIndex={0}
       >
-        <span
-          className="flex items-center justify-center overflow-hidden rounded-full border-2 border-white bg-zinc-50 shadow-sm"
-          style={{ width: size, height: size }}
-        >
-          <Avatar size={size} name={name} variant="beam" colors={colors} />
-        </span>
+        <SharedUserAvatar user={user} size={size} colors={colors} />
       </span>
 
       {position && createPortal(
@@ -59,9 +54,7 @@ const UserAvatarPopover = ({
           style={{ left: position.left, top: position.top }}
         >
           <div className="flex items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-zinc-50 shadow-sm">
-              <Avatar size={40} name={name} variant="beam" colors={colors} />
-            </span>
+            <SharedUserAvatar user={user} size={40} colors={colors} />
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-zinc-900">{toTitleCase(name)}</p>
               <p className="text-[10px] font-black uppercase tracking-widest text-primary">{relationship}</p>
