@@ -494,7 +494,7 @@ exports.update = async (req, res) => {
         }
 
         // 3. Final atomic update
-        return await tx.quotation.update({
+        const updatedQuotation = await tx.quotation.update({
           where: { id },
           data: {
             ...updateData,
@@ -507,6 +507,29 @@ exports.update = async (req, res) => {
           },
           include: { items: true, services: true }
         });
+
+        // 4. v69.0: Automatic re-evaluation of alerts if the quotation is already APROBADA
+        if (estado === 'APROBADA' || updatedQuotation.estado === 'APROBADA') {
+            await tx.inventoryAlert.deleteMany({ where: { quotationId: id } });
+            const newConflicts = await checkAvailability(id);
+            if (newConflicts) {
+                await tx.inventoryAlert.createMany({
+                    data: newConflicts.map(c => ({
+                        quotationId: id,
+                        inventoryItemId: c.inventoryItemId,
+                        productName: c.productName,
+                        needed: c.needed,
+                        available: c.available,
+                        deficit: c.deficit,
+                        motivo: c.motivo,
+                        startDate: updatedQuotation.montaje_inicio,
+                        endDate: updatedQuotation.desmontaje_fin
+                    }))
+                });
+            }
+        }
+
+        return updatedQuotation;
     });
 
     res.json(quotation);
@@ -652,7 +675,11 @@ exports.updateStatus = async (req, res) => {
     }
 
     const updated = await prisma.$transaction(async (tx) => {
-      // 1. Update status
+      // v69.0: Strict Alert Lifecycle Management
+      // 1. Always clear previous alerts for this quotation to ensure idempotency
+      await tx.inventoryAlert.deleteMany({ where: { quotationId: id } });
+
+      // 2. Update status
       const q = await tx.quotation.update({
         where: { id },
         data: {
@@ -666,8 +693,9 @@ exports.updateStatus = async (req, res) => {
         }
       });
 
-      // 2. If forced approval with conflicts, persist alerts
-      if (force && conflicts) {
+      // 3. If transitioning to non-approved/active, alerts stay deleted.
+      // If forced approval with conflicts, persist new alerts.
+      if (force && conflicts && (estado === 'APROBADA' || estado === 'EJECUCION')) {
         await tx.inventoryAlert.createMany({
           data: conflicts.map(c => ({
             quotationId: id,
@@ -676,6 +704,7 @@ exports.updateStatus = async (req, res) => {
             needed: c.needed,
             available: c.available,
             deficit: c.deficit,
+            motivo: c.motivo,
             startDate: q.montaje_inicio,
             endDate: q.desmontaje_fin
           }))
@@ -818,12 +847,18 @@ async function checkAvailability(quotationId) {
     const alreadyCommitted = committed[warehouseId] || 0;
 
     if (alreadyCommitted + neededQty > totalStock) {
+      // v69.0: Differentiate between Physical Stock Deficit and Overlap Conflict
+      const motivo = neededQty > totalStock
+        ? "Déficit físico en bodega"
+        : "Conflicto por cruce de fechas";
+
       conflicts.push({
         inventoryItemId: warehouseId,
         productName: warehouseItem.nombre,
         available: totalStock - alreadyCommitted,
         needed: neededQty,
-        deficit: (alreadyCommitted + neededQty) - totalStock
+        deficit: (alreadyCommitted + neededQty) - totalStock,
+        motivo
       });
     }
   }
