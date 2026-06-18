@@ -20,5 +20,6 @@ router.get('/', authMiddleware, userController.getAll);
 router.post('/', authMiddleware, adminMiddleware, userController.create);
 router.put('/:id', authMiddleware, adminMiddleware, userController.update);
 router.post('/profile-picture', authMiddleware, upload.single('foto'), userController.uploadProfilePicture);
+router.post('/:id/profile-picture', authMiddleware, upload.single('foto'), userController.uploadProfilePicture);
 
 module.exports = router;

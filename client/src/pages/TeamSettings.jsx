@@ -1,9 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import imageCompression from 'browser-image-compression';
 import Modal from '../components/ui/Modal';
 import { toTitleCase } from '../utils/formatters';
+import SharedUserAvatar from '../components/SharedUserAvatar';
+import { useAuth } from '../context/AuthContext';
 
 const TeamSettings = () => {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +15,11 @@ const TeamSettings = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({ nombre: '', username: '', position: '', email: '', password: '', role: 'EDITOR', department: 'ADMINISTRACION', isActive: true });
   const [messageModal, setMessageModal] = useState({ isOpen: false, title: '', content: '', type: 'info' });
+  const [uploadingId, setUploadingId] = useState(null);
+  const fileInputRef = useRef(null);
+  const [selectedTargetUser, setSelectedTargetUser] = useState(null);
+
+  const isMasterAdmin = currentUser?.email === 'admin@sunpartners.com' || currentUser?.username === 'admin';
 
   const fetchUsers = async () => {
     try {
@@ -54,6 +63,38 @@ const TeamSettings = () => {
       fetchUsers();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !selectedTargetUser) return;
+
+    if (!file.type.startsWith('image/')) {
+      return setMessageModal({ isOpen: true, title: 'Error', content: 'Por favor selecciona una imagen válida.', type: 'error' });
+    }
+
+    setUploadingId(selectedTargetUser.id);
+    try {
+      const options = { maxSizeMB: 0.3, maxWidthOrHeight: 800, useWebWorker: true };
+      const compressedFile = await imageCompression(file, options);
+      const formData = new FormData();
+      formData.append('foto', compressedFile, file.name);
+
+      await axios.post(`/api/users/${selectedTargetUser.id}/profile-picture`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
+      });
+
+      setMessageModal({ isOpen: true, title: 'Éxito', content: 'Foto de perfil actualizada.', type: 'success' });
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
+      setMessageModal({ isOpen: true, title: 'Error', content: 'No se pudo cargar la imagen.', type: 'error' });
+    } finally {
+      setUploadingId(null);
+      setSelectedTargetUser(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -173,8 +214,29 @@ const TeamSettings = () => {
             {filteredUsers.map(u => (
               <tr key={u.id} className={`hover:bg-zinc-50/50 transition-all ${!u.isActive ? 'opacity-50 grayscale' : ''}`}>
                 <td className="px-6 py-5">
-                   <div className="font-black text-zinc-900 text-[12px]">{toTitleCase(u.nombre)}</div>
-                   <div className="text-[10px] font-bold text-zinc-400 lowercase italic tracking-tight">@{u.username}</div>
+                  <div className="flex items-center gap-4">
+                    <div className="relative group/avatar">
+                      <SharedUserAvatar user={u} size={44} className="border-zinc-100" />
+                      {isMasterAdmin && (
+                        <button
+                          disabled={uploadingId === u.id}
+                          onClick={() => {
+                            setSelectedTargetUser(u);
+                            fileInputRef.current?.click();
+                          }}
+                          className="absolute inset-0 bg-zinc-900/40 text-white rounded-full flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">
+                            {uploadingId === u.id ? 'sync' : 'photo_camera'}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-black text-zinc-900 text-[12px]">{toTitleCase(u.nombre)}</div>
+                      <div className="text-[10px] font-bold text-zinc-400 lowercase italic tracking-tight">@{u.username}</div>
+                    </div>
+                  </div>
                 </td>
                 <td className="px-6 py-5">
                    <div className="font-bold text-zinc-600 text-[10px]">{toTitleCase(u.position) || 'Sin cargo'}</div>
@@ -207,6 +269,13 @@ const TeamSettings = () => {
           </tbody>
         </table>
       </div>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageUpload}
+        accept="image/*"
+        className="hidden"
+      />
     </main>
   );
 };
