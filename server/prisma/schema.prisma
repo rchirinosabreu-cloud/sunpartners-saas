@@ -158,6 +158,7 @@ model Quotation {
   deletedJustification String?
   logs                 EventLog[]
   planning             PlanningStep?
+  inventoryAlerts      InventoryAlert[]
   client               Client             @relation(fields: [clientId], references: [id])
   clientContact        ClientContact?     @relation(fields: [clientContactId], references: [id])
   consultant           User?              @relation(fields: [consultantId], references: [id])
@@ -361,4 +362,19 @@ model GlobalSetting {
   value     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model InventoryAlert {
+  id              String    @id @default(uuid())
+  quotationId     String
+  inventoryItemId String
+  productName     String
+  needed          Int
+  available       Int
+  deficit         Int
+  startDate       DateTime
+  endDate         DateTime
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  quotation       Quotation @relation(fields: [quotationId], references: [id])
 }

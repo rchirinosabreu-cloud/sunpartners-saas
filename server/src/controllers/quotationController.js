@@ -638,30 +638,53 @@ exports.updateStatus = async (req, res) => {
     const current = await prisma.quotation.findUnique({ where: { id } });
     if (!current) return res.status(404).json({ error: 'Cotización no encontrada' });
 
-    // Bypass check if force is true (v47.0: Freedom for Admin)
-    if (!force && (estado === 'APROBADA' || estado === 'EJECUCION')) {
-      const conflict = await checkAvailability(id);
-      if (conflict) {
+    const isBecomingActive = estado === 'APROBADA' || estado === 'EJECUCION';
+    let conflicts = null;
+
+    if (isBecomingActive) {
+      conflicts = await checkAvailability(id);
+      if (!force && conflicts) {
         return res.status(400).json({
           error: 'Conflicto de disponibilidad',
-          details: conflict
+          conflicts
         });
       }
     }
 
-    // v60.9: Simple status change doesn't need a complex transaction but still benefits from atomicity
-    const updated = await prisma.quotation.update({
-      where: { id },
-      data: {
-        estado,
-        logs: {
-          create: {
-            message: `Estado cambiado de ${current.estado} a ${estado}. ${details || ''}`,
-            userId: req.userId
+    const updated = await prisma.$transaction(async (tx) => {
+      // 1. Update status
+      const q = await tx.quotation.update({
+        where: { id },
+        data: {
+          estado,
+          logs: {
+            create: {
+              message: `Estado cambiado de ${current.estado} a ${estado}. ${details || (force ? '(Aprobación con sobreventa)' : '')}`,
+              userId: req.userId
+            }
           }
         }
+      });
+
+      // 2. If forced approval with conflicts, persist alerts
+      if (force && conflicts) {
+        await tx.inventoryAlert.createMany({
+          data: conflicts.map(c => ({
+            quotationId: id,
+            inventoryItemId: c.inventoryItemId,
+            productName: c.productName,
+            needed: c.needed,
+            available: c.available,
+            deficit: c.deficit,
+            startDate: q.montaje_inicio,
+            endDate: q.desmontaje_fin
+          }))
+        });
       }
+
+      return q;
     });
+
     res.json(updated);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -787,17 +810,25 @@ async function checkAvailability(quotationId) {
 
   // Check requirements for current quotation
   const needed = await resolveWarehouseRequirements(q.items);
+  const conflicts = [];
+
   for (const [warehouseId, neededQty] of Object.entries(needed)) {
     const warehouseItem = await prisma.inventory_Bodega.findUnique({ where: { id: warehouseId } });
     const totalStock = (warehouseItem.claseA || 0) + (warehouseItem.claseB || 0);
     const alreadyCommitted = committed[warehouseId] || 0;
 
     if (alreadyCommitted + neededQty > totalStock) {
-      return `Stock insuficiente para "${warehouseItem.nombre}". Disponible (A+B): ${totalStock}, Comprometido: ${alreadyCommitted}, Requerido para esta propuesta: ${neededQty}`;
+      conflicts.push({
+        inventoryItemId: warehouseId,
+        productName: warehouseItem.nombre,
+        available: totalStock - alreadyCommitted,
+        needed: neededQty,
+        deficit: (alreadyCommitted + neededQty) - totalStock
+      });
     }
   }
 
-  return null;
+  return conflicts.length > 0 ? conflicts : null;
 }
 
 exports.checkAvailabilityEndpoint = async (req, res) => {

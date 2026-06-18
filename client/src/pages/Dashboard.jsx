@@ -86,10 +86,58 @@ const AnnouncementItem = ({ id, content, type, author, date, onDelete, canDelete
   );
 };
 
+const InventoryAlertWidget = ({ alerts }) => {
+  if (!alerts || alerts.length === 0) return null;
+
+  return (
+    <div className="bg-white rounded-2xl border-2 border-alert/20 p-8 shadow-sm flex flex-col relative overflow-hidden group">
+      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+        <span className="material-symbols-outlined text-[64px] text-alert">inventory_2</span>
+      </div>
+      <h2 className="text-lg font-bold text-zinc-900 tracking-tight flex items-center gap-2 mb-6">
+        <span className="material-symbols-outlined text-alert fill">warning</span>
+        Alertas de Inventario Comprometido
+      </h2>
+      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 max-h-[400px]">
+        {alerts.map((alert) => (
+          <div key={alert.id} className="p-4 rounded-xl border border-alert/10 bg-alert/[0.02] flex items-start gap-4">
+             <div className="size-10 rounded-lg bg-alert/10 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-alert text-[20px]">shopping_cart_checkout</span>
+             </div>
+             <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start mb-1">
+                   <p className="text-xs font-black text-zinc-900 truncate">{alert.productName}</p>
+                   <span className="text-[10px] font-black text-alert bg-alert/10 px-2 py-0.5 rounded">-{alert.deficit} und</span>
+                </div>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate mb-2">
+                   {alert.quotation.client.razon_social} • {alert.quotation.nombre_evento}
+                </p>
+                <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-1 text-[9px] font-black text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded">
+                      <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                      {new Date(alert.startDate).toLocaleDateString()}
+                   </div>
+                   <div className="h-3 w-px bg-zinc-200"></div>
+                   <p className="text-[9px] font-bold text-zinc-400 italic">ID: SP-{alert.quotation.consecutivo}</p>
+                </div>
+             </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-6 pt-6 border-t border-zinc-50">
+         <p className="text-[10px] font-medium text-zinc-400 leading-relaxed italic">
+            Estas alertas representan déficits aceptados manualmente. Gestionar compras o subarriendos para estas fechas.
+         </p>
+      </div>
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ progresoMes: 0, totalRealizados: 0, logrosRecientes: [] });
   const [announcements, setAnnouncements] = useState([]);
+  const [inventoryAlerts, setInventoryAlerts] = useState([]);
   const [globalQuote, setGlobalQuote] = useState('');
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const [editQuoteValue, setEditQuoteValue] = useState('');
@@ -99,10 +147,11 @@ const Dashboard = () => {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [statsRes, annRes, quoteRes] = await Promise.all([
+      const [statsRes, annRes, quoteRes, alertsRes] = await Promise.all([
         fetch('/api/tasks/dashboard-stats'),
         fetch('/api/announcements'),
-        axios.get('/api/settings/global_motivational_quote')
+        axios.get('/api/settings/global_motivational_quote'),
+        axios.get('/api/inventory/alerts')
       ]);
 
       if (statsRes.ok) {
@@ -118,6 +167,10 @@ const Dashboard = () => {
       if (quoteRes.data) {
         setGlobalQuote(quoteRes.data.value);
         setEditQuoteValue(quoteRes.data.value);
+      }
+
+      if (alertsRes.data) {
+        setInventoryAlerts(alertsRes.data);
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -246,6 +299,13 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Inventory Alerts (v67.0: Aggregate supply alerts for Ojo al Dato) */}
+          {inventoryAlerts.length > 0 && (
+            <div className="lg:col-span-12">
+               <InventoryAlertWidget alerts={inventoryAlerts} />
+            </div>
+          )}
+
           {/* Announcements Feed */}
           <div className="lg:col-span-7 space-y-6">
             <div className="flex items-center justify-between">

@@ -96,24 +96,42 @@ const QuotationDetail = () => {
       setModal({ isOpen: true, title: 'Estado Actualizado', content: `La cotización ahora está en estado: ${newStatus}`, type: 'success' });
       await fetchQuotation();
     } catch (err) {
-      // Handle availability conflict with bypass option (consistent with QuotationList)
+      // v67.0: Enhanced decision flow for multi-item conflicts
       if (err.response?.status === 400 && err.response?.data?.error === 'Conflicto de disponibilidad') {
         setShowStatusPopover(false);
+        const conflicts = err.response.data.conflicts || [];
+
         setModal({
           isOpen: true,
-          title: 'Conflicto de disponibilidad',
+          title: 'Conflictos de Disponibilidad Detectados',
           content: (
             <div className="space-y-4">
-              <p className="text-zinc-600 text-xs font-medium leading-relaxed">{err.response.data.details}</p>
+              <p className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">Se detectaron los siguientes déficits de inventario:</p>
+              <div className="max-h-60 overflow-y-auto border border-zinc-100 rounded-lg divide-y divide-zinc-50">
+                {conflicts.map((c, i) => (
+                  <div key={i} className="p-3 flex justify-between items-center bg-white">
+                    <div>
+                      <p className="text-xs font-black text-zinc-900">{c.productName}</p>
+                      <p className="text-[10px] text-zinc-400 font-bold">Déficit: <span className="text-red-500">-{c.deficit} und</span></p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-zinc-400 tracking-tighter">REQ: {c.needed} | DISP: {c.available}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
               <div className="h-px bg-zinc-100 w-full" />
-              <p className="text-zinc-900 font-black text-[11px] tracking-tight">¿Deseas aprobar la propuesta de todas formas?</p>
+              <div className="bg-amber-50 border border-amber-100 p-3 rounded text-[10px] text-amber-700 leading-relaxed font-medium">
+                Al aprobar de todas formas, el sistema generará <strong>alertas de abastecimiento</strong> en el Dashboard para que el equipo logístico gestione compras o subarriendos.
+              </div>
+              <p className="text-zinc-900 font-black text-[11px] tracking-tight">¿Deseas forzar la aprobación de la propuesta?</p>
             </div>
           ),
           type: 'warning',
           action: {
-            label: 'Sí, aprobar con conflicto',
+            label: 'Sí, aprobar con sobreventa',
             onClick: () => {
-              setModal({ ...modal, isOpen: false });
+              setModal(prev => ({ ...prev, isOpen: false }));
               handleStatusChange(newStatus, true);
             },
             color: 'primary'
