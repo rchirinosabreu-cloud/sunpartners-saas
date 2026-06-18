@@ -1,19 +1,31 @@
 const prisma = require('../db');
+const { getSignedUrlHelper } = require('../utils/s3Client');
 
 exports.getAll = async (req, res) => {
   try {
     const tasks = await prisma.task.findMany({
       include: {
         client: { select: { id: true, razon_social: true } },
-        user: { select: { id: true, nombre: true, username: true } },
-        collaborator: { select: { id: true, nombre: true, username: true } }
+        user: { select: { id: true, nombre: true, username: true, fotoPerfilUrl: true } },
+        collaborator: { select: { id: true, nombre: true, username: true, fotoPerfilUrl: true } }
       },
       orderBy: [
         { status: 'asc' },
         { order: 'asc' }
       ]
     });
-    res.json(tasks);
+
+    const tasksWithUrls = await Promise.all(tasks.map(async (task) => {
+      if (task.user?.fotoPerfilUrl) {
+        task.user.fotoPerfilUrl = await getSignedUrlHelper(task.user.fotoPerfilUrl);
+      }
+      if (task.collaborator?.fotoPerfilUrl) {
+        task.collaborator.fotoPerfilUrl = await getSignedUrlHelper(task.collaborator.fotoPerfilUrl);
+      }
+      return task;
+    }));
+
+    res.json(tasksWithUrls);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -64,16 +76,23 @@ exports.getDashboardStats = async (req, res) => {
         deletedAt: null
       },
       include: {
-        user: { select: { id: true, nombre: true } },
+        user: { select: { id: true, nombre: true, fotoPerfilUrl: true } },
         client: { select: { razon_social: true } }
       },
       orderBy: { updatedAt: 'desc' }
     });
 
+    const logrosWithUrls = await Promise.all(logrosRecientes.map(async (logro) => {
+      if (logro.user?.fotoPerfilUrl) {
+        logro.user.fotoPerfilUrl = await getSignedUrlHelper(logro.user.fotoPerfilUrl);
+      }
+      return logro;
+    }));
+
     res.json({
       progresoMes,
       totalRealizados,
-      logrosRecientes,
+      logrosRecientes: logrosWithUrls,
       totalCreatedInMonth,
       completedInMonth
     });
@@ -112,14 +131,21 @@ exports.getHistory = async (req, res) => {
     const history = await prisma.task.findMany({
       where,
       include: {
-        user: { select: { id: true, nombre: true } },
+        user: { select: { id: true, nombre: true, fotoPerfilUrl: true } },
         client: { select: { id: true, razon_social: true } }
       },
       orderBy: { updatedAt: 'desc' }
     });
 
+    const historyWithUrls = await Promise.all(history.map(async (task) => {
+      if (task.user?.fotoPerfilUrl) {
+        task.user.fotoPerfilUrl = await getSignedUrlHelper(task.user.fotoPerfilUrl);
+      }
+      return task;
+    }));
+
     // Group by worker
-    const groupedHistory = history.reduce((acc, task) => {
+    const groupedHistory = historyWithUrls.reduce((acc, task) => {
       const workerId = task.userId;
       if (!acc[workerId]) {
         acc[workerId] = {
@@ -156,10 +182,18 @@ exports.create = async (req, res) => {
       },
       include: {
         client: { select: { id: true, razon_social: true } },
-        user: { select: { id: true, nombre: true, username: true } },
-        collaborator: { select: { id: true, nombre: true, username: true } }
+        user: { select: { id: true, nombre: true, username: true, fotoPerfilUrl: true } },
+        collaborator: { select: { id: true, nombre: true, username: true, fotoPerfilUrl: true } }
       }
     });
+
+    if (task.user?.fotoPerfilUrl) {
+      task.user.fotoPerfilUrl = await getSignedUrlHelper(task.user.fotoPerfilUrl);
+    }
+    if (task.collaborator?.fotoPerfilUrl) {
+      task.collaborator.fotoPerfilUrl = await getSignedUrlHelper(task.collaborator.fotoPerfilUrl);
+    }
+
     res.status(201).json(task);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -188,10 +222,18 @@ exports.update = async (req, res) => {
       data,
       include: {
         client: { select: { id: true, razon_social: true } },
-        user: { select: { id: true, nombre: true, username: true } },
-        collaborator: { select: { id: true, nombre: true, username: true } }
+        user: { select: { id: true, nombre: true, username: true, fotoPerfilUrl: true } },
+        collaborator: { select: { id: true, nombre: true, username: true, fotoPerfilUrl: true } }
       }
     });
+
+    if (task.user?.fotoPerfilUrl) {
+      task.user.fotoPerfilUrl = await getSignedUrlHelper(task.user.fotoPerfilUrl);
+    }
+    if (task.collaborator?.fotoPerfilUrl) {
+      task.collaborator.fotoPerfilUrl = await getSignedUrlHelper(task.collaborator.fotoPerfilUrl);
+    }
+
     res.json(task);
   } catch (error) {
     res.status(500).json({ error: error.message });

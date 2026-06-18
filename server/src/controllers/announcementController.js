@@ -1,15 +1,24 @@
 const prisma = require('../db');
+const { getSignedUrlHelper } = require('../utils/s3Client');
 
 exports.getAll = async (req, res) => {
   try {
     const announcements = await prisma.announcement.findMany({
       where: { deletedAt: null },
       include: {
-        author: { select: { id: true, nombre: true } }
+        author: { select: { id: true, nombre: true, fotoPerfilUrl: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
-    res.json(announcements);
+
+    const announcementsWithUrls = await Promise.all(announcements.map(async (ann) => {
+      if (ann.author?.fotoPerfilUrl) {
+        ann.author.fotoPerfilUrl = await getSignedUrlHelper(ann.author.fotoPerfilUrl);
+      }
+      return ann;
+    }));
+
+    res.json(announcementsWithUrls);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -50,9 +59,14 @@ exports.create = async (req, res) => {
         authorId
       },
       include: {
-        author: { select: { id: true, nombre: true } }
+        author: { select: { id: true, nombre: true, fotoPerfilUrl: true } }
       }
     });
+
+    if (announcement.author?.fotoPerfilUrl) {
+      announcement.author.fotoPerfilUrl = await getSignedUrlHelper(announcement.author.fotoPerfilUrl);
+    }
+
     res.status(201).json(announcement);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -7,7 +7,7 @@ const { calculateLineTotal, calculateTotals } = require('../utils/quotationUtils
 const includeAll = {
   client: { include: { contacts: true } },
   clientContact: true,
-  consultant: { select: { id: true, nombre: true, email: true } },
+  consultant: { select: { id: true, nombre: true, email: true, fotoPerfilUrl: true } },
   items: { include: { inventory: { include: { compositions: { include: { warehouseItem: true, componentCatalogItem: true } } } }, compositions: { include: { warehouseItem: true, componentCatalogItem: true } } } },
   services: true,
   planning: true,
@@ -40,12 +40,20 @@ exports.getAll = async (req, res) => {
       include: {
         client: { include: { contacts: true } },
         clientContact: true,
-        consultant: { select: { nombre: true } },
+        consultant: { select: { id: true, nombre: true, fotoPerfilUrl: true } },
         items: { include: { inventory: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
-    res.json(quotations);
+
+    const quotationsWithUrls = await Promise.all(quotations.map(async (q) => {
+      if (q.consultant?.fotoPerfilUrl) {
+        q.consultant.fotoPerfilUrl = await getSignedUrlHelper(q.consultant.fotoPerfilUrl);
+      }
+      return q;
+    }));
+
+    res.json(quotationsWithUrls);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -140,6 +148,10 @@ exports.getById = async (req, res) => {
       include: includeAll
     });
     if (!quotation) return res.status(404).json({ error: 'Cotización no encontrada' });
+
+    if (quotation.consultant?.fotoPerfilUrl) {
+      quotation.consultant.fotoPerfilUrl = await getSignedUrlHelper(quotation.consultant.fotoPerfilUrl);
+    }
 
     // v60.9.1: Auto-detection of legacy corruption
     const materialsCount = Array.isArray(quotation.planning?.materiales) ? quotation.planning.materiales.length : 0;

@@ -5,4 +5,4 @@ install = 'npm install && npx prisma generate --schema=server/prisma/schema.pris
 nixPkgs = ['nodejs', 'openssl']
 
 [start]
-cmd = 'npm start --workspace=server'
+cmd = 'node server/src/app.js'
