@@ -14,7 +14,17 @@ const login = async (req, res) => {
           { username: identifier },
           { email: identifier }
         ]
-      }
+      },
+      // Keep authentication independent from optional profile fields that may
+      // be introduced by later migrations.
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        password: true,
+        nombre: true,
+        role: true,
+      },
     });
 
     if (!user) {

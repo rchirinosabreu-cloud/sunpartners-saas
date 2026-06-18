@@ -12,6 +12,8 @@ const taskRoutes = require('./routes/tasks');
 const announcementRoutes = require('./routes/announcements');
 const settingRoutes = require('./routes/settings');
 const bootstrapAdmin = require('./bootstrap');
+const prisma = require('./db');
+const ensureSchemaCompatibility = require('./schemaCompatibility');
 
 try { dotenv.config(); } catch (e) {}
 
@@ -82,10 +84,18 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3001;
 
 if (process.env.NODE_ENV !== 'test') {
-  bootstrapAdmin().then(() => {
+  const startServer = async () => {
+    await ensureSchemaCompatibility(prisma);
+    await bootstrapAdmin();
+
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en puerto ${PORT}`);
     });
+  };
+
+  startServer().catch((error) => {
+    console.error('[Sunpartners] Error crítico durante el arranque:', error);
+    process.exitCode = 1;
   });
 }
 
