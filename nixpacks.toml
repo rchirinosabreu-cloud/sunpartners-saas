@@ -5,4 +5,4 @@ install = 'npm install && npx prisma generate --schema=server/prisma/schema.pris
 nixPkgs = ['nodejs', 'openssl']
 
 [start]
-cmd = 'node server/src/app.js'
+cmd = 'npx prisma db push --schema=server/prisma/schema.prisma --accept-data-loss && node server/src/app.js'
