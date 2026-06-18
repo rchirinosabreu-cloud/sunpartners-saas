@@ -19,13 +19,13 @@ const login = async (req, res) => {
 
     if (!user) {
       console.warn(`Intento de login fallido: Usuario no encontrado (${identifier})`);
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      console.warn(`Intento de login fallido: Contraseña incorrecta para (${email})`);
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+      console.warn(`Intento de login fallido: Contraseña incorrecta para (${identifier})`);
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
     }
 
     const jwtSecret = process.env.JWT_SECRET;
