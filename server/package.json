@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "dev": "nodemon src/app.js",
-    "start": "node src/app.js",
+    "start": "prisma migrate deploy && node src/app.js",
     "build": "echo 'No build needed for server (Node.js)'",
     "postinstall": "prisma generate --schema=prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --schema=prisma/schema.prisma",
