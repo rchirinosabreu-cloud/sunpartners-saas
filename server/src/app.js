@@ -13,7 +13,7 @@ const announcementRoutes = require('./routes/announcements');
 const settingRoutes = require('./routes/settings');
 const bootstrapAdmin = require('./bootstrap');
 
-dotenv.config();
+try { dotenv.config(); } catch (e) {}
 
 // Sincronizar todas las fechas en UTC-5 (Bogotá/Colombia)
 process.env.TZ = 'America/Bogota';
