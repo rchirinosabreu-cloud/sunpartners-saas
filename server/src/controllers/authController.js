@@ -13,7 +13,17 @@ const login = async (req, res) => {
           { username: identifier },
           { email: identifier }
         ]
-      }
+      },
+      // Keep authentication independent from optional profile fields that may
+      // be introduced by later migrations.
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        password: true,
+        nombre: true,
+        role: true,
+      },
     });
 
     if (!user) {
@@ -23,7 +33,7 @@ const login = async (req, res) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      console.warn(`Intento de login fallido: Contraseña incorrecta para (${email})`);
+      console.warn(`Intento de login fallido: Contraseña incorrecta para (${identifier})`);
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
