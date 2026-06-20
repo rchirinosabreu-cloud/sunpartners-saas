@@ -25,6 +25,7 @@ const corsOptions = {
     const allowedPatterns = [
       /\.railway\.app$/,
       /\.brainstudioagencia\.com$/,
+      /\.sunpartners\.com\.co$/,
       /^http:\/\/localhost:\d+$/
     ];
 
