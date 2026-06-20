@@ -41,7 +41,10 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
     }
   }, [isOpen]);
 
+  // v72.0: Deep reset logic when modal context changes (Editing vs Creating)
   useEffect(() => {
+    if (!isOpen) return;
+
     if (editingTask) {
       setFormData({
         ...editingTask,
@@ -50,6 +53,7 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
         fechaLimite: formatInTimeZone(new Date(editingTask.fechaLimite), COLOMBIA_TZ, 'yyyy-MM-dd')
       });
     } else {
+      // Hard reset for new tasks
       setFormData({
         titulo: '',
         clientId: '',
@@ -57,12 +61,16 @@ const TaskModal = ({ isOpen, onClose, onTaskCreated, editingTask }) => {
         collaboratorId: '',
         fechaLimite: getTodayColombia(),
         isPriority: false,
+        isImprorrogable: false,
         comentarios: '',
-        status: 'PENDIENTE',
-        isImprorrogable: false
+        status: 'PENDIENTE'
       });
     }
-  }, [editingTask]);
+
+    // Always clear interceptor states on open/close context shift
+    setReasonModal({ isOpen: false, type: null, value: '' });
+    setPendingUserUpdate(null);
+  }, [isOpen, editingTask]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
