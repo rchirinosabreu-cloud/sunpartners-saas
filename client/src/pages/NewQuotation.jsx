@@ -203,7 +203,9 @@ const BlindajeDatePicker = ({ id, label, value, onChange }) => {
     time_24hr: false,
     allowInput: true,
     locale: { firstDayOfWeek: 1 },
-    static: false
+    static: false,
+    // v73.0: Prevent auto-close on select to allow time adjustment without flicker
+    closeOnSelect: false
   };
 
   return (
