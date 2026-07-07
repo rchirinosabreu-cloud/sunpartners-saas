@@ -25,11 +25,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Mock user for UI verification
     if (import.meta.env.DEV) {
+      const mockRole = localStorage.getItem('mockRole') || 'ADMIN';
       setUser({
         id: 'mock-id',
-        nombre: 'Administrador de Pruebas',
-        email: 'admin@sunpartners.com',
-        role: 'ADMIN'
+        nombre: `${mockRole} de Pruebas`,
+        email: `${mockRole.toLowerCase()}@sunpartners.com`,
+        role: mockRole
       });
       setLoading(false);
     } else {

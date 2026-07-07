@@ -115,9 +115,9 @@ exports.uploadProfilePicture = async (req, res) => {
 
     // 0. Strict Authorization Lock
     const isSelf = currentUser.userId === targetUserId;
-    const isMasterAdmin = currentUser.email === process.env.ADMIN_USER || currentUser.username === 'admin';
+    const isAdmin = currentUser.role === 'ADMIN';
 
-    if (!isSelf && !isMasterAdmin) {
+    if (!isSelf && !isAdmin) {
       return res.status(403).json({ error: 'No tienes autorización para cambiar la foto de este usuario.' });
     }
 

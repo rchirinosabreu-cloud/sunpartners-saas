@@ -107,13 +107,12 @@ const AppLayout = () => {
 
   const menuItems = [
     { to: '/', icon: 'dashboard', label: 'Ojo al Dato' },
-    { to: '/cotizaciones', icon: 'receipt_long', label: 'Cotizaciones' },
+    { to: '/cotizaciones', icon: 'receipt_long', label: 'Cotizaciones', roles: ['ADMIN', 'EDITOR'] },
     { to: '/tasks', icon: 'view_kanban', label: 'Tasks' },
-    { to: '/inventario', icon: 'warehouse', label: 'Bodega', roles: ['ADMIN', 'EDITOR'] },
-    { to: '/comercial', icon: 'shopping_cart', label: 'Catálogo', roles: ['ADMIN', 'EDITOR'] },
-    { to: '/eventos', icon: 'event', label: 'Eventos' },
+    { to: '/inventario', icon: 'warehouse', label: 'Bodega' },
+    { to: '/comercial', icon: 'shopping_cart', label: 'Catálogo' },
     { to: '/clientes', icon: 'group', label: 'Clientes' },
-    { to: '/equipo', icon: 'badge', label: 'Equipo', roles: ['ADMIN'] },
+    { to: '/equipo', icon: 'badge', label: 'Equipo', roles: ['ADMIN', 'EDITOR'] },
   ];
 
   const filteredMenuItems = menuItems.filter(item =>
