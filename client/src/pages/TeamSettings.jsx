@@ -19,6 +19,7 @@ const TeamSettings = () => {
   const fileInputRef = useRef(null);
   const [selectedTargetUser, setSelectedTargetUser] = useState(null);
 
+  const isAdmin = currentUser?.role === 'ADMIN';
   const isMasterAdmin = currentUser?.email === 'admin@sunpartners.com' || currentUser?.username === 'admin';
 
   const fetchUsers = async () => {
@@ -177,13 +178,15 @@ const TeamSettings = () => {
           <h2 className="font-display text-3xl font-black tracking-tight text-zinc-900">Configuración de equipo</h2>
           <p className="text-[13px] text-zinc-500 font-semibold mt-1 tracking-wider">Gestión de acceso, roles y estados de cuenta.</p>
         </div>
-        <button
-          onClick={() => { setEditingUser(null); setFormData({ nombre: '', username: '', position: '', email: '', password: '', role: 'EDITOR', department: 'ADMINISTRACION', isActive: true }); setIsModalOpen(true); }}
-          className="flex items-center gap-3 bg-zinc-900 text-white px-6 py-3 rounded-lg text-[11px] font-black tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
-        >
-          <span className="material-symbols-outlined text-[18px]">person_add</span>
-          Nuevo miembro
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => { setEditingUser(null); setFormData({ nombre: '', username: '', position: '', email: '', password: '', role: 'EDITOR', department: 'ADMINISTRACION', isActive: true }); setIsModalOpen(true); }}
+            className="flex items-center gap-3 bg-zinc-900 text-white px-6 py-3 rounded-lg text-[11px] font-black tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
+          >
+            <span className="material-symbols-outlined text-[18px]">person_add</span>
+            Nuevo miembro
+          </button>
+        )}
       </header>
 
       <div className="bg-white border-2 border-zinc-100 rounded-xl overflow-hidden shadow-sm">
@@ -217,7 +220,7 @@ const TeamSettings = () => {
                   <div className="flex items-center gap-4">
                     <div className="relative group/avatar">
                       <SharedUserAvatar user={u} size={44} className="border-zinc-100" />
-                      {isMasterAdmin && (
+                      {isAdmin && (
                         <button
                           disabled={uploadingId === u.id}
                           onClick={() => {
@@ -250,19 +253,22 @@ const TeamSettings = () => {
                 </td>
                 <td className="px-6 py-5">
                    <button
+                     disabled={!isAdmin}
                      onClick={() => handleToggleStatus(u)}
-                     className={`px-3 py-1 rounded-full text-[9px] font-black  tracking-widest border transition-all ${u.isActive ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}
+                     className={`px-3 py-1 rounded-full text-[9px] font-black  tracking-widest border transition-all ${!isAdmin ? 'cursor-default' : 'hover:opacity-80'} ${u.isActive ? 'bg-green-50 text-green-600 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}`}
                    >
                      {u.isActive ? 'ACTIVO' : 'INACTIVO'}
                    </button>
                 </td>
                 <td className="px-6 py-5 text-right">
-                   <button
-                     onClick={() => { setEditingUser(u); setFormData({ ...u, password: '' }); setIsModalOpen(true); }}
-                     className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-300 hover:text-primary hover:bg-primary/5 transition-all"
-                   >
-                     <span className="material-symbols-outlined text-[20px]">edit_note</span>
-                   </button>
+                   {isAdmin && (
+                     <button
+                       onClick={() => { setEditingUser(u); setFormData({ ...u, password: '' }); setIsModalOpen(true); }}
+                       className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-300 hover:text-primary hover:bg-primary/5 transition-all"
+                     >
+                       <span className="material-symbols-outlined text-[20px]">edit_note</span>
+                     </button>
+                   )}
                 </td>
               </tr>
             ))}

@@ -7,8 +7,9 @@ const prisma = require('../db');
 // v60.9: Closed inventory security gaps - require authentication for all routes
 router.use(authMiddleware);
 
-// Helper for write permissions
-const canWrite = checkRole(['ADMIN', 'EDITOR']);
+// Helper for write permissions (v74.0: Consultant can now create/edit)
+const canWrite = checkRole(['ADMIN', 'EDITOR', 'CONSULTOR']);
+const canDelete = checkRole(['ADMIN', 'EDITOR']);
 
 // Inventory Alerts (v67.0: Aggregate supply alerts for Ojo al Dato)
 router.get('/alerts', async (req, res) => {
@@ -45,10 +46,10 @@ router.post('/commercial', canWrite, inventoryController.createCommercial);
 router.put('/commercial/:id', canWrite, inventoryController.updateCommercial);
 
 // Soft Delete (Unified)
-router.post('/soft-delete/:id', canWrite, inventoryController.softDelete);
+router.post('/soft-delete/:id', canDelete, inventoryController.softDelete);
 
 // Legacy/Common
-router.delete('/:id', canWrite, inventoryController.softDelete);
+router.delete('/:id', canDelete, inventoryController.softDelete);
 
 // Default to commercial for backward compatibility where needed (like wizard)
 router.get('/', inventoryController.getAllCommercial);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { toTitleCase } from '../utils/formatters';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -145,6 +145,8 @@ const InventoryAlertWidget = ({ alerts }) => {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const [showAccessDenied, setShowAccessDenied] = useState(false);
   const [stats, setStats] = useState({ progresoMes: 0, totalRealizados: 0, logrosRecientes: [] });
   const [announcements, setAnnouncements] = useState([]);
   const [inventoryAlerts, setInventoryAlerts] = useState([]);
@@ -193,7 +195,14 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [fetchDashboardData]);
+    if (location.state?.accessDenied) {
+      setShowAccessDenied(true);
+      // Limpiar el estado para no mostrar el mensaje de nuevo al recargar
+      window.history.replaceState({}, document.title);
+      const timer = setTimeout(() => setShowAccessDenied(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [fetchDashboardData, location.state]);
 
   const handleSaveQuote = async () => {
     try {
@@ -234,6 +243,22 @@ const Dashboard = () => {
   return (
     <div className="p-8 pb-16 bg-zinc-50/30 min-h-full font-body">
       <div className="mx-auto max-w-7xl space-y-12">
+
+        {/* Access Denied Banner */}
+        {showAccessDenied && (
+          <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 flex items-center gap-6 animate-in slide-in-from-top-4 duration-500 shadow-sm">
+            <div className="size-12 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-red-600 text-[32px] fill">gpp_maybe</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-red-900 font-black tracking-tight text-lg">Acceso denegado</h3>
+              <p className="text-red-700 font-medium italic">No tienes permisos para visualizar el módulo de Cotizaciones.</p>
+            </div>
+            <button onClick={() => setShowAccessDenied(false)} className="text-red-400 hover:text-red-900 transition-colors">
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        )}
 
         {/* Welcome Header Section (v56.0: Structured re-location & Zero-Box Design) */}
         <div className="flex flex-col">

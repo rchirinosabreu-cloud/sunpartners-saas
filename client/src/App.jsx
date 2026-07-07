@@ -5,7 +5,6 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import InventoryCommercial from './pages/InventoryCommercial';
-import Events from './pages/Events';
 import Clients from './pages/Clients';
 import QuotationList from './pages/QuotationList';
 import QuotationDetail from './pages/QuotationDetail';
@@ -16,14 +15,14 @@ import Profile from './pages/Profile';
 import TeamSettings from './pages/TeamSettings';
 import Kanban from './pages/Kanban';
 
-const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+const ProtectedRoute = ({ children, allowedRoles = [], redirectPath = "/" }) => {
   const { user, loading } = useAuth();
 
   if (loading) return <div className="flex items-center justify-center min-h-screen font-body text-zinc-400">Autenticando sesión...</div>;
   if (!user) return <Navigate to="/login" />;
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" />;
+    return <Navigate to={redirectPath} state={{ accessDenied: true }} replace />;
   }
 
   return children;
@@ -51,19 +50,53 @@ const App = () => {
             <Route index element={<Dashboard />} />
             <Route path="inventario" element={<Inventory />} />
             <Route path="comercial" element={<InventoryCommercial />} />
-            <Route path="eventos" element={<Events />} />
             <Route path="clientes" element={<Clients />} />
-            <Route path="cotizaciones" element={<QuotationList />} />
-            <Route path="cotizaciones/nueva" element={<NewQuotation />} />
-            <Route path="cotizaciones/editar/:id" element={<NewQuotation />} />
-            <Route path="cotizaciones/:id" element={<QuotationDetail />} />
-            <Route path="cotizaciones/:id/planeador" element={<Planner />} />
+            <Route
+              path="cotizaciones"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'EDITOR']} redirectPath="/">
+                  <QuotationList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="cotizaciones/nueva"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'EDITOR']} redirectPath="/">
+                  <NewQuotation />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="cotizaciones/editar/:id"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'EDITOR']} redirectPath="/">
+                  <NewQuotation />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="cotizaciones/:id"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'EDITOR']} redirectPath="/">
+                  <QuotationDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="cotizaciones/:id/planeador"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'EDITOR']} redirectPath="/">
+                  <Planner />
+                </ProtectedRoute>
+              }
+            />
             <Route path="tasks" element={<Kanban />} />
             <Route path="perfil" element={<Profile />} />
             <Route
               path="equipo"
               element={
-                <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ProtectedRoute allowedRoles={['ADMIN', 'EDITOR']}>
                   <TeamSettings />
                 </ProtectedRoute>
               }
