@@ -16,4 +16,6 @@ const calculateTotals = (items, services, isTaxExempt = false) => {
   return { subtotal, iva, total };
 };
 
-module.exports = { calculateTotals, calculateLineTotal };
+const isSubmittedCollection = (collection) => collection !== undefined;
+
+module.exports = { calculateTotals, calculateLineTotal, isSubmittedCollection };

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateTotals } from '../src/utils/quotationUtils';
+import { calculateTotals, isSubmittedCollection } from '../src/utils/quotationUtils';
 
 describe('Quotation Totals Logic (Tax Exempt Support)', () => {
   it('should calculate subtotal correctly with additional days', () => {
@@ -30,5 +30,11 @@ describe('Quotation Totals Logic (Tax Exempt Support)', () => {
 
     const totals = calculateTotals(items, services, false);
     expect(totals.total).toBe(1190);
+  });
+
+  it('should treat an empty submitted collection as an intentional replacement', () => {
+    expect(isSubmittedCollection([])).toBe(true);
+    expect(isSubmittedCollection([{ id: 'item-1' }])).toBe(true);
+    expect(isSubmittedCollection(undefined)).toBe(false);
   });
 });

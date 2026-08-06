@@ -2,7 +2,7 @@ const prisma = require('../db');
 const crypto = require('crypto');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
 const { s3Client, BUCKET_NAME, getSignedUrlHelper } = require('../utils/s3Client');
-const { calculateLineTotal, calculateTotals } = require('../utils/quotationUtils');
+const { calculateLineTotal, calculateTotals, isSubmittedCollection } = require('../utils/quotationUtils');
 
 const includeAll = {
   client: { include: { contacts: true } },
@@ -443,10 +443,10 @@ exports.update = async (req, res) => {
         }
 
         // 1. Selective cleanup
-        if (items && items.length > 0) {
+        if (isSubmittedCollection(items)) {
           await tx.quotationItem.deleteMany({ where: { quotationId: id } });
         }
-        if (services && services.length > 0) {
+        if (isSubmittedCollection(services)) {
           await tx.quotationService.deleteMany({ where: { quotationId: id } });
         }
 
@@ -472,8 +472,8 @@ exports.update = async (req, res) => {
             evento_duracion,
             bitacora,
             estado,
-            vlrNeto: (items || services) ? vlrNeto : undefined,
-            vlrTotal: (items || services) ? vlrTotal : undefined
+            vlrNeto: (isSubmittedCollection(items) || isSubmittedCollection(services)) ? vlrNeto : undefined,
+            vlrTotal: (isSubmittedCollection(items) || isSubmittedCollection(services)) ? vlrTotal : undefined
         };
 
         if (items && items.length > 0) {
