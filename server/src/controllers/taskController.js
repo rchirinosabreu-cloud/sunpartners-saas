@@ -1,9 +1,14 @@
 const prisma = require('../db');
 const { getSignedUrlHelper } = require('../utils/s3Client');
+const { buildTaskBoardWhere } = require('../utils/taskBoardFilters');
 
 exports.getAll = async (req, res) => {
   try {
     const tasks = await prisma.task.findMany({
+      where: buildTaskBoardWhere({
+        completedMonth: req.query.completedMonth,
+        now: new Date()
+      }),
       include: {
         client: { select: { id: true, razon_social: true } },
         user: { select: { id: true, nombre: true, username: true, fotoPerfilUrl: true } },
@@ -27,7 +32,8 @@ exports.getAll = async (req, res) => {
 
     res.json(tasksWithUrls);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const status = error.code === 'INVALID_COMPLETED_MONTH' ? 400 : 500;
+    res.status(status).json({ error: error.message });
   }
 };
 

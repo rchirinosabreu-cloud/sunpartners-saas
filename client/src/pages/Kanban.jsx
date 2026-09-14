@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   DndContext,
@@ -14,13 +14,18 @@ import KanbanColumn from '../components/kanban/KanbanColumn';
 import KanbanCard from '../components/kanban/KanbanCard';
 import TaskModal from '../components/modals/TaskModal';
 import Modal from '../components/ui/Modal';
-import { toSentenceCase, toTitleCase } from '../utils/formatters';
+import { toTitleCase } from '../utils/formatters';
 import confetti from 'canvas-confetti';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
+import {
+  getCurrentBogotaMonth,
+  getCurrentBogotaMonthLabel,
+  resolveDropStatus,
+  TASK_STATUSES,
+} from '../utils/kanbanDragLogic';
 
 const Kanban = () => {
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [isCemeteryOpen, setIsCemeteryOpen] = useState(false);
@@ -29,7 +34,8 @@ const Kanban = () => {
   const [snapshot, setSnapshot] = useState(null);
   const [filters, setFilters] = useState({ userId: '', clientId: '', showToday: false });
   const [users, setUsers] = useState([]);
-  const [clients, setClients] = useState([]);
+  const [dragError, setDragError] = useState('');
+  const dragTargetStatusRef = useRef(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -38,23 +44,18 @@ const Kanban = () => {
 
   const fetchTasks = async () => {
     try {
-      const res = await axios.get('/api/tasks');
+      const completedMonth = getCurrentBogotaMonth();
+      const res = await axios.get('/api/tasks', { params: { completedMonth } });
       setTasks(res.data);
     } catch (e) {
       console.error(e);
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchData = async () => {
     try {
-      const [uRes, cRes] = await Promise.all([
-        axios.get('/api/users'),
-        axios.get('/api/clients')
-      ]);
+      const uRes = await axios.get('/api/users');
       setUsers(uRes.data);
-      setClients(cRes.data);
     } catch (e) {
       console.error(e);
     }
@@ -67,7 +68,11 @@ const Kanban = () => {
 
   const handleDragStart = (event) => {
     const task = tasks.find(t => t.id === event.active.id);
-    if (task) setInitialStatus(task.status);
+    if (task) {
+      setInitialStatus(task.status);
+      dragTargetStatusRef.current = task.status;
+    }
+    setDragError('');
     setSnapshot([...tasks]);
     setActiveId(event.active.id);
   };
@@ -83,9 +88,17 @@ const Kanban = () => {
     if (!activeTask) return;
 
     const overTask = tasks.find(t => t.id === overId);
+    const targetStatus = resolveDropStatus({
+      activeId,
+      overId,
+      tasks,
+      lastTargetStatus: dragTargetStatusRef.current,
+    });
+    if (!targetStatus) return;
+    dragTargetStatusRef.current = targetStatus;
 
     // CASO A: Arrastrar sobre una COLUMNA vacía
-    if (['PENDIENTE', 'EN_PROCESO', 'REALIZADO'].includes(overId)) {
+    if (TASK_STATUSES.includes(overId)) {
        if (activeTask.status !== overId) {
           setTasks(prev => {
             const newTasks = [...prev];
@@ -99,7 +112,7 @@ const Kanban = () => {
 
     // CASO B: Arrastrar sobre otra TARJETA
     if (overTask && activeId !== overId) {
-       const overStatus = overTask.status;
+       const overStatus = targetStatus;
 
        if (activeTask.status !== overStatus) {
           setTasks(prev => {
@@ -126,31 +139,37 @@ const Kanban = () => {
   const handleDragEnd = async (event) => {
     const { active, over } = event;
     setActiveId(null);
-    if (!over) return;
+    if (!over) {
+      if (snapshot) setTasks(snapshot);
+      setInitialStatus(null);
+      setSnapshot(null);
+      dragTargetStatusRef.current = null;
+      return;
+    }
 
     const activeTask = tasks.find(t => t.id === active.id);
     if (!activeTask) return;
 
     const overId = over.id;
-    let newStatus = activeTask.status; // El status ya fue actualizado en onDragOver
-
-    // Determinar status final de persistencia
-    if (['PENDIENTE', 'EN_PROCESO', 'REALIZADO'].includes(overId)) {
-        newStatus = overId;
-    } else {
-        const overTask = tasks.find(t => t.id === overId);
-        if (overTask) newStatus = overTask.status;
-    }
+    const newStatus = resolveDropStatus({
+      activeId: active.id,
+      overId,
+      tasks,
+      lastTargetStatus: dragTargetStatusRef.current,
+    }) || activeTask.status;
 
     // Persistencia silenciosa (Optimistic UI)
     if (initialStatus !== newStatus || active.id !== over.id) {
         try {
             // Persistir status y orden (basado en el índice local actual)
             const newOrder = tasks.findIndex(t => t.id === active.id);
-            await axios.put(`/api/tasks/${activeTask.id}`, {
+            const response = await axios.put(`/api/tasks/${activeTask.id}`, {
               status: newStatus,
               order: newOrder
             });
+            setTasks(prev => prev.map(task => (
+              task.id === activeTask.id ? { ...task, ...response.data } : task
+            )));
 
             if (newStatus === 'REALIZADO' && initialStatus !== 'REALIZADO') {
                 confetti({
@@ -162,17 +181,29 @@ const Kanban = () => {
             }
             setInitialStatus(null);
             setSnapshot(null);
+            dragTargetStatusRef.current = null;
         } catch (e) {
             console.error('API Error, rolling back state:', e);
             if (snapshot) setTasks(snapshot);
+            setDragError('No se pudo guardar el cambio de estado. La tarea volvió a su columna anterior.');
             setInitialStatus(null);
             setSnapshot(null);
+            dragTargetStatusRef.current = null;
         }
     } else {
         // Solo reordenamiento local persistido (si el backend lo soportara)
         setInitialStatus(null);
         setSnapshot(null);
+        dragTargetStatusRef.current = null;
     }
+  };
+
+  const handleDragCancel = () => {
+    if (snapshot) setTasks(snapshot);
+    setActiveId(null);
+    setInitialStatus(null);
+    setSnapshot(null);
+    dragTargetStatusRef.current = null;
   };
 
   const isOverdueByMoreThan24h = (task) => {
@@ -202,7 +233,7 @@ const Kanban = () => {
   const columns = [
     { id: 'PENDIENTE', title: 'Pendiente' },
     { id: 'EN_PROCESO', title: 'En proceso' },
-    { id: 'REALIZADO', title: 'Realizado' }
+    { id: 'REALIZADO', title: `Realizados · ${getCurrentBogotaMonthLabel()}` }
   ];
 
   return (
@@ -289,6 +320,11 @@ const Kanban = () => {
       </header>
 
       {/* Kanban Board */}
+      {dragError && (
+        <div role="alert" className="mx-8 mt-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-bold text-red-700 shadow-sm">
+          {dragError}
+        </div>
+      )}
       <div className="flex-1 overflow-auto p-8 bg-white flex gap-6 items-start justify-center">
         <DndContext
           sensors={sensors}
@@ -296,6 +332,7 @@ const Kanban = () => {
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
         >
           {columns.map(col => (
             <KanbanColumn
@@ -309,7 +346,7 @@ const Kanban = () => {
 
           <DragOverlay adjustScale={true}>
             {activeId ? (
-              <motion.div
+              <Motion.div
                 initial={{ scale: 1, rotate: 0 }}
                 animate={{
                   scale: 1.05,
@@ -323,7 +360,7 @@ const Kanban = () => {
                   task={tasks.find(t => t.id === activeId)}
                   onClick={() => {}}
                 />
-              </motion.div>
+              </Motion.div>
             ) : null}
           </DragOverlay>
         </DndContext>

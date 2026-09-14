@@ -2,23 +2,33 @@ const bcrypt = require('bcrypt');
 const prisma = require('./db');
 
 const migrateMissingContacts = require('../scripts/populateMissingContacts');
+const { isLegacyDataCleanupEnabled } = require('./utils/bootstrapPolicy');
 
 const bootstrapAdmin = async () => {
+  const legacyDataCleanupEnabled = isLegacyDataCleanupEnabled();
+
   // v70.0: Comprehensive raw SQL cleanup for DocumentType before any model queries
   try {
      // Ensure mandatory Enum values exist in native Postgres
      await prisma.$executeRaw`ALTER TYPE "DocumentType" ADD VALUE IF NOT EXISTS 'CC';`;
      await prisma.$executeRaw`ALTER TYPE "DocumentType" ADD VALUE IF NOT EXISTS 'OTHER';`;
 
-     // Sane data mapping (raw SQL to bypass Prisma model validation)
-     await prisma.$executeRaw`UPDATE "Client" SET "documentType" = 'OTHER' WHERE "documentType" NOT IN ('NIT', 'CC', 'OTHER');`;
-     console.log(`[Sunpartners] Data cleanup (Enum Sync & Type Sanitization) completed.`);
+     if (legacyDataCleanupEnabled) {
+       // Sane data mapping (raw SQL to bypass Prisma model validation)
+       await prisma.$executeRaw`UPDATE "Client" SET "documentType" = 'OTHER' WHERE "documentType" NOT IN ('NIT', 'CC', 'OTHER');`;
+       console.log(`[Sunpartners] Legacy DocumentType sanitization completed.`);
+     }
   } catch (e) {
      console.warn(`[Sunpartners] Warning: Could not run raw SQL cleanup: ${e.message}`);
   }
 
-  // v60.5: Self-healing data migration for contacts
-  await migrateMissingContacts();
+  if (legacyDataCleanupEnabled) {
+    console.warn('[Sunpartners] RUN_LEGACY_DATA_CLEANUP=true: running opt-in legacy data repairs.');
+    // v60.5: Explicit legacy migration for contacts
+    await migrateMissingContacts();
+  } else {
+    console.log('[Sunpartners] Legacy data cleanup disabled (safe default).');
+  }
 
   const adminEmail = process.env.ADMIN_USER;
   const adminPassword = process.env.ADMIN_PASSWORD;
@@ -50,42 +60,44 @@ const bootstrapAdmin = async () => {
     });
     console.log(`[Sunpartners] Admin creado con nuevo esquema: ${adminEmail}`);
 
-    // Clean up "SIN EMPRESA" clients to avoid validation noise
-    const cleanResult = await prisma.client.updateMany({
-      where: {
-        OR: [
-          { razon_social: { equals: 'SIN EMPRESA', mode: 'insensitive' } },
-          { razon_social: { equals: 'Sin Empresa', mode: 'insensitive' } }
-        ],
-        deletedAt: null
-      },
-      data: {
-        deletedAt: new Date(),
-        deletedJustification: 'Limpieza de registros de migración fallida'
-      }
-    });
-    if (cleanResult.count > 0) {
-      console.log(`[Sunpartners] Se eliminaron ${cleanResult.count} registros legacy del directorio.`);
-    }
-
-    // Migration of legacy RejectionType values
-    const legacyRejections = await prisma.quotation.count({
-      where: {
-        rejectionType: { in: ['PRECIO', 'CAMBIO_PLAN', 'OTRO'] }
-      }
-    });
-
-    if (legacyRejections > 0) {
-      console.log(`[Sunpartners] Migrando ${legacyRejections} motivos de rechazo antiguos...`);
-      await prisma.quotation.updateMany({
-        where: { rejectionType: { in: ['PRECIO', 'OTRO'] } },
-        data: { rejectionType: 'OTROS' }
+    if (legacyDataCleanupEnabled) {
+      // Clean up "SIN EMPRESA" clients to avoid validation noise
+      const cleanResult = await prisma.client.updateMany({
+        where: {
+          OR: [
+            { razon_social: { equals: 'SIN EMPRESA', mode: 'insensitive' } },
+            { razon_social: { equals: 'Sin Empresa', mode: 'insensitive' } }
+          ],
+          deletedAt: null
+        },
+        data: {
+          deletedAt: new Date(),
+          deletedJustification: 'Limpieza de registros de migración fallida'
+        }
       });
-      await prisma.quotation.updateMany({
-        where: { rejectionType: 'CAMBIO_PLAN' },
-        data: { rejectionType: 'PRODUCTOS' }
+      if (cleanResult.count > 0) {
+        console.log(`[Sunpartners] Se eliminaron ${cleanResult.count} registros legacy del directorio.`);
+      }
+
+      // Migration of legacy RejectionType values
+      const legacyRejections = await prisma.quotation.count({
+        where: {
+          rejectionType: { in: ['PRECIO', 'CAMBIO_PLAN', 'OTRO'] }
+        }
       });
-      console.log(`[Sunpartners] Migración de motivos completada.`);
+
+      if (legacyRejections > 0) {
+        console.log(`[Sunpartners] Migrando ${legacyRejections} motivos de rechazo antiguos...`);
+        await prisma.quotation.updateMany({
+          where: { rejectionType: { in: ['PRECIO', 'OTRO'] } },
+          data: { rejectionType: 'OTROS' }
+        });
+        await prisma.quotation.updateMany({
+          where: { rejectionType: 'CAMBIO_PLAN' },
+          data: { rejectionType: 'PRODUCTOS' }
+        });
+        console.log(`[Sunpartners] Migración de motivos completada.`);
+      }
     }
 
 
