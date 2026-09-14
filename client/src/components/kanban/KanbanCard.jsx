@@ -6,25 +6,35 @@ import { normalizeData, toTitleCase } from '../../utils/formatters';
 import UserAvatarPopover from '../UserAvatarPopover';
 import { CalendarDays, Zap } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
+import { getKanbanCardStyle, isCardVisuallyDragging } from '../../utils/kanbanDragLogic';
 
 const COLOMBIA_TZ = 'America/Bogota';
 
-const KanbanCard = ({ task, onClick }) => {
+const KanbanCard = ({ task, onClick, isOverlay = false, activeId = null }) => {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-    isDragging
-  } = useSortable({ id: task.id });
+  } = useSortable({
+    id: isOverlay ? `drag-overlay-${task.id}` : task.id,
+    disabled: isOverlay,
+  });
 
-  const style = {
+  const isVisuallyDragging = isCardVisuallyDragging({
+    cardId: task.id,
+    activeId,
+    isOverlay,
+  });
+
+  const style = getKanbanCardStyle({
+    isDragging: isVisuallyDragging,
+    isCompleted: task.status === 'REALIZADO',
+    isOverlay,
     transform: CSS.Translate.toString(transform),
     transition,
-    opacity: isDragging ? 0.3 : task.status === 'REALIZADO' ? 0.7 : 1,
-    zIndex: isDragging ? 50 : undefined,
-  };
+  });
 
   const nowColombia = toZonedTime(new Date(), COLOMBIA_TZ);
   const expirationDate = new Date(task.fechaLimite);
@@ -40,10 +50,10 @@ const KanbanCard = ({ task, onClick }) => {
   return (
     <Motion.div
       layout
-      ref={setNodeRef}
+      ref={isOverlay ? undefined : setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      {...(isOverlay ? {} : attributes)}
+      {...(isOverlay ? {} : listeners)}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98, rotate: '1deg', skew: '1deg' }}
       transition={{
@@ -55,10 +65,10 @@ const KanbanCard = ({ task, onClick }) => {
       className={`
         relative bg-white p-4 rounded-xl transition-all cursor-pointer group
         ${cardBorderClass}
-        ${isDragging ? 'shadow-none border-dashed border-zinc-300' : ''}
+        ${isVisuallyDragging ? 'shadow-none border-dashed border-zinc-300' : ''}
         ${isExpired && task.isImprorrogable ? 'grayscale desaturate-[0.8] opacity-80 bg-zinc-50' : ''}
       `}
-      onClick={() => onClick(task)}
+      onClick={() => !isOverlay && onClick(task)}
     >
       {isExpired && (
         <div className="absolute -top-3 -right-3 text-4xl z-10 animate-floating select-none" title={task.isImprorrogable ? "Tarea Improrrogable Vencida" : "Tarea Vencida"}>

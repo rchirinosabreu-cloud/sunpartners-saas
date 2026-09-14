@@ -1,5 +1,24 @@
 export const TASK_STATUSES = ['PENDIENTE', 'EN_PROCESO', 'REALIZADO'];
 
+export function isCardVisuallyDragging({ cardId, activeId, isOverlay }) {
+  return !isOverlay && activeId === cardId;
+}
+
+export function getKanbanCardStyle({
+  isDragging,
+  isCompleted,
+  isOverlay,
+  transform,
+  transition,
+}) {
+  return {
+    transform: isOverlay ? undefined : transform,
+    transition: isOverlay ? undefined : transition,
+    opacity: isCompleted ? 0.7 : (!isOverlay && isDragging ? 0.3 : 1),
+    zIndex: isOverlay || isDragging ? 50 : undefined,
+  };
+}
+
 export function resolveDropStatus({ activeId, overId, tasks, lastTargetStatus }) {
   if (TASK_STATUSES.includes(overId)) return overId;
   if (overId === activeId) return lastTargetStatus;

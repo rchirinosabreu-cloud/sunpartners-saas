@@ -113,17 +113,40 @@ await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox
 await page.mouse.down();
 await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + 180, { steps: 16 });
 await page.mouse.up();
-await page.waitForTimeout(300);
+await page.waitForFunction(() => {
+  const heading = [...document.querySelectorAll('h4')]
+    .find(element => element.textContent === 'Tarea pendiente de prueba');
+  const card = heading?.closest('[role="button"]');
+  return card && Number.parseFloat(getComputedStyle(card).opacity) === 1;
+});
 
 if (persistedStatus !== 'EN_PROCESO') {
   throw new Error(`Expected EN_PROCESO to be persisted, received ${persistedStatus}`);
 }
 
+const movedOpacity = Number.parseFloat(await source.evaluate(element => getComputedStyle(element).opacity));
+const completedCard = page.getByText('Realizado durante el mes', { exact: true }).locator('xpath=ancestor::div[@role="button"][1]');
+const completedOpacity = Number.parseFloat(await completedCard.evaluate(element => getComputedStyle(element).opacity));
+if (movedOpacity !== 1) {
+  throw new Error(`Expected the moved open task opacity to be 1, received ${movedOpacity}`);
+}
+if (completedOpacity !== 0.7) {
+  throw new Error(`Expected the completed task opacity to remain 0.7, received ${completedOpacity}`);
+}
+
+await page.waitForTimeout(500);
+const settledMovedOpacity = Number.parseFloat(await source.evaluate(element => getComputedStyle(element).opacity));
+if (settledMovedOpacity !== 1) {
+  throw new Error(`Expected the settled open task opacity to remain 1, received ${settledMovedOpacity}`);
+}
 await page.screenshot({ path: outputPath, fullPage: true });
 console.log(JSON.stringify({
   outputPath,
   requestedCompletedMonth,
   persistedStatus,
+  movedOpacity,
+  settledMovedOpacity,
+  completedOpacity,
   completedHeading: await completedHeading.textContent(),
 }, null, 2));
 

@@ -341,6 +341,7 @@ const Kanban = () => {
               title={col.title}
               tasks={filteredTasks.filter(t => t.status === col.id)}
               onCardClick={(task) => { setEditingTask(task); setIsModalOpen(true); }}
+              activeId={activeId}
             />
           ))}
 
@@ -359,6 +360,7 @@ const Kanban = () => {
                 <KanbanCard
                   task={tasks.find(t => t.id === activeId)}
                   onClick={() => {}}
+                  isOverlay
                 />
               </Motion.div>
             ) : null}

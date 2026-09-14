@@ -3,7 +3,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import KanbanCard from './KanbanCard';
 import { motion } from 'framer-motion';
 
-const KanbanColumn = ({ id, title, tasks, onCardClick }) => {
+const KanbanColumn = ({ id, title, tasks, onCardClick, activeId }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -19,7 +19,7 @@ const KanbanColumn = ({ id, title, tasks, onCardClick }) => {
       <div ref={setNodeRef} className="flex-1 space-y-4 pb-12">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
-            <KanbanCard key={task.id} task={task} onClick={onCardClick} />
+            <KanbanCard key={task.id} task={task} onClick={onCardClick} activeId={activeId} />
           ))}
         </SortableContext>
 
