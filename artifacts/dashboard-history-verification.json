@@ -1,0 +1,13 @@
+{
+  "dailyHistoryCount": 6,
+  "otherDaysExcluded": true,
+  "deletedAndPendingExcluded": true,
+  "defaultApiScopedToToday": true,
+  "invalidDatesRejected": true,
+  "dateAndMemberFiltersIndependent": true,
+  "reopeningDefaultsToToday": true,
+  "browserTimezone": "Asia/Tokyo",
+  "displayTimezone": "America/Bogota",
+  "browserErrors": [],
+  "storage": "Fixture database; real history controller and authentication"
+}

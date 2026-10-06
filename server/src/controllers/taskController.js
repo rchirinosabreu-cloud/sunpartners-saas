@@ -1,6 +1,7 @@
 const prisma = require('../db');
 const { getSignedUrlHelper } = require('../utils/s3Client');
 const { buildTaskBoardWhere } = require('../utils/taskBoardFilters');
+const { buildTaskHistoryWhere } = require('../utils/taskHistoryFilters');
 
 exports.getAll = async (req, res) => {
   try {
@@ -109,30 +110,7 @@ exports.getDashboardStats = async (req, res) => {
 
 exports.getHistory = async (req, res) => {
   try {
-    const { startDate, endDate, userId } = req.query;
-
-    const where = {
-      status: 'REALIZADO',
-      deletedAt: null
-    };
-
-    if (startDate || endDate) {
-      where.updatedAt = {};
-      if (startDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        where.updatedAt.gte = start;
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        where.updatedAt.lte = end;
-      }
-    }
-
-    if (userId) {
-      where.userId = userId;
-    }
+    const where = buildTaskHistoryWhere(req.query);
 
     const history = await prisma.task.findMany({
       where,
@@ -165,7 +143,7 @@ exports.getHistory = async (req, res) => {
 
     res.json(Object.values(groupedHistory));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.code === 'INVALID_HISTORY_DATE' ? 400 : 500).json({ error: error.message });
   }
 };
 

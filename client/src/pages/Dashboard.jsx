@@ -468,7 +468,7 @@ const Dashboard = () => {
                   onClick={() => setIsHistoryModalOpen(true)}
                   className="w-full py-4 border-t border-zinc-50 text-[11px] font-black uppercase tracking-widest text-primary hover:text-primary-hover flex items-center justify-center gap-2 transition-all hover:gap-3"
                 >
-                  Ver historial completo <span className="material-symbols-outlined text-[16px]">arrow_outward</span>
+                  Ver historial del día <span aria-hidden="true" className="material-symbols-outlined text-[16px]">arrow_outward</span>
                 </button>
               </div>
             </div>
@@ -483,10 +483,10 @@ const Dashboard = () => {
         onCreated={fetchDashboardData}
       />
 
-      <HistoryModal
-        isOpen={isHistoryModalOpen}
+      {isHistoryModalOpen && <HistoryModal
+        isOpen
         onClose={() => setIsHistoryModalOpen(false)}
-      />
+      />}
     </div>
   );
 };
