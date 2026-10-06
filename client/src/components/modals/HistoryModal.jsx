@@ -2,68 +2,79 @@ import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import SharedUserAvatar from '../SharedUserAvatar';
 import { toTitleCase } from '../../utils/formatters';
+import { formatInTimeZone } from 'date-fns-tz';
+
+const todayInBogota = () => formatInTimeZone(new Date(), 'America/Bogota', 'yyyy-MM-dd');
 
 const HistoryModal = ({ isOpen, onClose }) => {
   const [history, setHistory] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({
-    date: '',
+  const [filters, setFilters] = useState(() => ({
+    date: todayInBogota(),
     userId: ''
-  });
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const queryParams = new URLSearchParams();
-      if (filters.date) {
-        queryParams.append('startDate', filters.date);
-        queryParams.append('endDate', filters.date);
-      }
-      if (filters.userId) queryParams.append('userId', filters.userId);
-
-      const [historyRes, usersRes] = await Promise.all([
-        fetch(`/api/tasks/history?${queryParams.toString()}`),
-        fetch('/api/users')
-      ]);
-
-      if (historyRes.ok) setHistory(await historyRes.json());
-      if (usersRes.ok) setUsers(await usersRes.json());
-    } catch (error) {
-      console.error('Error fetching history:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }));
 
   useEffect(() => {
-    if (isOpen) fetchData();
+    if (!isOpen) return;
+    const controller = new AbortController();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append('startDate', filters.date);
+        queryParams.append('endDate', filters.date);
+        if (filters.userId) queryParams.append('userId', filters.userId);
+
+        const [historyRes, usersRes] = await Promise.all([
+          fetch(`/api/tasks/history?${queryParams.toString()}`, { signal: controller.signal }),
+          fetch('/api/users', { signal: controller.signal })
+        ]);
+
+        const historyData = historyRes.ok ? await historyRes.json() : [];
+        const usersData = usersRes.ok ? await usersRes.json() : [];
+        if (!controller.signal.aborted) {
+          setHistory(historyData);
+          setUsers(usersData);
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') console.error('Error fetching history:', error);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => controller.abort();
   }, [isOpen, filters]);
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Historial de Tareas"
+      title="Historial del día"
       showFooter={false}
       zIndexClass="z-[100]"
       maxWidthClass="max-w-5xl"
     >
       <div className="space-y-6 w-full max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+        <p className="text-xs text-zinc-500">Todas las tareas completadas en la fecha seleccionada, según la hora de Bogotá.</p>
         {/* Filters */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Filtrar por Día</label>
+            <label htmlFor="history-day" className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Filtrar por Día</label>
             <input
+              id="history-day"
               type="date"
+              required
               className="w-full text-xs p-2 rounded-lg border border-zinc-100 bg-zinc-50 focus:border-primary transition-all"
               value={filters.date}
-              onChange={(e) => setFilters(f => ({ ...f, date: e.target.value }))}
+              onChange={(e) => setFilters(f => ({ ...f, date: e.target.value || todayInBogota() }))}
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Miembro</label>
+            <label htmlFor="history-worker" className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Miembro</label>
             <select
+              id="history-worker"
               className="w-full text-xs p-2 rounded-lg border border-zinc-100 bg-zinc-50"
               value={filters.userId}
               onChange={(e) => setFilters(f => ({ ...f, userId: e.target.value }))}
@@ -80,7 +91,7 @@ const HistoryModal = ({ isOpen, onClose }) => {
         {loading ? (
           <div className="py-20 text-center text-zinc-400 text-xs">Cargando historial...</div>
         ) : history.length === 0 ? (
-          <div className="py-20 text-center text-zinc-400 text-xs">No se encontraron tareas completadas.</div>
+          <div className="py-20 text-center text-zinc-400 text-xs">No se completaron tareas en este día.</div>
         ) : (
           <div className="space-y-8">
             {history.map((group) => (
@@ -100,7 +111,7 @@ const HistoryModal = ({ isOpen, onClose }) => {
                       <div>
                         <p className="text-[13px] font-semibold text-zinc-800">{task.titulo}</p>
                         <p className="text-[10px] text-zinc-400 font-medium">
-                          {task.client?.razon_social || 'Sin cliente'} • {new Date(task.updatedAt).toLocaleDateString()}
+                          {task.client?.razon_social || 'Sin cliente'} • {new Date(task.updatedAt).toLocaleString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                       <span className="material-symbols-outlined text-green-500 text-[18px]">check_circle</span>
