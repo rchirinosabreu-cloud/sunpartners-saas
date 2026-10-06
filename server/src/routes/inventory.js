@@ -3,6 +3,7 @@ const router = express.Router();
 const inventoryController = require('../controllers/inventoryController');
 const { authMiddleware, checkRole } = require('../middleware/auth');
 const prisma = require('../db');
+const { getActiveInventoryAlerts } = require('../utils/inventoryAlerts');
 
 // v60.9: Closed inventory security gaps - require authentication for all routes
 router.use(authMiddleware);
@@ -14,20 +15,7 @@ const canDelete = checkRole(['ADMIN', 'EDITOR']);
 // Inventory Alerts (v67.0: Aggregate supply alerts for Ojo al Dato)
 router.get('/alerts', async (req, res) => {
   try {
-    const alerts = await prisma.inventoryAlert.findMany({
-      where: { resolvedAt: null },
-      include: {
-        quotation: {
-          select: {
-            id: true,
-            nombre_evento: true,
-            consecutivo: true,
-            client: { select: { razon_social: true } }
-          }
-        }
-      },
-      orderBy: { startDate: 'asc' }
-    });
+    const alerts = await getActiveInventoryAlerts(prisma);
     res.json(alerts);
   } catch (error) {
     console.warn(`[InventoryAlerts] Dashboard fetch suppressed: ${error.message}`);

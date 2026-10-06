@@ -1,0 +1,16 @@
+{
+  "activeCount": 15,
+  "countAfterExpiry": 14,
+  "announcementPublished": true,
+  "expiredCancelledArchivedDeletedResolvedExcluded": true,
+  "rescheduledDatesUsed": true,
+  "dismantlingStillActive": true,
+  "announcementsFullWidthAbove": true,
+  "lowerColumnRatio": "60/40",
+  "equalLowerWidgetHeights": true,
+  "alertsScrollable": true,
+  "narrowAnnouncementsFirst": true,
+  "emptyStateWorks": true,
+  "browserErrors": [],
+  "storage": "Fixture database; real inventory route and authentication"
+}
