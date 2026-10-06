@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { toTitleCase } from '../utils/formatters';
@@ -6,6 +6,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import SharedUserAvatar from '../components/SharedUserAvatar';
 import axios from 'axios';
+import { filterActiveInventoryAlerts } from '../utils/inventoryAlerts';
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -63,7 +64,7 @@ const AnnouncementItem = ({ id, content, type, author, date, onDelete, canDelete
           <span className="text-xs font-bold text-zinc-900 truncate">{toTitleCase(author.nombre)}</span>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-medium opacity-60">
-              {new Date(date).toLocaleDateString()}
+              {new Date(date).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })}
             </span>
             {canDelete && (
               <button
@@ -88,31 +89,34 @@ const AnnouncementItem = ({ id, content, type, author, date, onDelete, canDelete
 };
 
 const InventoryAlertWidget = ({ alerts }) => {
-  if (!alerts || alerts.length === 0) return null;
-
   return (
-    <div className="bg-white rounded-2xl border-2 border-alert/20 p-8 shadow-sm flex flex-col relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <span className="material-symbols-outlined text-[64px] text-alert">inventory_2</span>
-      </div>
-      <h2 className="text-lg font-bold text-zinc-900 tracking-tight flex items-center gap-2 mb-6">
-        <span className="material-symbols-outlined text-alert fill">warning</span>
+    <section aria-labelledby="inventory-alerts-title" className="bg-white rounded-[12px] border border-alert/30 p-6 shadow-sm flex flex-col min-w-0">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+      <h2 id="inventory-alerts-title" className="text-base font-bold text-zinc-900 tracking-tight flex items-center gap-2">
+        <span aria-hidden="true" className="material-symbols-outlined text-alert fill">warning</span>
         Alertas de Inventario Comprometido
       </h2>
-      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 max-h-[400px]">
+      <span className="text-[11px] font-semibold text-amber-800 bg-alert/10 px-2.5 py-1 rounded-full shrink-0">
+        {alerts.length} {alerts.length === 1 ? 'vigente' : 'vigentes'}
+      </span>
+      </div>
+      {alerts.length === 0 ? (
+        <p className="text-sm text-zinc-500 py-4">Sin alertas de inventario vigentes</p>
+      ) : (
+      <div aria-label="Alertas vigentes" className="overflow-y-auto pr-1 custom-scrollbar space-y-3 max-h-[300px]">
         {alerts.map((alert) => (
           <Link
              to={`/cotizaciones/${alert.quotationId}`}
              key={alert.id}
-             className="p-4 rounded-xl border border-alert/10 bg-alert/[0.02] flex items-start gap-4 hover:border-alert/30 hover:bg-alert/[0.04] transition-all cursor-pointer block"
+             className="p-4 rounded-[12px] border border-alert/15 bg-alert/[0.03] flex items-start gap-3 hover:border-alert/40 hover:bg-alert/[0.06] transition-all cursor-pointer"
           >
              <div className="size-10 rounded-lg bg-alert/10 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-alert text-[20px]">shopping_cart_checkout</span>
              </div>
              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start mb-1">
-                   <p className="text-xs font-black text-zinc-900 truncate">{alert.productName}</p>
-                   <span className="text-[10px] font-black text-alert bg-alert/10 px-2 py-0.5 rounded">-{alert.deficit} und</span>
+                <div className="flex justify-between items-start gap-3 mb-1">
+                   <p className="text-xs font-bold text-zinc-900 break-words">{alert.productName}</p>
+                   <span className="text-[10px] font-bold text-amber-800 bg-alert/10 px-2 py-0.5 rounded shrink-0">-{alert.deficit} und</span>
                 </div>
                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate mb-1">
                    {alert.quotation.client.razon_social} • {alert.quotation.nombre_evento}
@@ -125,7 +129,7 @@ const InventoryAlertWidget = ({ alerts }) => {
                 <div className="flex items-center gap-3">
                    <div className="flex items-center gap-1 text-[9px] font-black text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded">
                       <span className="material-symbols-outlined text-[12px]">calendar_today</span>
-                      {new Date(alert.startDate).toLocaleDateString()}
+                      {new Date(alert.startDate).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })}
                    </div>
                    <div className="h-3 w-px bg-zinc-200"></div>
                    <p className="text-[9px] font-bold text-zinc-400 italic underline decoration-zinc-200">ID: SP-{alert.quotation.consecutivo}</p>
@@ -134,12 +138,13 @@ const InventoryAlertWidget = ({ alerts }) => {
           </Link>
         ))}
       </div>
-      <div className="mt-6 pt-6 border-t border-zinc-50">
+      )}
+      {alerts.length > 0 && <div className="mt-4 pt-4 border-t border-zinc-100">
          <p className="text-[10px] font-medium text-zinc-400 leading-relaxed italic">
-            Estas alertas representan déficits aceptados manualmente. Haz clic en una tarjeta para revisar la propuesta.
+            Solo eventos vigentes hasta el fin del desmontaje. Haz clic para revisar la cotización.
          </p>
-      </div>
-    </div>
+      </div>}
+    </section>
   );
 };
 
@@ -150,6 +155,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({ progresoMes: 0, totalRealizados: 0, logrosRecientes: [] });
   const [announcements, setAnnouncements] = useState([]);
   const [inventoryAlerts, setInventoryAlerts] = useState([]);
+  const [alertClock, setAlertClock] = useState(() => Date.now());
   const [globalQuote, setGlobalQuote] = useState('');
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const [editQuoteValue, setEditQuoteValue] = useState('');
@@ -204,6 +210,44 @@ const Dashboard = () => {
     }
   }, [fetchDashboardData, location.state]);
 
+  // Recheck stock alerts while the dashboard is open and on returning to the tab.
+  useEffect(() => {
+    let disposed = false;
+    const refreshAlerts = async () => {
+      setAlertClock(Date.now());
+      try {
+        const { data } = await axios.get('/api/inventory/alerts');
+        if (!disposed) setInventoryAlerts(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.warn('[InventoryAlerts] Refresh failed:', error.message);
+      }
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshAlerts();
+    };
+    const interval = window.setInterval(refreshAlerts, 60000);
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', refreshAlerts);
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', refreshAlerts);
+    };
+  }, []);
+
+  const activeInventoryAlerts = useMemo(() => filterActiveInventoryAlerts(inventoryAlerts, alertClock),
+    [inventoryAlerts, alertClock]);
+
+  // Expire the next alert at its actual deadline, even if a refresh fails.
+  useEffect(() => {
+    if (activeInventoryAlerts.length === 0) return;
+    const nextDeadline = Math.min(...activeInventoryAlerts.map(alert => new Date(alert.endDate).getTime()));
+    const timer = window.setTimeout(() => setAlertClock(Date.now()),
+      Math.min(Math.max(0, nextDeadline - Date.now()), 2147483647));
+    return () => window.clearTimeout(timer);
+  }, [activeInventoryAlerts]);
+
   const handleSaveQuote = async () => {
     try {
       await axios.post('/api/settings', {
@@ -241,8 +285,9 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-8 pb-16 bg-zinc-50/30 min-h-full font-body">
-      <div className="mx-auto max-w-7xl space-y-12">
+    <div className="p-4 sm:p-6 lg:p-8 pb-16 bg-[#F5F6FA] min-h-full font-body"
+      style={{ '--font-body': '"Plus Jakarta Sans", sans-serif', '--font-display': '"Plus Jakarta Sans", sans-serif' }}>
+      <div className="mx-auto max-w-7xl space-y-8">
 
         {/* Access Denied Banner */}
         {showAccessDenied && (
@@ -319,15 +364,15 @@ const Dashboard = () => {
             unit="histórico"
             icon="verified"
           />
-          <div className="flex h-full flex-col justify-center rounded-xl bg-zinc-900 p-8 text-white relative overflow-hidden group">
+          <div className="flex h-full flex-col justify-center rounded-[12px] border border-primary/20 bg-white p-6 shadow-sm relative overflow-hidden group">
             <div className="relative z-10">
-              <h3 className="text-xl font-bold mb-2">Cartelera Digital</h3>
-              <p className="text-sm text-zinc-400 mb-6 leading-relaxed">Comparte anuncios, logros o información importante con todo el equipo.</p>
+              <h3 className="text-lg font-bold text-primary mb-2">Cartelera Digital</h3>
+              <p className="text-sm text-zinc-500 mb-4 leading-relaxed">Comparte información importante con todo el equipo.</p>
               <button
                 onClick={() => setIsAnnounceModalOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-alert text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all active:scale-95"
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-[12px] text-xs font-bold hover:bg-primary-hover transition-all active:scale-95"
               >
-                <span className="material-symbols-outlined text-lg">add</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-lg">add</span>
                 Nuevo Anuncio
               </button>
             </div>
@@ -335,24 +380,17 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Inventory Alerts (v67.0: Aggregate supply alerts for Ojo al Dato) */}
-          {inventoryAlerts.length > 0 && (
-            <div className="lg:col-span-12">
-               <InventoryAlertWidget alerts={inventoryAlerts} />
-            </div>
-          )}
-
+        <div className="space-y-6">
           {/* Announcements Feed */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-zinc-900 tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">campaign</span>
+          <section aria-labelledby="announcements-title" className="bg-white rounded-[12px] border border-zinc-200 p-6 shadow-sm min-w-0">
+            <div className="flex items-center justify-between mb-5">
+              <h2 id="announcements-title" className="text-lg font-bold text-zinc-900 tracking-tight flex items-center gap-2">
+                <span aria-hidden="true" className="material-symbols-outlined text-primary">campaign</span>
                 Anuncios
               </h2>
             </div>
-            <div className="bg-white rounded-2xl border border-zinc-100 p-8 shadow-sm h-[600px] flex flex-col relative overflow-hidden">
-              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
+            <div className="flex flex-col relative">
+              <div className="min-h-[120px] max-h-[280px] overflow-y-auto pr-1 custom-scrollbar space-y-4">
                 {announcements.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center">
                     <span className="material-symbols-outlined text-zinc-200 text-[48px] mb-4">notifications_off</span>
@@ -374,18 +412,20 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
-          </div>
+          </section>
 
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-6 items-stretch">
+            <InventoryAlertWidget alerts={activeInventoryAlerts} />
           {/* Recent Achievements */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-zinc-900 tracking-tight flex items-center gap-2">
-                <span className="material-symbols-outlined text-green-500">emoji_events</span>
+          <section aria-labelledby="achievements-title" className="bg-white rounded-[12px] border border-zinc-200 p-6 shadow-sm min-w-0 flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <h2 id="achievements-title" className="text-lg font-bold text-zinc-900 tracking-tight flex items-center gap-2">
+                <span aria-hidden="true" className="material-symbols-outlined text-alert">emoji_events</span>
                 Logros Recientes
               </h2>
             </div>
-            <div className="bg-white rounded-2xl border border-zinc-100 p-8 shadow-sm h-[600px] flex flex-col relative overflow-hidden">
-              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="flex-1 flex flex-col relative overflow-hidden">
+              <div className="max-h-[240px] overflow-y-auto pr-1 custom-scrollbar">
                 <div className="relative space-y-6">
                   {/* Vertical Timeline Line */}
                   {stats.logrosRecientes.length > 1 && (
@@ -395,7 +435,7 @@ const Dashboard = () => {
                   {stats.logrosRecientes.length === 0 ? (
                     <p className="text-center py-8 text-xs text-zinc-400 font-medium italic">Sin logros registrados esta semana</p>
                   ) : (
-                    stats.logrosRecientes.slice(0, 5).map((logro, idx) => (
+                    stats.logrosRecientes.slice(0, 5).map((logro) => (
                       <div key={logro.id} className="flex items-start gap-3 relative z-10 group">
                         <SharedUserAvatar user={logro.user} size={32} className="ring-4 ring-white" />
                         <div className="flex-1 min-w-0 pt-0.5">
@@ -405,7 +445,7 @@ const Dashboard = () => {
                           <p className="text-sm font-black text-zinc-900 mb-1 leading-tight">{logro.titulo}</p>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold text-zinc-300">
-                               {new Date(logro.updatedAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                               {new Date(logro.updatedAt).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit', hour12: true })}
                             </span>
                             {logro.client && (
                               <>
@@ -423,7 +463,7 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="mt-auto pt-4">
                 <button
                   onClick={() => setIsHistoryModalOpen(true)}
                   className="w-full py-4 border-t border-zinc-50 text-[11px] font-black uppercase tracking-widest text-primary hover:text-primary-hover flex items-center justify-center gap-2 transition-all hover:gap-3"
@@ -432,6 +472,7 @@ const Dashboard = () => {
                 </button>
               </div>
             </div>
+          </section>
           </div>
         </div>
       </div>
