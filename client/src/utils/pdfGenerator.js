@@ -3,7 +3,8 @@ import autoTable from 'jspdf-autotable';
 import { calculateLineTotal, calculateTotals } from './quotationUtils';
 
 export const generateQuotationPDF = (quotation) => {
-  const doc = new jsPDF('p', 'mm', 'a4');
+  // Compress PDF streams, including the full-resolution corporate PNG logo.
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
   const pageHeight = doc.internal.pageSize.height; // 297mm for A4
 
   // v42.1: Layout Constants
